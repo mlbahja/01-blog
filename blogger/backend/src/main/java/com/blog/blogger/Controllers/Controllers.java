@@ -26,6 +26,7 @@ public class Controllers {
 
     @GetMapping("/register")
     public String register() {
+        //  register = new Controllers.Register;
         return "register of user in blog for the first time";
     }
 
