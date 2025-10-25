@@ -1,4 +1,4 @@
-package com.blog.blogger.Controllers;
+package com.blog.blogger.controller;
 
 import java.util.List;
 
@@ -6,8 +6,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.blog.blogger.Models.Post;
-import com.blog.blogger.Services.PostService;
+import com.blog.blogger.repository.Post;
+import com.blog.blogger.service.PostService;
 
 @RestController
 @RequestMapping("/api")

@@ -1,11 +1,11 @@
-package com.blog.blogger.Services;
+package com.blog.blogger.service;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import com.blog.blogger.Models.Comment;
-import com.blog.blogger.Models.Post;
-import com.blog.blogger.Models.Reponse;
+import com.blog.blogger.repository.Comment;
+import com.blog.blogger.repository.Post;
+import com.blog.blogger.repository.Reponse;
 
 public class PostService {
     private List<Post> posts = new ArrayList<>();

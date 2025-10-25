@@ -1,3 +1,4 @@
+package com.blog.blogger.repository;
 /*package com.blog.blogger.Models;
 
 public class Register {

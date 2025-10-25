@@ -1,4 +1,4 @@
-package com.blog.blogger.Models;
+package com.blog.blogger.repository;
 
 import java.util.List;
 
