@@ -1,3 +1,204 @@
 How to run programme.
 
    ./mvnw spring-boot:run
+
+---
+01blog/
+│
+├── src/
+│   ├── main/
+│   │   ├── java/com/example/blog/
+│   │   │   ├── controllers/
+│   │   │   │   ├── AuthController.java
+│   │   │   │   ├── UserController.java
+│   │   │   │   ├── PostController.java
+│   │   │   │   ├── CommentController.java
+│   │   │   │   ├── ReportController.java
+│   │   │   │   └── AdminController.java
+│   │   │   │
+│   │   │   ├── models/
+│   │   │   │   ├── User.java
+│   │   │   │   ├── Role.java
+│   │   │   │   ├── Post.java
+│   │   │   │   ├── Comment.java
+│   │   │   │   ├── Report.java
+│   │   │   │   └── Subscription.java
+│   │   │   │
+│   │   │   ├── repositories/
+│   │   │   │   ├── UserRepository.java
+│   │   │   │   ├── PostRepository.java
+│   │   │   │   ├── CommentRepository.java
+│   │   │   │   ├── ReportRepository.java
+│   │   │   │   └── SubscriptionRepository.java
+│   │   │   │
+│   │   │   ├── services/
+│   │   │   │   ├── UserService.java
+│   │   │   │   ├── PostService.java
+│   │   │   │   ├── CommentService.java
+│   │   │   │   ├── ReportService.java
+│   │   │   │   ├── SubscriptionService.java
+│   │   │   │   └── NotificationService.java
+│   │   │   │
+│   │   │   ├── security/
+│   │   │   │   ├── JwtUtil.java
+│   │   │   │   ├── JwtFilter.java
+│   │   │   │   ├── SecurityConfig.java
+│   │   │   │   └── CustomUserDetailsService.java
+│   │   │   │
+│   │   │   ├── dto/
+│   │   │   │   ├── LoginRequest.java
+│   │   │   │   ├── RegisterRequest.java
+│   │   │   │   ├── PostRequest.java
+│   │   │   │   ├── CommentRequest.java
+│   │   │   │   └── ReportRequest.java
+│   │   │   │
+│   │   │   ├── exceptions/
+│   │   │   │   ├── GlobalExceptionHandler.java
+│   │   │   │   ├── ResourceNotFoundException.java
+│   │   │   │   └── UnauthorizedException.java
+│   │   │   │
+│   │   │   ├── config/
+│   │   │   │   └── CorsConfig.java
+│   │   │   │
+│   │   │   └── BloggerApplication.java
+│   │   │
+│   │   └── resources/
+│   │       ├── application.properties
+│   │       └── static/
+│   │
+│   └── test/
+│       └── java/com/example/blog/
+│           ├── BlogApplicationTests.java
+│           └── services/
+│               └── PostServiceTests.java
+│
+├── pom.xml
+└── README.md
+
+--------------------------------------
+
+## 🔐 AuthController — Authentication & Registration
+**Base URL:** `/api/auth`
+
+| Method | Endpoint | Description |
+|--------|-----------|-------------|
+| **POST** | `/register` | Register a new user |
+| **POST** | `/login` | Login user and return JWT token |
+| **GET** | `/me` | Get current logged-in user info |
+| **POST** | `/logout` | Logout (optional in JWT) |
+
+---
+
+## 👤 UserController — User Profiles & Subscriptions
+**Base URL:** `/api/users`
+
+| Method | Endpoint | Description |
+|--------|-----------|-------------|
+| **GET** | `/` | Get all users (Admin only) |
+| **GET** | `/{id}` | Get specific user profile |
+| **PUT** | `/{id}` | Update user info |
+| **DELETE** | `/{id}` | Delete user (Admin only) |
+| **GET** | `/{id}/posts` | Get all posts by user |
+| **POST** | `/{id}/subscribe` | Follow a user |
+| **DELETE** | `/{id}/unsubscribe` | Unfollow a user |
+| **GET** | `/subscriptions` | Get current user's subscriptions |
+| **GET** | `/followers` | Get current user's followers |
+
+---
+
+## 📝 PostController — Posts Management
+**Base URL:** `/api/posts`
+
+| Method | Endpoint | Description |
+|--------|-----------|-------------|
+| **GET** | `/` | Get all posts (feed) |
+| **GET** | `/{id}` | Get one post |
+| **POST** | `/` | Create new post |
+| **PUT** | `/{id}` | Update post |
+| **DELETE** | `/{id}` | Delete post |
+| **POST** | `/{id}/like` | Like a post |
+| **DELETE** | `/{id}/unlike` | Unlike a post |
+| **GET** | `/{id}/likes` | Get all users who liked post |
+
+---
+
+## 💬 CommentController — Comments System
+**Base URL:** `/api/posts/{postId}/comments`
+
+| Method | Endpoint | Description |
+|--------|-----------|-------------|
+| **GET** | `/` | Get all comments for a post |
+| **POST** | `/` | Add a comment |
+| **PUT** | `/{commentId}` | Edit a comment |
+| **DELETE** | `/{commentId}` | Delete a comment |
+
+---
+
+## 🚨 ReportController — Reports & Abuse System
+**Base URL:** `/api/reports`
+
+| Method | Endpoint | Description |
+|--------|-----------|-------------|
+| **POST** | `/` | Create a report (against user or post) |
+| **GET** | `/` | Get all reports (Admin only) |
+| **GET** | `/{id}` | Get report details |
+| **DELETE** | `/{id}` | Delete report (Admin only) |
+
+---
+
+## 🛠️ AdminController — Admin Tools
+**Base URL:** `/api/admin`
+
+| Method | Endpoint | Description |
+|--------|-----------|-------------|
+| **GET** | `/users` | Get all users |
+| **GET** | `/posts` | Get all posts |
+| **GET** | `/reports` | Get all reports |
+| **DELETE** | `/users/{id}` | Delete or ban a user |
+| **DELETE** | `/posts/{id}` | Delete inappropriate post |
+| **PUT** | `/users/{id}/ban` | Ban a user |
+| **PUT** | `/users/{id}/unban` | Unban a user |
+
+---
+
+## 🔔 NotificationController — Notifications System
+**Base URL:** `/api/notifications`
+
+| Method | Endpoint | Description |
+|--------|-----------|-------------|
+| **GET** | `/` | Get all notifications for current user |
+| **PUT** | `/{id}/read` | Mark notification as read |
+| **DELETE** | `/{id}` | Delete a notification |
+
+---
+
+## 🖼️ MediaController — Media Uploads (Images/Videos)
+**Base URL:** `/api/media`
+
+| Method | Endpoint | Description |
+|--------|-----------|-------------|
+| **POST** | `/upload` | Upload a file (image/video) |
+| **GET** | `/view/{filename}` | View a file |
+| **DELETE** | `/delete/{filename}` | Delete a file |
+
+---
+
+## 🗂️ Summary by Controller
+
+| Controller | Purpose | Example Endpoints |
+|-------------|----------|-------------------|
+| **AuthController** | Authentication | `/api/auth/register`, `/api/auth/login` |
+| **UserController** | Profiles & Subscriptions | `/api/users/{id}`, `/api/users/{id}/subscribe` |
+| **PostController** | Posts CRUD | `/api/posts`, `/api/posts/{id}/like` |
+| **CommentController** | Comments CRUD | `/api/posts/{postId}/comments` |
+| **ReportController** | Reports Management | `/api/reports` |
+| **AdminController** | Admin Operations | `/api/admin/users`, `/api/admin/reports` |
+| **NotificationController** | Notifications | `/api/notifications` |
+| **MediaController** | File Uploads | `/api/media/upload` |
+
+---
+
+📘 **Next Step:**
+> Define database entities & relationships (ERD):  
+> `User`, `Post`, `Comment`, `Like`, `Report`, `Notification`, `Subscription`.
+
