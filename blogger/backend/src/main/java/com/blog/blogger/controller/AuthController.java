@@ -2,6 +2,7 @@ package com.blog.blogger.controller;
 import java.util.Optional;
 
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -10,9 +11,10 @@ import org.springframework.web.bind.annotation.RestController;
 import com.blog.blogger.models.User;
 import com.blog.blogger.service.UserService;
 
+
 @RestController
 @RequestMapping("/auth")
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = "http://localhost:4200/auth")
 
 public class AuthController {
 
@@ -31,6 +33,11 @@ public class AuthController {
     public Optional<User> login(@RequestBody User user) {
         return userService.login(user.getEmail(), user.getPassword());
     }
+    @GetMapping("/ana")
+    public String getMethodName() {
+        return "ana khdam db ";
+    }
+    
     // public static class UserDTO {
     //     public String username;
     //     public String password;

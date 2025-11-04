@@ -27,7 +27,12 @@ public class UserService {
     }
 
     public Optional<User> login(String email, String password) {
+        for (int i = 0; i <= 10;i++){
+            System.err.println("Enter to this login");
+        }
+
         Optional<User> existingUser = userRepository.findByEmail(email);
+
         if (existingUser.isPresent() && passwordEncoder.matches(password, existingUser.get().getPassword())) {
             return existingUser;    
         }

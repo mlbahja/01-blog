@@ -1,7 +1,7 @@
 How to run programme.
 
    ./mvnw spring-boot:run
-
+ng serve --open
 ---
 01blog/
 │
@@ -73,6 +73,98 @@ How to run programme.
 │               └── PostServiceTests.java
 │
 ├── pom.xml
+└── README.md
+
+--------------------------------------
+blog-frontend/
+│
+├── src/
+│   ├── app/
+│   │   ├── core/                         # Application core (auth, interceptors, guards, services globaux)
+│   │   │   ├── interceptors/
+│   │   │   │   └── jwt.interceptor.ts
+│   │   │   ├── guards/
+│   │   │   │   └── auth.guard.ts
+│   │   │   ├── services/
+│   │   │   │   ├── auth.service.ts
+│   │   │   │   ├── user.service.ts
+│   │   │   │   ├── post.service.ts
+│   │   │   │   ├── comment.service.ts
+│   │   │   │   ├── report.service.ts
+│   │   │   │   └── subscription.service.ts
+│   │   │   ├── models/
+│   │   │   │   ├── user.model.ts
+│   │   │   │   ├── post.model.ts
+│   │   │   │   ├── comment.model.ts
+│   │   │   │   ├── report.model.ts
+│   │   │   │   └── subscription.model.ts
+│   │   │   └── core.module.ts
+│   │   │
+│   │   ├── shared/                       # Shared reusable components & utilities
+│   │   │   ├── components/
+│   │   │   │   ├── navbar/
+│   │   │   │   │   ├── navbar.component.ts
+│   │   │   │   │   ├── navbar.component.html
+│   │   │   │   │   └── navbar.component.css
+│   │   │   │   └── footer/
+│   │   │   │       ├── footer.component.ts
+│   │   │   │       ├── footer.component.html
+│   │   │   │       └── footer.component.css
+│   │   │   └── shared.module.ts
+│   │   │
+│   │   ├── features/                     # Modules for each domain (Auth, Posts, Users, etc.)
+│   │   │   ├── auth/
+│   │   │   │   ├── login/
+│   │   │   │   │   ├── login.component.ts
+│   │   │   │   │   └── login.component.html
+│   │   │   │   ├── register/
+│   │   │   │   │   ├── register.component.ts
+│   │   │   │   │   └── register.component.html
+│   │   │   │   ├── auth-routing.module.ts
+│   │   │   │   └── auth.module.ts
+│   │   │   │
+│   │   │   ├── posts/
+│   │   │   │   ├── list/
+│   │   │   │   │   ├── post-list.component.ts
+│   │   │   │   │   └── post-list.component.html
+│   │   │   │   ├── details/
+│   │   │   │   │   ├── post-details.component.ts
+│   │   │   │   │   └── post-details.component.html
+│   │   │   │   ├── create/
+│   │   │   │   │   ├── post-create.component.ts
+│   │   │   │   │   └── post-create.component.html
+│   │   │   │   ├── posts-routing.module.ts
+│   │   │   │   └── posts.module.ts
+│   │   │   │
+│   │   │   ├── admin/
+│   │   │   │   ├── dashboard/
+│   │   │   │   │   ├── admin-dashboard.component.ts
+│   │   │   │   │   └── admin-dashboard.component.html
+│   │   │   │   └── admin.module.ts
+│   │   │   │
+│   │   │   └── users/
+│   │   │       ├── profile/
+│   │   │       │   ├── user-profile.component.ts
+│   │   │       │   └── user-profile.component.html
+│   │   │       ├── edit/
+│   │   │       │   ├── user-edit.component.ts
+│   │   │       │   └── user-edit.component.html
+│   │   │       ├── users-routing.module.ts
+│   │   │       └── users.module.ts
+│   │   │
+│   │   ├── app-routing.module.ts         # Main routing
+│   │   ├── app.component.ts
+│   │   ├── app.component.html
+│   │   └── app.module.ts
+│   │
+│   └── assets/
+│       ├── images/
+│       ├── css/
+│       └── icons/
+│
+├── angular.json
+├── package.json
+├── tsconfig.json
 └── README.md
 
 --------------------------------------
