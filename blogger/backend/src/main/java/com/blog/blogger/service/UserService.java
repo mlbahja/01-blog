@@ -1,7 +1,6 @@
 package com.blog.blogger.service;
-
-// import org.apache.catalina.User;
 import java.util.Optional;
+
 
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -21,15 +20,15 @@ public class UserService {
     }
 
     public User register(User user) {
-        user.setPassword(passwordEncoder.encode(user.getPassword())); // تشفير الباسورد
-        System.out.println("register good in this part .");
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        for (int i = 0; i < 10; i++){
+            System.out.println("register good in this part ...................................");
+        }
         return userRepository.save(user);
     }
 
     public Optional<User> login(String email, String password) {
-        for (int i = 0; i <= 10;i++){
-            System.err.println("Enter to this login");
-        }
+      
 
         Optional<User> existingUser = userRepository.findByEmail(email);
 

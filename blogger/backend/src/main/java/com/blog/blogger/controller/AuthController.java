@@ -17,7 +17,6 @@ import com.blog.blogger.service.UserService;
 @CrossOrigin(origins = "http://localhost:4200/auth")
 
 public class AuthController {
-
     private final UserService userService;
 
     public AuthController(UserService userService) {
@@ -26,11 +25,13 @@ public class AuthController {
 
     @PostMapping("/register")
     public User register(@RequestBody User user) {
+        System.out.println("enter infos *************************");
         return userService.register(user);
     }
 
     @PostMapping("/login")
     public Optional<User> login(@RequestBody User user) {
+        System.out.println(user);
         return userService.login(user.getEmail(), user.getPassword());
     }
     @GetMapping("/ana")
