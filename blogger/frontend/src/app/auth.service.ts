@@ -8,12 +8,14 @@ export class AuthService {
 
   constructor(private http: HttpClient) {}
 
-  // تسجيل مستخدم جديد
   register(data: any): Observable<any> {
+   
+    console.log("hada malo hada ");
+
     return this.http.post(`${this.baseUrl}/register`, data);
   }
 
-  // تسجيل الدخول
+ 
   login(data: any): Observable<any> {
     return this.http.post(`${this.baseUrl}/login`, data);
   }
