@@ -1,0 +1,159 @@
+.home-container {.home-container {
+
+  max-width: 800px;  max-width: 800px;
+
+  margin: 0 auto;  margin: 0 auto;
+
+  padding: 20px;  padding: 20px;
+
+}}
+
+
+
+.header {.welcome-section {
+
+  display: flex;  background-color: #f8f9fa;
+
+  justify-content: space-between;  padding: 20px;
+
+  align-items: center;  border-radius: 8px;
+
+  margin-bottom: 30px;  margin-bottom: 20px;
+
+}  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+}
+
+.welcome-section {
+
+  background-color: #f8f9fa;.welcome-title {
+
+  padding: 20px;  color: #343a40;
+
+  border-radius: 8px;  margin-bottom: 10px;
+
+  margin-bottom: 20px;}
+
+}
+
+.user-info {
+
+.post-form {  color: #6c757d;
+
+  background-color: white;}
+
+  padding: 20px;
+
+  border-radius: 8px;.logout-button {
+
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);  background-color: #dc3545;
+
+  margin-bottom: 20px;  color: white;
+
+}  border: none;
+
+  padding: 10px 20px;
+
+.post-form input,  border-radius: 4px;
+
+.post-form textarea {  cursor: pointer;
+
+  width: 100%;  transition: background-color 0.3s;
+
+  margin-bottom: 10px;}
+
+  padding: 8px;
+
+  border: 1px solid #ddd;.logout-button:hover {
+
+  border-radius: 4px;  background-color: #c82333;
+
+}}
+
+
+.post-form textarea {
+  min-height: 100px;
+}
+
+.posts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.post {
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.post-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.post-title {
+  font-size: 1.5em;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.post-content {
+  color: #666;
+  margin-bottom: 15px;
+}
+
+.post-meta {
+  color: #999;
+  font-size: 0.9em;
+}
+
+.comments-section {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #eee;
+}
+
+.comment {
+  background-color: #f8f9fa;
+  padding: 10px;
+  border-radius: 4px;
+  margin-bottom: 10px;
+}
+
+.comment-form {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.comment-form input {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
+.logout-button {
+  background-color: #dc3545;
+}
+
+.logout-button:hover {
+  background-color: #c82333;
+}
