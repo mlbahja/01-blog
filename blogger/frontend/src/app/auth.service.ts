@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private baseUrl = 'http://localhost:9999/auth'; // 🟢 backend Spring Boot
+  private baseUrl = 'http://localhost:9999/auth'; //backend Spring Boot
 
   constructor(private http: HttpClient) {}
 
@@ -12,7 +12,7 @@ export class AuthService {
    
     console.log("hada malo hada ");
 
-    return this.http.post(`${this.baseUrl}/register`, data);
+    return this.http.post(`${this.baseUrl}/home`, data);
   }
 
  
