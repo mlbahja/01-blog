@@ -10,10 +10,12 @@ import { AuthService } from '../../core/services/auth.service';
   styleUrls: ['./register.component.css'],
 })
 export class RegisterComponent {
-  username = '';
-  email = '';
-  password = '';
-  confirmPassword = '';
+ 
+ 
+    username = '';
+    email = '';
+    password = '';
+    confirmPassword = '';
 
   constructor(private authService: AuthService) {}
 

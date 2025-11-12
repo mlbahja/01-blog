@@ -15,19 +15,21 @@ export class AuthService {
   ) {}
 
   login(credentials: { username?: string; email?: string; password: string }): Observable<any> {
-    return this.http.post(`${this.apiUrl}/login`, {
-      email: credentials.email,
-      username: credentials.username,
-      password: credentials.password
-    }).pipe(
-      tap((response: any) => {
-        // Store user info in localStorage
-        localStorage.setItem('username', credentials.username || credentials.email || '');
-        localStorage.setItem('isLoggedIn', 'true');
-        // Route to home page after successful login
-        this.router.navigate(['/auth/home']);
-      }),
-    );
+    return this.http
+      .post(`${this.apiUrl}/login`, {
+        email: credentials.email,
+        username: credentials.username,
+        password: credentials.password,
+      })
+      .pipe(
+        tap((response: any) => {
+          // Store user info in localStorage
+          localStorage.setItem('username', credentials.username || credentials.email || '');
+          localStorage.setItem('isLoggedIn', 'true');
+          // Route to home page after successful login
+          this.router.navigate(['/auth/home']);
+        }),
+      );
   }
 
   register(user: { username: string; email: string; password: string }): Observable<any> {

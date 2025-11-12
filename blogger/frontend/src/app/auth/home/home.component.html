@@ -1,38 +1,24 @@
 <div class="home-container">
-  <div class="home-container">
-    <div class="header">
-      <div class="welcome-section">
-        <h1>Welcome, {{ username }}!</h1>
-        <h1 class="welcome-title">Welcome to Your Dashboard</h1>
+  <div class="header">
+    <h1 class="welcome-title">Welcome, {{username}}!</h1>
+    <button class="logout-button" (click)="logout()">Logout</button>
+  </div>
 
-        <button class="logout-button" (click)="logout()">Logout</button>
-        <p class="user-info">Hello, {{ username }}!</p>
-      </div>
-      <button class="logout-button" (click)="logout()">Logout</button>
-    </div>
-
-    <!-- Create Post Form -->
-
-    <div class="post-form">
-      <!-- Add more content here for the home page -->
-
-      <h2>Create New Post</h2>
-    </div>
-
+  <!-- Create Post Form -->
+  <div class="post-form">
+    <h2>Create New Post</h2>
     <form (ngSubmit)="createPost()">
-      <input
-        type="text"
-        [(ngModel)]="newPost.title"
+      <input 
+        type="text" 
+        [(ngModel)]="newPost.title" 
         name="title"
-        placeholder="Post Title"
-        required
-      />
-      <textarea
-        [(ngModel)]="newPost.content"
+        placeholder="Post Title" 
+        required>
+      <textarea 
+        [(ngModel)]="newPost.content" 
         name="content"
-        placeholder="Write your post here..."
-        required
-      ></textarea>
+        placeholder="Write your post here..." 
+        required></textarea>
       <button type="submit">Post</button>
     </form>
   </div>
@@ -41,25 +27,26 @@
   <div class="posts-list">
     <div class="post" *ngFor="let post of posts">
       <div class="post-header">
-        <h2 class="post-title">{{ post.title }}</h2>
-        <span class="post-meta">By {{ post.author }}</span>
+        <h2 class="post-title">{{post.title}}</h2>
+        <span class="post-meta">By {{post.author}}</span>
       </div>
-      <p class="post-content">{{ post.content }}</p>
+      <p class="post-content">{{post.content}}</p>
 
       <!-- Comments Section -->
       <div class="comments-section">
         <h3>Comments</h3>
         <div class="comment" *ngFor="let comment of post.comments">
-          <p>{{ comment.content }}</p>
-          <small>By {{ comment.author }}</small>
+          <p>{{comment.content}}</p>
+          <small>By {{comment.author}}</small>
         </div>
-
+        
         <!-- Add Comment Form -->
-        <form
-          class="comment-form"
-          (ngSubmit)="addComment(post.id, commentText.value); commentText.value = ''"
-        >
-          <input #commentText type="text" placeholder="Write a comment..." required />
+        <form class="comment-form" (ngSubmit)="addComment(post.id, commentText.value); commentText.value=''">
+          <input 
+            #commentText 
+            type="text" 
+            placeholder="Write a comment..." 
+            required>
           <button type="submit">Comment</button>
         </form>
       </div>
