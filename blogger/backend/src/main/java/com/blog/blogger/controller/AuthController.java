@@ -1,17 +1,18 @@
 package com.blog.blogger.controller;
 
-import java.util.Optional;
-
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
+import com.blog.blogger.dto.RegisterRequest;
+import com.blog.blogger.dto.LoginRequest;
 import com.blog.blogger.models.User;
+import com.blog.blogger.models.Role;
 import com.blog.blogger.service.UserService;
+
+import jakarta.validation.Valid;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/auth")
-@CrossOrigin(origins = "http://localhost:4200") // ✅ فقط frontend
 public class AuthController {
 
     private final UserService userService;
@@ -20,62 +21,43 @@ public class AuthController {
         this.userService = userService;
     }
 
-    // ✅ Register endpoint
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody User user) {
-        try {
-            // تحقق واش الإيميل مستعمل
-            if (userService.existsByEmail(user.getEmail())) {
-                return ResponseEntity.status(HttpStatus.CONFLICT)
-                        .body("Email already in use");
-            }
-
-            // تحقق واش username مستعمل
-            if (userService.existsByUsername(user.getUsername())) {
-                return ResponseEntity.status(HttpStatus.CONFLICT)
-                        .body("Username already in use");
-            }
-
-            User savedUser = userService.register(user);
-            return ResponseEntity.ok(savedUser);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Something went wrong: " + e.getMessage());
+    public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest req) {
+        if (userService.existsByEmail(req.getEmail())) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Email already in use");
         }
+        if (userService.existsByUsername(req.getUsername())) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Username already in use");
+        }
+
+        // map DTO -> entity (explicit)
+        User user = User.builder()
+                .username(req.getUsername())
+                .email(req.getEmail())
+                .password(req.getPassword()) // service will encode
+                .role(Role.USER) // NEVER from client
+                .build();
+
+        User saved = userService.register(user);
+        return ResponseEntity.ok(saved);
     }
 
-    // ✅ Login endpoint
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody User user) {
-        Optional<User> existingUser = userService.login(user.getEmail(), user.getPassword());
-        /* if (existingUser.isPresent()) {
-            return ResponseEntity.ok(existingUser.get());
-        } else {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body("Invalid email or password");
-        }*/
-        try {
-            Authentication authentication = authenticationManager.authenticate({
-                new UsernamePasswordAuthenticationToken(
-                    loginRequest.getUsername(),
-                    loginRequest.getPassword()
-                )
-            });
-            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-            String jwt = jwtUtil.generateToken(userDetails);
-            return ResponseEntity.ok(new AuthResponse(jwt));
-        }catch (BadCredentialsException e){
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid username or password");
+    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest req) {
+        // Accept either email or username from the request. If frontend sends username, use it;
+        // otherwise use email. The service will try both if needed.
+        String identifier = (req.getEmail() != null && !req.getEmail().isBlank()) ? req.getEmail() : req.getUsername();
+        var opt = userService.login(identifier, req.getPassword());
+        if (opt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
         }
+        User user = opt.get();
+        // Remove sensitive information before sending
+        user.setPassword(null);
+        return ResponseEntity.ok(user);
     }
-
     @GetMapping("/home")
-    public String home(@RequestBody User user){
-        return "this is the home that every one can interact with each other .";
-    }
-
-    @GetMapping("/test")
-    public String test() {
-        return "✅ AuthController is working fine!";
+    public String HomeHanler(){
+        return "test this is home";
     }
 }

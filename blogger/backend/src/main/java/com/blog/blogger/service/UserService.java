@@ -1,65 +1,20 @@
-/*
-package com.blog.blogger.service;
-import java.util.Optional;
-
-
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.stereotype.Service;
-
-import com.blog.blogger.models.User;
-import com.blog.blogger.models.Role;
-import com.blog.blogger.repository.UserRepository;
-
-
-
-@Service
-public class UserService {
-    private final UserRepository userRepository;
-    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-
-    public UserService(UserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
-
-    public User register(User user) {
-         System.out.println("------------------------");
-         System.out.println();
-        
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        user.setRole(Role.USER);
-        return userRepository.save(user);
-    }
-
-    public Optional<User> login(String email, String password) {
-      
-
-        Optional<User> existingUser = userRepository.findByEmail(email);
-
-        if (existingUser.isPresent() && passwordEncoder.matches(password, existingUser.get().getPassword())) {
-            return existingUser;    
-        }
-        System.out.println("test login .. ");
-        return Optional.empty();
-    }
-}
-*/
-
 package com.blog.blogger.service;
 
 import java.util.Optional;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import com.blog.blogger.models.User;
 import com.blog.blogger.models.Role;
 import com.blog.blogger.repository.UserRepository;
+import com.blog.blogger.utils.PasswordEncoder;
 
 @Service
 public class UserService {
     private final UserRepository userRepository;
-    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    private final PasswordEncoder passwordEncoder;
 
     public UserService(UserRepository userRepository) {
         this.userRepository = userRepository;
+        this.passwordEncoder = new PasswordEncoder();
     }
 
  
@@ -70,11 +25,26 @@ public class UserService {
     }
 
     
-    public Optional<User> login(String email, String password) {
-        Optional<User> existingUser = userRepository.findByEmail(email);
+    /**
+     * Try to login using either email or username as identifier.
+     * If the identifier matches an email or username and the password matches, returns the user.
+     */
+    public Optional<User> login(String identifier, String password) {
+        if (identifier == null) {
+            return Optional.empty();
+        }
+
+        // Try email first
+        Optional<User> existingUser = userRepository.findByEmail(identifier);
+        if (existingUser.isEmpty()) {
+            // Try username
+            existingUser = userRepository.findByUsername(identifier);
+        }
+
         if (existingUser.isPresent() && passwordEncoder.matches(password, existingUser.get().getPassword())) {
             return existingUser;
         }
+
         return Optional.empty();
     }
 
