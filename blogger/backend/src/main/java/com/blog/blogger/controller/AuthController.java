@@ -1,20 +1,28 @@
 package com.blog.blogger.controller;
 
-import com.blog.blogger.dto.RegisterRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.blog.blogger.dto.LoginRequest;
-import com.blog.blogger.models.User;
+import com.blog.blogger.dto.RegisterRequest;
 import com.blog.blogger.models.Role;
+import com.blog.blogger.models.User;
 import com.blog.blogger.service.UserService;
 
 import jakarta.validation.Valid;
-import org.springframework.http.ResponseEntity;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
 
+    private static final Logger log = LoggerFactory.getLogger(AuthController.class);
     private final UserService userService;
 
     public AuthController(UserService userService) {
@@ -23,6 +31,7 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest req) {
+        System.out.println("********-*************************************************");
         if (userService.existsByEmail(req.getEmail())) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body("Email already in use");
         }
@@ -30,34 +39,44 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.CONFLICT).body("Username already in use");
         }
 
-        // map DTO -> entity (explicit)
+        System.out.println("==> username: " + req.getUsername());
+        System.out.println("==> email: " + req.getEmail());
+        System.out.println("==> password: " + req.getPassword());
+
         User user = User.builder()
                 .username(req.getUsername())
                 .email(req.getEmail())
-                .password(req.getPassword()) // service will encode
-                .role(Role.USER) // NEVER from client
+                .password(req.getPassword())
+                .role(Role.USER)
                 .build();
 
-        User saved = userService.register(user);
+        User saved = userService.register(user);    
         return ResponseEntity.ok(saved);
     }
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@Valid @RequestBody LoginRequest req) {
-        // Accept either email or username from the request. If frontend sends username, use it;
-        // otherwise use email. The service will try both if needed.
-        String identifier = (req.getEmail() != null && !req.getEmail().isBlank()) ? req.getEmail() : req.getUsername();
+        String identifier = (req.getEmail() != null && !req.getEmail().isBlank())
+                ? req.getEmail()
+                : req.getUsername();
+
+        log.info("🔹 Login attempt: {}", identifier);
         var opt = userService.login(identifier, req.getPassword());
+        System.out.println("========> " + opt);
         if (opt.isEmpty()) {
+            log.warn("❌ Login failed for user: {}", identifier);
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
         }
+
         User user = opt.get();
-        // Remove sensitive information before sending
         user.setPassword(null);
+        log.info("✅ User '{}' logged in successfully", user.getUsername());
+
         return ResponseEntity.ok(user);
     }
+
     @GetMapping("/home")
-    public String HomeHanler(){
+    public String HomeHanler() {
         return "test this is home";
     }
 }
