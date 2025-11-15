@@ -210,6 +210,28 @@
   }
 }
 
+/* Login options link */
+.login-options {
+  text-align: center;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid #e8e4d8;
+}
+
+.login-link {
+  font-family: 'Outfit', sans-serif;
+  font-size: 14px;
+  color: #caa54d;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  letter-spacing: 0.3px;
+}
+
+.login-link:hover {
+  color: #b89440;
+  text-decoration: underline;
+}
+
 /* Responsive design */
 @media (max-width: 768px) {
   .register-container {

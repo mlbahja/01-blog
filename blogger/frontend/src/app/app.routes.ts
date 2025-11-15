@@ -10,5 +10,6 @@ export const routes: Routes = [
   { path: 'register', component: RegisterComponent },
   { path: 'home', component: HomeComponent, canActivate: [authGuard] }, // Protected route
   { path: 'auth/login', redirectTo: 'login', pathMatch: 'full' },
+  { path: 'auth/register', redirectTo: 'register', pathMatch: 'full' },
   { path: 'auth/home', redirectTo: 'home', pathMatch: 'full' },
 ];
