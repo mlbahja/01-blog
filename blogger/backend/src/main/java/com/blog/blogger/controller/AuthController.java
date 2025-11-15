@@ -10,10 +10,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.blog.blogger.dto.AuthResponse;
 import com.blog.blogger.dto.LoginRequest;
 import com.blog.blogger.dto.RegisterRequest;
 import com.blog.blogger.models.Role;
 import com.blog.blogger.models.User;
+import com.blog.blogger.security.JwtUtil;
 import com.blog.blogger.service.UserService;
 
 import jakarta.validation.Valid;
@@ -24,14 +26,15 @@ public class AuthController {
 
     private static final Logger log = LoggerFactory.getLogger(AuthController.class);
     private final UserService userService;
+    private final JwtUtil jwtUtil;
 
-    public AuthController(UserService userService) {
+    public AuthController(UserService userService, JwtUtil jwtUtil) {
         this.userService = userService;
+        this.jwtUtil = jwtUtil;
     }
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest req) {
-        System.out.println("********-*************************************************");
         if (userService.existsByEmail(req.getEmail())) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body("Email already in use");
         }
@@ -39,9 +42,7 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.CONFLICT).body("Username already in use");
         }
 
-        System.out.println("==> username: " + req.getUsername());
-        System.out.println("==> email: " + req.getEmail());
-        System.out.println("==> password: " + req.getPassword());
+        log.info("New user registration: {}", req.getUsername());
 
         User user = User.builder()
                 .username(req.getUsername())
@@ -50,8 +51,22 @@ public class AuthController {
                 .role(Role.USER)
                 .build();
 
-        User saved = userService.register(user);    
-        return ResponseEntity.ok(saved);
+        User saved = userService.register(user);
+
+        // Generate JWT token for the newly registered user (auto-login)
+        String token = jwtUtil.generateToken(saved.getUsername());
+
+        // Create response with user info and JWT token
+        AuthResponse response = new AuthResponse(
+            saved.getId(),
+            saved.getUsername(),
+            saved.getEmail(),
+            token,
+            null  // refreshToken - not implemented yet
+        );
+
+        log.info("User '{}' registered successfully and logged in", saved.getUsername());
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/login")
@@ -60,19 +75,30 @@ public class AuthController {
                 ? req.getEmail()
                 : req.getUsername();
 
-        log.info("🔹 Login attempt: {}", identifier);
+        log.info("Login attempt for: {}", identifier);
         var opt = userService.login(identifier, req.getPassword());
-        System.out.println("========> " + opt);
+
         if (opt.isEmpty()) {
-            log.warn("❌ Login failed for user: {}", identifier);
+            log.warn("Login failed for user: {}", identifier);
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
         }
 
         User user = opt.get();
-        user.setPassword(null);
-        log.info("✅ User '{}' logged in successfully", user.getUsername());
 
-        return ResponseEntity.ok(user);
+        // Generate JWT token for the authenticated user
+        String token = jwtUtil.generateToken(user.getUsername());
+
+        // Create response with user info and JWT token
+        AuthResponse response = new AuthResponse(
+            user.getId(),
+            user.getUsername(),
+            user.getEmail(),
+            token,
+            null  // refreshToken - not implemented yet
+        );
+
+        log.info("User '{}' logged in successfully", user.getUsername());
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/home")

@@ -2,12 +2,12 @@ package com.blog.blogger.service;
 
 import java.util.Optional;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.blog.blogger.models.Role;
 import com.blog.blogger.models.User;
 import com.blog.blogger.repository.UserRepository;
-import com.blog.blogger.utils.PasswordEncoder;
 
 @Service
 public class UserService {
@@ -15,9 +15,9 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
-        this.passwordEncoder = new PasswordEncoder();
+        this.passwordEncoder = passwordEncoder;
     }
 
     public User register(User user) {
@@ -34,11 +34,10 @@ public class UserService {
      */
 
     public Optional<User> login(String identifier, String password) {
-        System.out.println(" identifier ===> " + identifier);
-        System.out.println(" password ===> " + password);
         if (identifier == null) {
             return Optional.empty();
         }
+
         // Try email first
         Optional<User> existingUser = userRepository.findByEmail(identifier);
         if (existingUser.isEmpty()) {

@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../core/services/auth.service';
 import { PostService } from '../../core/services/post.service';
+import { ToastService } from '../../core/services/toast.service';
 
 @Component({
   selector: 'app-home',
@@ -18,10 +19,13 @@ export class HomeComponent implements OnInit {
     title: '',
     content: '',
   };
+  showCreateForm = false;
+  expandedPosts = new Set<number>();
 
   constructor(
     private authService: AuthService,
     private postService: PostService,
+    private toastService: ToastService
   ) {}
 
   ngOnInit(): void {
@@ -37,6 +41,7 @@ export class HomeComponent implements OnInit {
       },
       error: (error: any) => {
         console.error('Error loading posts:', error);
+        this.toastService.show('Failed to load posts', 'error');
       },
     });
   }
@@ -53,9 +58,12 @@ export class HomeComponent implements OnInit {
             this.loadPosts();
             // Reset form
             this.newPost = { title: '', content: '' };
+            this.showCreateForm = false;
+            this.toastService.show('Post published successfully!', 'success');
           },
           error: (error: any) => {
             console.error('Error creating post:', error);
+            this.toastService.show('Failed to create post', 'error');
           },
         });
     }
@@ -71,11 +79,21 @@ export class HomeComponent implements OnInit {
         .subscribe({
           next: () => {
             this.loadPosts(); // Reload to show new comment
+            this.toastService.show('Comment added!', 'success');
           },
           error: (error: any) => {
             console.error('Error adding comment:', error);
+            this.toastService.show('Failed to add comment', 'error');
           },
         });
+    }
+  }
+
+  expandPost(postIndex: number): void {
+    if (this.expandedPosts.has(postIndex)) {
+      this.expandedPosts.delete(postIndex);
+    } else {
+      this.expandedPosts.add(postIndex);
     }
   }
 
