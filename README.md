@@ -76,7 +76,7 @@ ng serve --open
 ├── pom.xml
 └── README.md
 
---------------------------------------
+------------------------------------------------------------------
 
 blog-frontend/
 │
@@ -292,7 +292,5 @@ blog-frontend/
 
 ---
 
-📘 **Next Step:**
-> Define database entities & relationships (ERD):  
-> `User`, `Post`, `Comment`, `Like`, `Report`, `Notification`, `Subscription`.
+
 
