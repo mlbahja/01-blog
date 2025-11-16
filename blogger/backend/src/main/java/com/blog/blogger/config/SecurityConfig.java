@@ -2,6 +2,7 @@ package com.blog.blogger.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -53,6 +54,9 @@ public class SecurityConfig {
                 // Public endpoints - anyone can access (only login and register)
                 .requestMatchers("/auth/register", "/auth/login").permitAll()
                 .requestMatchers("/error").permitAll()
+
+                // Allow public GET access to posts (viewing only)
+                .requestMatchers(HttpMethod.GET, "/auth/posts", "/auth/posts/**").permitAll()
 
                 // All other endpoints require authentication (including /auth/home)
                 .anyRequest().authenticated()
