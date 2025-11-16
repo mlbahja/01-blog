@@ -1,4 +1,4 @@
-/* Global Styles for Blog Application */
+/* Global Styles for Blog Application - Emily Henderson Inspired */
 
 /* ==================== */
 /* CSS Reset            */
@@ -15,12 +15,11 @@ body {
   margin: 0;
   padding: 0;
   min-height: 100vh;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans',
-    'Droid Sans', 'Helvetica Neue', sans-serif;
+  font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #fafaf8;
-  color: #333333;
+  background-color: #ffffff;
+  color: #191818;
   line-height: 1.6;
 }
 
@@ -55,23 +54,28 @@ h3,
 h4,
 h5,
 h6 {
-  font-family: Georgia, 'Times New Roman', Times, serif;
+  font-family: 'Lora', Georgia, 'Times New Roman', Times, serif;
   font-weight: 600;
-  color: #2c3e50;
+  color: #000000;
+  letter-spacing: -0.5px;
 }
 
 p {
   margin-bottom: 1em;
+  font-family: 'Outfit', sans-serif;
+  font-size: 16px;
+  line-height: 1.7;
+  color: #191818;
 }
 
 a {
-  color: #e74c3c;
+  color: #CAA54D;
   text-decoration: none;
   transition: all 0.3s ease;
 }
 
 a:hover {
-  color: #c0392b;
+  color: #000000;
 }
 
 /* ==================== */
