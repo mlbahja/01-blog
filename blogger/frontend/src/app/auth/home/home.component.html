@@ -20,7 +20,6 @@
 <!-- Main Content -->
 <main class="main-content">
   <div class="container">
-
     <!-- Create Post Section -->
     <section class="create-post-section" *ngIf="showCreateForm">
       <div class="section-header">
@@ -81,7 +80,6 @@
     <!-- Blog Posts Grid -->
     <section class="posts-section">
       <h2 class="section-title">Recent Stories</h2>
-
       <div class="posts-grid">
         <article class="post-card" *ngFor="let post of posts.slice(1); let i = index">
           <div class="post-card-content">
@@ -106,7 +104,6 @@
             <!-- Comments Section -->
             <div class="comments-section">
               <h4 class="comments-title">Comments ({{ post.comments?.length || 0 }})</h4>
-
               <div class="comments-list" *ngIf="post.comments && post.comments.length > 0">
                 <div class="comment" *ngFor="let comment of post.comments">
                   <div class="comment-header">
@@ -116,7 +113,6 @@
                   <p class="comment-text">{{ comment.content }}</p>
                 </div>
               </div>
-
               <div class="no-comments" *ngIf="!post.comments || post.comments.length === 0">
                 <p>Be the first to comment on this post.</p>
               </div>

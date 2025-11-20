@@ -61,6 +61,7 @@ public class AuthController {
             saved.getId(),
             saved.getUsername(),
             saved.getEmail(),
+            saved.getRole(),  // Include user role
             token,
             null  // refreshToken - not implemented yet
         );
@@ -93,6 +94,7 @@ public class AuthController {
             user.getId(),
             user.getUsername(),
             user.getEmail(),
+            user.getRole(),  // Include user role
             token,
             null  // refreshToken - not implemented yet
         );

@@ -25,22 +25,22 @@ export class RegisterComponent {
   onSubmit() {
     // Client-side validation
     if (!this.username || !this.email || !this.password || !this.confirmPassword) {
-      this.toastService.show('❌ All fields are required', 'error');
+      this.toastService.show('✘ All fields are required', 'error');
       return;
     }
 
     if (this.username.length < 3) {
-      this.toastService.show('❌ Username must be at least 3 characters', 'error');
+      this.toastService.show('✘ Username must be at least 3 characters', 'error');
       return;
     }
 
     if (this.password.length < 6) {
-      this.toastService.show('❌ Password must be at least 6 characters', 'error');
+      this.toastService.show('✘ Password must be at least 6 characters', 'error');
       return;
     }
 
     if (this.password !== this.confirmPassword) {
-      this.toastService.show('❌ Passwords do not match', 'error');
+      this.toastService.show('✘ Passwords do not match', 'error');
       return;
     }
 
@@ -61,14 +61,14 @@ export class RegisterComponent {
           // Validation errors from backend
           const errors = err.error.errors;
           const errorMessages = Object.values(errors).join(', ');
-          this.toastService.show('❌ ' + errorMessages, 'error');
+          this.toastService.show('✘ ' + errorMessages, 'error');
         } else if (err.status === 409) {
           // Conflict - email/username already in use
-          this.toastService.show('❌ ' + err.error, 'error');
+          this.toastService.show('✘ ' + err.error, 'error');
         } else if (err.error?.message) {
-          this.toastService.show('❌ ' + err.error.message, 'error');
+          this.toastService.show('✘ ' + err.error.message, 'error');
         } else {
-          this.toastService.show('❌ Registration failed. Please try again', 'error');
+          this.toastService.show('✘ Registration failed. Please try again', 'error');
         }
       },
     });

@@ -17,13 +17,13 @@ export class LoginComponent {
 
   constructor(
     private authService: AuthService,
-    private toastService: ToastService
+    private toastService: ToastService,
   ) {}
 
   onSubmit() {
     // Client-side validation
     if (!this.username || !this.password) {
-      this.toastService.show('❌ Username and password are required', 'error');
+      this.toastService.show('✘ Username and password are required', 'error');
       return;
     }
 
@@ -35,16 +35,16 @@ export class LoginComponent {
       error: (err: any) => {
         // Handle different error types
         if (err.status === 401) {
-          this.toastService.show('❌ Invalid username or password', 'error');
+          this.toastService.show('✘ Invalid username or password', 'error');
         } else if (err.status === 400 && err.error?.errors) {
           // Validation errors from backend
           const errors = err.error.errors;
           const errorMessages = Object.values(errors).join(', ');
-          this.toastService.show('❌ ' + errorMessages, 'error');
+          this.toastService.show('✘ ' + errorMessages, 'error');
         } else if (err.error?.message) {
-          this.toastService.show('❌ ' + err.error.message, 'error');
+          this.toastService.show('✘ ' + err.error.message, 'error');
         } else {
-          this.toastService.show('❌ Login failed. Please try again', 'error');
+          this.toastService.show('✘ Login failed. Please try again', 'error');
         }
       },
     });

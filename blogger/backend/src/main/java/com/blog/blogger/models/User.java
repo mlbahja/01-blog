@@ -1,5 +1,10 @@
 package com.blog.blogger.models;
 
+import java.time.LocalDateTime;
+
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -12,6 +17,17 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+/**
+ * User Entity - Represents a user in the blogging system
+ *
+ * Features:
+ * - Authentication (username, email, password)
+ * - Profile information (fullName, bio, avatar)
+ * - Role-based access (USER, ADMIN)
+ * - Account status (active/banned)
+ * - Timestamps (createdAt, updatedAt)
+ */
 @Entity
 @Table(name = "users")
 @Data
@@ -22,21 +38,46 @@ public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Long id;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false, unique = true, length = 50)
     private String username;
 
-    @Column(nullable = true)
-    private String avatar;
-
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false, unique = true, length = 100)
     private String email;
 
     @Column(nullable = false)
     private String password;
 
+    @Column(nullable = true, length = 100)
+    private String fullName;
+
+    @Column(nullable = true, columnDefinition = "TEXT")
+    private String bio;
+
+    @Column(nullable = true)
+    private String avatar;
+
+    @Column(nullable = true)
+    private String profilePictureUrl;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private Role role;
+    @Builder.Default
+    private Role role = Role.USER;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private Boolean isBanned = false;
+
+    @Column(nullable = true)
+    private LocalDateTime bannedAt;
+
+    @CreationTimestamp
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    @Column(nullable = false)
+    private LocalDateTime updatedAt;
 }

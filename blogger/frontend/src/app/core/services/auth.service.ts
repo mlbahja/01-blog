@@ -7,6 +7,7 @@ interface AuthResponse {
   id: number;
   username: string;
   email: string;
+  role: string;
   accessToken: string;
   refreshToken: string | null;
 }
@@ -39,6 +40,7 @@ export class AuthService {
             id: response.id,
             username: response.username,
             email: response.email,
+            role: response.role,
           });
           // Route to home page after successful login
           this.router.navigate(['/auth/home']);
@@ -55,6 +57,7 @@ export class AuthService {
           id: response.id,
           username: response.username,
           email: response.email,
+          role: response.role,
         });
         // Route to home page after successful registration
         this.router.navigate(['/auth/home']);
@@ -62,12 +65,14 @@ export class AuthService {
     );
   }
 
-  logout(): void {
+  logout(navigate: boolean = true): void {
     // Clear JWT token and user data from localStorage
     this.removeToken();
     this.removeUserData();
-    // Route to login page
-    this.router.navigate(['/auth/login']);
+    // Route to login page (if navigate is true)
+    if (navigate) {
+      this.router.navigate(['/auth/login']);
+    }
   }
 
   // JWT Token Management
@@ -103,9 +108,44 @@ export class AuthService {
     if (!token) {
       return false;
     }
-    // TODO: Optionally check if token is expired by decoding JWT
-    // For now, just check if token exists
-    return true;
+
+    // Decode JWT and check expiration
+    try {
+      const payload = this.decodeToken(token);
+      const isExpired = this.isTokenExpired(payload);
+
+      if (isExpired) {
+        // Token expired, clean up (don't navigate to avoid loops)
+        this.logout(false);
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      // Invalid token, clean up (don't navigate to avoid loops)
+      this.logout(false);
+      return false;
+    }
+  }
+
+  // Decode JWT token (extract payload)
+  private decodeToken(token: string): any {
+    try {
+      const payload = token.split('.')[1];
+      return JSON.parse(atob(payload));
+    } catch (error) {
+      throw new Error('Invalid token format');
+    }
+  }
+
+  // Check if token is expired
+  private isTokenExpired(payload: any): boolean {
+    if (!payload.exp) {
+      return true;
+    }
+    // JWT exp is in seconds, Date.now() is in milliseconds
+    const expirationDate = payload.exp * 1000;
+    return Date.now() >= expirationDate;
   }
 
   navigateToLogin(): void {
