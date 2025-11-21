@@ -66,18 +66,15 @@ public class User {
     @Builder.Default
     private Role role = Role.USER;
 
-    @Column(nullable = false)
     @Builder.Default
     private Boolean isBanned = false;
 
-    @Column(nullable = true)
     private LocalDateTime bannedAt;
 
     @CreationTimestamp
-    @Column(nullable = false, updatable = false)
+    @Column(updatable = false)
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
-    @Column(nullable = false)
     private LocalDateTime updatedAt;
 }
