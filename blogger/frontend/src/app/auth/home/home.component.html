@@ -72,6 +72,11 @@
             <span class="date">{{ posts[0].createdAt | date:'MMM d, yyyy' }}</span>
             <span class="separator" *ngIf="posts[0].comments">•</span>
             <span class="comments-count" *ngIf="posts[0].comments">{{ posts[0].comments.length }} Comments</span>
+            <span class="separator">•</span>
+            <button class="like-btn" (click)="toggleLike(posts[0])" [class.liked]="posts[0].isLiked">
+              <span class="like-icon">{{ posts[0].isLiked ? '❤️' : '🤍' }}</span>
+              <span class="like-count">{{ posts[0].likeCount || 0 }}</span>
+            </button>
           </div>
         </div>
       </article>
@@ -89,6 +94,11 @@
               <span class="author">{{ post.author }}</span>
               <span class="separator">•</span>
               <span class="date">{{ post.createdAt | date:'MMM d' }}</span>
+              <span class="separator">•</span>
+              <button class="like-btn" (click)="toggleLike(post)" [class.liked]="post.isLiked">
+                <span class="like-icon">{{ post.isLiked ? '❤️' : '🤍' }}</span>
+                <span class="like-count">{{ post.likeCount || 0 }}</span>
+              </button>
             </div>
             <button class="read-more-btn" (click)="expandPost(i + 1)">
               {{ expandedPosts.has(i + 1) ? 'Show Less' : 'Read More' }}

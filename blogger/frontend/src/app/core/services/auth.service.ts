@@ -16,7 +16,7 @@ interface AuthResponse {
   providedIn: 'root',
 })
 export class AuthService {
-  private apiUrl = 'http://localhost:9000/auth';
+  private apiUrl = 'http://localhost:8080/auth';
   private readonly TOKEN_KEY = 'jwt_token';
   private readonly USER_KEY = 'user_data';
 

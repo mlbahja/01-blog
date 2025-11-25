@@ -755,3 +755,40 @@
     width: 100%;
   }
 }
+
+/* ==================== */
+/* Like Button          */
+/* ==================== */
+
+.like-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: none;
+  border: none;
+  padding: 0.25rem 0.5rem;
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: var(--color-text-light);
+  transition: var(--transition);
+  border-radius: 4px;
+}
+
+.like-btn:hover {
+  background-color: rgba(202, 165, 77, 0.1);
+  color: var(--color-accent);
+}
+
+.like-btn.liked {
+  color: #e74c3c;
+}
+
+.like-icon {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.like-count {
+  font-weight: 500;
+  font-size: 0.875rem;
+}

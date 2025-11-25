@@ -22,7 +22,7 @@ import { Post } from '../models/post.model';
   providedIn: 'root',
 })
 export class AdminService {
-  private apiUrl = 'http://localhost:9000/auth/admin';
+  private apiUrl = 'http://localhost:8080/auth/admin';
 
   constructor(private http: HttpClient) {}
 

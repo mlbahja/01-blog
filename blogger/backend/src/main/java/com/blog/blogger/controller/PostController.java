@@ -80,4 +80,46 @@ public class PostController {
         Post savedPost = postService.createPost(post);
         return ResponseEntity.ok(savedPost);
     }
+
+    /**
+     * POST /auth/posts/{id}/like
+     * Like a post (authenticated users only)
+     */
+    @PostMapping("/{id}/like")
+    public ResponseEntity<Post> likePost(@PathVariable Long id,
+                                         @AuthenticationPrincipal UserDetails userDetails) {
+        User user = userRepository.findByUsername(userDetails.getUsername())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Post post = postService.likePost(id, user);
+        return ResponseEntity.ok(post);
+    }
+
+    /**
+     * DELETE /auth/posts/{id}/like
+     * Unlike a post (authenticated users only)
+     */
+    @DeleteMapping("/{id}/like")
+    public ResponseEntity<Post> unlikePost(@PathVariable Long id,
+                                           @AuthenticationPrincipal UserDetails userDetails) {
+        User user = userRepository.findByUsername(userDetails.getUsername())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Post post = postService.unlikePost(id, user);
+        return ResponseEntity.ok(post);
+    }
+
+    /**
+     * GET /auth/posts/{id}/liked
+     * Check if the current user has liked this post
+     */
+    @GetMapping("/{id}/liked")
+    public ResponseEntity<Boolean> hasLikedPost(@PathVariable Long id,
+                                                @AuthenticationPrincipal UserDetails userDetails) {
+        User user = userRepository.findByUsername(userDetails.getUsername())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        boolean liked = postService.hasUserLikedPost(id, user);
+        return ResponseEntity.ok(liked);
+    }
 }

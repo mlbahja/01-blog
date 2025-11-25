@@ -18,9 +18,11 @@
 /mnt/c/Users/mlbah/bloging/01-blog/blogger/backend/src/main/java/com/blog/blogger/exception/GlobalExceptionHandler.java
 /mnt/c/Users/mlbah/bloging/01-blog/blogger/backend/src/main/java/com/blog/blogger/models/Comment.java
 /mnt/c/Users/mlbah/bloging/01-blog/blogger/backend/src/main/java/com/blog/blogger/models/Post.java
+/mnt/c/Users/mlbah/bloging/01-blog/blogger/backend/src/main/java/com/blog/blogger/models/PostLike.java
 /mnt/c/Users/mlbah/bloging/01-blog/blogger/backend/src/main/java/com/blog/blogger/models/Response.java
 /mnt/c/Users/mlbah/bloging/01-blog/blogger/backend/src/main/java/com/blog/blogger/models/Role.java
 /mnt/c/Users/mlbah/bloging/01-blog/blogger/backend/src/main/java/com/blog/blogger/models/User.java
+/mnt/c/Users/mlbah/bloging/01-blog/blogger/backend/src/main/java/com/blog/blogger/repository/PostLikeRepository.java
 /mnt/c/Users/mlbah/bloging/01-blog/blogger/backend/src/main/java/com/blog/blogger/repository/PostRepository.java
 /mnt/c/Users/mlbah/bloging/01-blog/blogger/backend/src/main/java/com/blog/blogger/repository/UserRepository.java
 /mnt/c/Users/mlbah/bloging/01-blog/blogger/backend/src/main/java/com/blog/blogger/security/CustomUserDetailsService.java

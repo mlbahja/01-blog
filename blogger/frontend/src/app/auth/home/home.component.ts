@@ -38,6 +38,17 @@ export class HomeComponent implements OnInit {
     this.postService.getAllPosts().subscribe({
       next: (posts: any) => {
         this.posts = posts;
+        // Load liked status for each post
+        this.posts.forEach(post => {
+          this.postService.hasLikedPost(post.id).subscribe({
+            next: (liked: boolean) => {
+              post.isLiked = liked;
+            },
+            error: () => {
+              post.isLiked = false;
+            }
+          });
+        });
       },
       error: (error: any) => {
         console.error('Error loading posts:', error);
@@ -49,10 +60,7 @@ export class HomeComponent implements OnInit {
   createPost(): void {
     if (this.newPost.title && this.newPost.content) {
       this.postService
-        .createPost({
-          ...this.newPost,
-          author: this.username,
-        })
+        .createPost(this.newPost)
         .subscribe({
           next: () => {
             this.loadPosts();
@@ -74,7 +82,6 @@ export class HomeComponent implements OnInit {
       this.postService
         .addComment(postId, {
           content: commentText,
-          author: this.username,
         })
         .subscribe({
           next: () => {
@@ -86,6 +93,35 @@ export class HomeComponent implements OnInit {
             this.toastService.show('Failed to add comment', 'error');
           },
         });
+    }
+  }
+
+  toggleLike(post: any): void {
+    if (post.isLiked) {
+      // Unlike the post
+      this.postService.unlikePost(post.id).subscribe({
+        next: (updatedPost: any) => {
+          post.likeCount = updatedPost.likeCount;
+          post.isLiked = false;
+        },
+        error: (error: any) => {
+          console.error('Error unliking post:', error);
+          this.toastService.show('Failed to unlike post', 'error');
+        },
+      });
+    } else {
+      // Like the post
+      this.postService.likePost(post.id).subscribe({
+        next: (updatedPost: any) => {
+          post.likeCount = updatedPost.likeCount;
+          post.isLiked = true;
+          this.toastService.show('Post liked!', 'success');
+        },
+        error: (error: any) => {
+          console.error('Error liking post:', error);
+          this.toastService.show('Failed to like post', 'error');
+        },
+      });
     }
   }
 

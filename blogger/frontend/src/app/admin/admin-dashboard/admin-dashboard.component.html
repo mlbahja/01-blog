@@ -1,0 +1,88 @@
+<div class="admin-dashboard">
+  <div class="dashboard-header">
+    <h1>Admin Dashboard</h1>
+    <div class="header-actions">
+      <button (click)="refreshStats()" class="btn btn-outline" [disabled]="loading">
+        Refresh
+      </button>
+      <button routerLink="/admin/users" class="btn btn-primary">
+        Manage Users
+      </button>
+      <button routerLink="/home" class="btn btn-secondary">
+        Back to Home
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="loading">
+    <div class="loading-spinner"></div>
+    <p>Loading statistics...</p>
+  </div>
+
+  <div *ngIf="!loading && stats" class="stats-grid">
+    <div class="stat-card stat-primary">
+      <div class="stat-icon">👥</div>
+      <div class="stat-value">{{ stats.totalUsers }}</div>
+      <div class="stat-label">Total Users</div>
+    </div>
+
+    <div class="stat-card stat-success">
+      <div class="stat-icon">📝</div>
+      <div class="stat-value">{{ stats.totalPosts }}</div>
+      <div class="stat-label">Total Posts</div>
+    </div>
+
+    <div class="stat-card stat-info">
+      <div class="stat-icon">✅</div>
+      <div class="stat-value">{{ stats.activeUsers }}</div>
+      <div class="stat-label">Active Users</div>
+    </div>
+
+    <div class="stat-card stat-danger">
+      <div class="stat-icon">🚫</div>
+      <div class="stat-value">{{ stats.bannedUsers }}</div>
+      <div class="stat-label">Banned Users</div>
+    </div>
+
+    <div class="stat-card stat-warning">
+      <div class="stat-icon">👑</div>
+      <div class="stat-value">{{ stats.adminUsers }}</div>
+      <div class="stat-label">Admin Users</div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon">📅</div>
+      <div class="stat-value">{{ stats.postsToday }}</div>
+      <div class="stat-label">Posts Today</div>
+    </div>
+
+    <div class="stat-card stat-success">
+      <div class="stat-icon">🆕</div>
+      <div class="stat-value">{{ stats.newUsersThisWeek }}</div>
+      <div class="stat-label">New Users This Week</div>
+    </div>
+
+    <div class="stat-card stat-info">
+      <div class="stat-icon">💬</div>
+      <div class="stat-value">{{ stats.totalComments }}</div>
+      <div class="stat-label">Total Comments</div>
+    </div>
+  </div>
+
+  <!-- Quick Actions -->
+  <div *ngIf="!loading" class="quick-actions">
+    <h2>Quick Actions</h2>
+    <div class="actions-grid">
+      <a routerLink="/admin/users" class="action-card">
+        <div class="action-icon">👥</div>
+        <div class="action-title">User Management</div>
+        <div class="action-desc">View, ban, or delete users</div>
+      </a>
+      <a routerLink="/home" class="action-card">
+        <div class="action-icon">🏠</div>
+        <div class="action-title">View Site</div>
+        <div class="action-desc">Go to the main site</div>
+      </a>
+    </div>
+  </div>
+</div>

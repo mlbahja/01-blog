@@ -28,8 +28,8 @@ export const adminGuard: CanActivateFn = (route, state) => {
     return true; // Allow access to admin routes
   }
 
-  // User is not admin, redirect to home
-  console.log('Admin Guard: User is not admin, redirecting to home');
-  router.navigate(['/home']);
+  // User is not admin, redirect to unauthorized page
+  console.log('Admin Guard: User is not admin, redirecting to unauthorized');
+  router.navigate(['/unauthorized']);
   return false; // Block access to admin routes
 };

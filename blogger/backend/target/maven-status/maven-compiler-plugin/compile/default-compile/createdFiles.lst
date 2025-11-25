@@ -12,6 +12,7 @@ com/blog/blogger/dto/AuthResponse.class
 com/blog/blogger/models/Comment.class
 com/blog/blogger/models/Post$PostBuilder.class
 com/blog/blogger/models/Response$ResponseBuilder.class
+com/blog/blogger/models/PostLike.class
 com/blog/blogger/dto/AdminStatsDTO$AdminStatsDTOBuilder.class
 com/blog/blogger/dto/PostDTO$AuthorDTO$AuthorDTOBuilder.class
 com/blog/blogger/dto/UserProfileDTO$UserProfileDTOBuilder.class
@@ -23,6 +24,7 @@ com/blog/blogger/service/UserService.class
 com/blog/blogger/models/User$UserBuilder.class
 com/blog/blogger/config/SecurityConfig.class
 com/blog/blogger/BloggerApplication.class
+com/blog/blogger/models/PostLike$PostLikeBuilder.class
 com/blog/blogger/dto/UserProfileDTO.class
 com/blog/blogger/exception/GlobalExceptionHandler.class
 com/blog/blogger/security/JwtAuthenticationFilter.class
@@ -37,5 +39,6 @@ com/blog/blogger/service/PostService.class
 com/blog/blogger/models/Post.class
 com/blog/blogger/service/AdminService.class
 com/blog/blogger/dto/PostDTO$PostDTOBuilder.class
+com/blog/blogger/repository/PostLikeRepository.class
 com/blog/blogger/utils/PasswordEncoder.class
 com/blog/blogger/models/Role.class

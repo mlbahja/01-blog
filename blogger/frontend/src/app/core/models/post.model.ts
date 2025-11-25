@@ -8,6 +8,7 @@ export interface Post {
   content: string;
   author: PostAuthor;
   likeCount: number;
+  isLiked?: boolean; // Whether the current user has liked this post
   tags: string[];
   commentCount?: number;
   createdAt: string;

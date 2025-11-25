@@ -1,0 +1,149 @@
+<div class="user-management">
+  <div class="management-header">
+    <h1>User Management</h1>
+    <div class="header-actions">
+      <button (click)="loadUsers()" class="btn btn-outline" [disabled]="loading">
+        Refresh
+      </button>
+      <button routerLink="/admin" class="btn btn-secondary">
+        Back to Dashboard
+      </button>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters">
+    <div class="search-box">
+      <input
+        type="text"
+        [(ngModel)]="searchTerm"
+        (input)="applyFilters()"
+        placeholder="Search by username, email, or name..."
+        class="search-input"
+      />
+    </div>
+
+    <div class="filter-group">
+      <label>Role:</label>
+      <select [(ngModel)]="filterRole" (change)="applyFilters()" class="filter-select">
+        <option value="ALL">All Roles</option>
+        <option value="USER">Users</option>
+        <option value="ADMIN">Admins</option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label>Status:</label>
+      <select [(ngModel)]="filterStatus" (change)="applyFilters()" class="filter-select">
+        <option value="ALL">All Status</option>
+        <option value="ACTIVE">Active</option>
+        <option value="BANNED">Banned</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Stats Bar -->
+  <div class="stats-bar">
+    <span class="stat">Total: <strong>{{ users.length }}</strong></span>
+    <span class="stat">Showing: <strong>{{ filteredUsers.length }}</strong></span>
+  </div>
+
+  <div *ngIf="loading" class="loading">
+    <div class="loading-spinner"></div>
+    <p>Loading users...</p>
+  </div>
+
+  <div *ngIf="!loading && filteredUsers.length === 0" class="no-results">
+    <p>No users found matching your criteria.</p>
+  </div>
+
+  <div *ngIf="!loading && filteredUsers.length > 0" class="users-table-container">
+    <table class="users-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Username</th>
+          <th>Email</th>
+          <th>Full Name</th>
+          <th>Role</th>
+          <th>Status</th>
+          <th>Joined</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let user of filteredUsers" [class.banned]="user.isBanned">
+          <td>{{ user.id }}</td>
+          <td>
+            <div class="user-info">
+              <img
+                [src]="user.avatar || 'https://via.placeholder.com/40'"
+                alt="Avatar"
+                class="user-avatar"
+              />
+              <span>{{ user.username }}</span>
+            </div>
+          </td>
+          <td>{{ user.email }}</td>
+          <td>{{ user.fullName || '-' }}</td>
+          <td>
+            <span class="badge" [class.badge-admin]="user.role === 'ADMIN'">
+              {{ user.role }}
+            </span>
+          </td>
+          <td>
+            <span
+              class="badge"
+              [class.badge-danger]="user.isBanned"
+              [class.badge-success]="!user.isBanned"
+            >
+              {{ user.isBanned ? 'Banned' : 'Active' }}
+            </span>
+          </td>
+          <td>{{ user.createdAt | date: 'shortDate' }}</td>
+          <td class="actions">
+            <button
+              *ngIf="!user.isBanned"
+              (click)="banUser(user)"
+              class="btn btn-sm btn-warning"
+              title="Ban User"
+            >
+              Ban
+            </button>
+            <button
+              *ngIf="user.isBanned"
+              (click)="unbanUser(user)"
+              class="btn btn-sm btn-success"
+              title="Unban User"
+            >
+              Unban
+            </button>
+            <button
+              *ngIf="user.role === 'USER'"
+              (click)="promoteToAdmin(user)"
+              class="btn btn-sm btn-info"
+              title="Promote to Admin"
+            >
+              Promote
+            </button>
+            <button
+              *ngIf="user.role === 'ADMIN'"
+              (click)="demoteToUser(user)"
+              class="btn btn-sm btn-secondary"
+              title="Demote to User"
+            >
+              Demote
+            </button>
+            <button
+              (click)="deleteUser(user)"
+              class="btn btn-sm btn-danger"
+              title="Delete User"
+            >
+              Delete
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

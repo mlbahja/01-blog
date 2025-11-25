@@ -17,7 +17,7 @@ import { UserProfile, UpdateProfile, ChangePassword } from '../models/user.model
   providedIn: 'root',
 })
 export class UserService {
-  private apiUrl = 'http://localhost:9000/auth/users';
+  private apiUrl = 'http://localhost:8080/auth/users';
 
   constructor(private http: HttpClient) {}
 
