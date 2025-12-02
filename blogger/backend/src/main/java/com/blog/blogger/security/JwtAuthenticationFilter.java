@@ -45,12 +45,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             HttpServletResponse response,
             FilterChain filterChain) throws ServletException, IOException {
 
+        String requestURI = request.getRequestURI();
+        logger.info("JWT Filter processing: " + request.getMethod() + " " + requestURI);
+
         // 1. Get Authorization header from request
         String authHeader = request.getHeader("Authorization");
+        logger.info("Authorization header: " + (authHeader != null ? "Present" : "Missing"));
 
         // 2. Check if header exists and starts with "Bearer "
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             // No token found, continue without authentication
+            logger.warn("No valid Authorization header found for " + requestURI);
             filterChain.doFilter(request, response);
             return;
         }
@@ -61,15 +66,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             // 4. Extract username from token
             String username = jwtUtil.extractUsername(token);
+            logger.info("Token username: " + username);
 
             // 5. If we have a username and user is not already authenticated
             if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
                 // 6. Load user details from database
                 UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+                logger.info("User details loaded for: " + username);
 
                 // 7. Validate token
                 if (jwtUtil.validateToken(token, userDetails.getUsername())) {
+                    logger.info("Token validated successfully for: " + username);
 
                     // 8. Create authentication token
                     UsernamePasswordAuthenticationToken authToken =
@@ -85,12 +93,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     // 10. Set authentication in SecurityContext
                     // This tells Spring Security: "This user is authenticated!"
                     SecurityContextHolder.getContext().setAuthentication(authToken);
+                    logger.info("Authentication set in SecurityContext for: " + username);
+                } else {
+                    logger.error("Token validation failed for: " + username);
                 }
             }
         } catch (Exception e) {
             // Token is invalid, malformed, or expired
             // Log the error but continue without authentication
-            logger.error("JWT Authentication failed: " + e.getMessage());
+            logger.error("JWT Authentication failed: " + e.getMessage(), e);
         }
 
         // 11. Continue with the filter chain

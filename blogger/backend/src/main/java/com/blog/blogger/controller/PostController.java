@@ -61,7 +61,7 @@ public class PostController {
     }
 
     @PostMapping("/{postId}/comments")
-    public ResponseEntity<Post> addComment(@PathVariable Long postId,
+    public ResponseEntity<?> addComment(@PathVariable Long postId,
                                            @RequestBody CreateCommentDTO dto,
                                            @AuthenticationPrincipal UserDetails userDetails) {
         User author = userRepository.findByUsername(userDetails.getUsername())
@@ -77,8 +77,14 @@ public class PostController {
                 .build();
 
         post.addComment(comment);
-        Post savedPost = postService.createPost(post);
-        return ResponseEntity.ok(savedPost);
+        postService.createPost(post);
+
+        // Return a simple success response instead of the full post to avoid circular reference issues
+        return ResponseEntity.ok(java.util.Map.of(
+            "message", "Comment added successfully",
+            "commentContent", comment.getContent(),
+            "author", author.getUsername()
+        ));
     }
 
     /**

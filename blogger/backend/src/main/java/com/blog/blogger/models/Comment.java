@@ -32,6 +32,8 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@ToString(exclude = {"post", "responses"})
+@EqualsAndHashCode(exclude = {"post", "responses"})
 public class Comment {
 
     @Id
