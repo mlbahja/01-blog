@@ -2,13 +2,14 @@
 <header class="site-header">
   <div class="header-container">
     <div class="logo">
-      <h1>My Blog</h1>
+      <h1 routerLink="/home">My Blog</h1>
     </div>
     <nav class="main-nav">
-      <a href="#" class="nav-link active">Home</a>
-      <a href="#" class="nav-link">Categories</a>
-      <a href="#" class="nav-link">About</a>
-      <a href="#" class="nav-link">Contact</a>
+      <a routerLink="/home" routerLinkActive="active" class="nav-link">Home</a>
+      <a routerLink="/users" routerLinkActive="active" class="nav-link">Users</a>
+      <a routerLink="/chat" routerLinkActive="active" class="nav-link">Chat</a>
+      <a routerLink="/profile" routerLinkActive="active" class="nav-link">Profile</a>
+      <a routerLink="/admin" routerLinkActive="active" class="nav-link" *ngIf="isAdmin()">Admin Panel</a>
     </nav>
     <div class="header-actions">
       <span class="user-greeting">Hello, {{ username }}</span>
@@ -67,7 +68,7 @@
           <h2 class="featured-title">{{ posts[0].title }}</h2>
           <p class="featured-excerpt">{{ posts[0].content | slice:0:200 }}{{ posts[0].content.length > 200 ? '...' : '' }}</p>
           <div class="post-meta">
-            <span class="author">By {{ posts[0].author }}</span>
+            <span class="author">By {{ posts[0].author?.username || 'Unknown' }}</span>
             <span class="separator">•</span>
             <span class="date">{{ posts[0].createdAt | date:'MMM d, yyyy' }}</span>
             <span class="separator" *ngIf="posts[0].comments">•</span>
@@ -84,14 +85,19 @@
 
     <!-- Blog Posts Grid -->
     <section class="posts-section">
-      <h2 class="section-title">Recent Stories</h2>
+      <div class="posts-header">
+        <h2 class="section-title">Recent Stories</h2>
+        <button class="filter-toggle-btn" (click)="toggleFeedFilter()">
+          {{ showFollowedOnly ? 'Show All Posts' : 'Show Followed Only' }}
+        </button>
+      </div>
       <div class="posts-grid">
         <article class="post-card" *ngFor="let post of posts.slice(1); let i = index">
           <div class="post-card-content">
             <h3 class="post-card-title">{{ post.title }}</h3>
             <p class="post-card-excerpt">{{ post.content | slice:0:150 }}{{ post.content.length > 150 ? '...' : '' }}</p>
             <div class="post-card-meta">
-              <span class="author">{{ post.author }}</span>
+              <span class="author">{{ post.author?.username || 'Unknown' }}</span>
               <span class="separator">•</span>
               <span class="date">{{ post.createdAt | date:'MMM d' }}</span>
               <span class="separator">•</span>
@@ -117,7 +123,7 @@
               <div class="comments-list" *ngIf="post.comments && post.comments.length > 0">
                 <div class="comment" *ngFor="let comment of post.comments">
                   <div class="comment-header">
-                    <span class="comment-author">{{ comment.author }}</span>
+                    <span class="comment-author">{{ comment.author?.username || 'Anonymous' }}</span>
                     <span class="comment-date">{{ comment.createdAt | date:'MMM d, yyyy' }}</span>
                   </div>
                   <p class="comment-text">{{ comment.content }}</p>

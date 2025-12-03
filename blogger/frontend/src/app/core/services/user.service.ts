@@ -55,4 +55,46 @@ export class UserService {
   deleteUser(id: number): Observable<{ message: string }> {
     return this.http.delete<{ message: string }>(`${this.apiUrl}/${id}`);
   }
+
+  /**
+   * Get all users (excluding current user)
+   */
+  getAllUsers(): Observable<any[]> {
+    return this.http.get<any[]>(this.apiUrl);
+  }
+
+  /**
+   * Follow a user
+   */
+  followUser(userId: number): Observable<any> {
+    return this.http.post(`${this.apiUrl}/${userId}/follow`, {});
+  }
+
+  /**
+   * Unfollow a user
+   */
+  unfollowUser(userId: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/${userId}/follow`);
+  }
+
+  /**
+   * Check if current user is following another user
+   */
+  isFollowing(userId: number): Observable<boolean> {
+    return this.http.get<boolean>(`${this.apiUrl}/${userId}/is-following`);
+  }
+
+  /**
+   * Get list of users that current user follows
+   */
+  getFollowing(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/following`);
+  }
+
+  /**
+   * Get list of current user's followers
+   */
+  getFollowers(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/followers`);
+  }
 }

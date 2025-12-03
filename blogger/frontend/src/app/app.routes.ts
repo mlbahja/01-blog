@@ -4,6 +4,8 @@ import { Router } from '@angular/router';
 import { LoginComponent } from './auth/login/login.component';
 import { RegisterComponent } from './auth/register/register.component';
 import { HomeComponent } from './auth/home/home.component';
+import { UsersComponent } from './auth/users/users.component';
+import { ChatComponent } from './auth/chat/chat.component';
 import { ProfileComponent } from './auth/profile/profile.component';
 import { ProfileEditComponent } from './auth/profile-edit/profile-edit.component';
 import { UserSettingsComponent } from './auth/user-settings/user-settings.component';
@@ -64,6 +66,16 @@ export const routes: Routes = [
   {
     path: 'home',
     component: HomeComponent,
+    canActivate: [authGuard],
+  },
+  {
+    path: 'users',
+    component: UsersComponent,
+    canActivate: [authGuard],
+  },
+  {
+    path: 'chat',
+    component: ChatComponent,
     canActivate: [authGuard],
   },
 

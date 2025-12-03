@@ -1,0 +1,129 @@
+<!-- Navigation Header -->
+<header class="site-header">
+  <div class="header-container">
+    <div class="logo">
+      <h1 routerLink="/home">My Blog</h1>
+    </div>
+    <nav class="main-nav">
+      <a routerLink="/home" routerLinkActive="active" class="nav-link">Home</a>
+      <a routerLink="/users" routerLinkActive="active" class="nav-link">Users</a>
+      <a routerLink="/chat" routerLinkActive="active" class="nav-link">Chat</a>
+      <a routerLink="/profile" routerLinkActive="active" class="nav-link">Profile</a>
+      <a routerLink="/admin" routerLinkActive="active" class="nav-link" *ngIf="isAdmin()">Admin Panel</a>
+    </nav>
+    <div class="header-actions">
+      <button class="logout-button" (click)="logout()">Logout</button>
+    </div>
+  </div>
+</header>
+
+<!-- Main Content -->
+<main class="main-content">
+  <div class="chat-container">
+    <!-- Conversations Sidebar -->
+    <aside class="conversations-sidebar">
+      <h2 class="sidebar-title">Messages</h2>
+
+      <!-- Loading State -->
+      <div class="loading-state" *ngIf="loading">
+        <p>Loading conversations...</p>
+      </div>
+
+      <!-- Conversations List -->
+      <div class="conversations-list" *ngIf="!loading">
+        <div
+          class="conversation-item"
+          *ngFor="let conversation of conversations"
+          [class.active]="selectedConversation?.userId === conversation.userId"
+          (click)="selectConversation(conversation)">
+          <div class="conversation-avatar">
+            {{ conversation.username.charAt(0).toUpperCase() }}
+          </div>
+          <div class="conversation-info">
+            <div class="conversation-header">
+              <h3 class="conversation-name">{{ conversation.username }}</h3>
+              <span class="conversation-time" *ngIf="conversation.lastMessageTime">
+                {{ conversation.lastMessageTime | date: 'short' }}
+              </span>
+            </div>
+            <p class="conversation-preview" *ngIf="conversation.lastMessage">
+              <span *ngIf="conversation.lastMessageFromMe">You: </span>
+              {{ conversation.lastMessage | slice:0:40 }}{{ conversation.lastMessage.length > 40 ? '...' : '' }}
+            </p>
+            <span class="unread-badge" *ngIf="conversation.unreadCount > 0">
+              {{ conversation.unreadCount }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Empty State -->
+        <div class="empty-conversations" *ngIf="conversations.length === 0">
+          <p>No conversations yet</p>
+          <p class="empty-hint">Go to <a routerLink="/users">Users</a> page to start chatting</p>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Chat Area -->
+    <section class="chat-area">
+      <!-- No Conversation Selected -->
+      <div class="no-conversation" *ngIf="!selectedConversation">
+        <div class="no-conversation-content">
+          <h3>Select a conversation</h3>
+          <p>Choose a conversation from the list to start messaging</p>
+        </div>
+      </div>
+
+      <!-- Active Conversation -->
+      <div class="active-conversation" *ngIf="selectedConversation">
+        <!-- Chat Header -->
+        <div class="chat-header">
+          <div class="chat-user-info">
+            <div class="chat-avatar">
+              {{ selectedConversation.username.charAt(0).toUpperCase() }}
+            </div>
+            <h3 class="chat-username">{{ selectedConversation.username }}</h3>
+          </div>
+        </div>
+
+        <!-- Messages Container -->
+        <div class="messages-container">
+          <div
+            class="message"
+            *ngFor="let message of messages"
+            [class.sent]="message.isSent"
+            [class.received]="!message.isSent">
+            <div class="message-bubble">
+              <p class="message-content">{{ message.content }}</p>
+              <span class="message-time">{{ message.createdAt | date: 'short' }}</span>
+            </div>
+          </div>
+
+          <!-- Empty Messages -->
+          <div class="empty-messages" *ngIf="messages.length === 0">
+            <p>No messages yet. Start the conversation!</p>
+          </div>
+        </div>
+
+        <!-- Message Input -->
+        <div class="message-input-container">
+          <form class="message-form" (ngSubmit)="sendMessage()">
+            <input
+              type="text"
+              [(ngModel)]="newMessage"
+              name="message"
+              placeholder="Type a message..."
+              class="message-input"
+              [disabled]="sendingMessage"
+              required
+            />
+            <button type="submit" class="send-button" [disabled]="!newMessage.trim() || sendingMessage">
+              <span *ngIf="!sendingMessage">Send</span>
+              <span *ngIf="sendingMessage">Sending...</span>
+            </button>
+          </form>
+        </div>
+      </div>
+    </section>
+  </div>
+</main>

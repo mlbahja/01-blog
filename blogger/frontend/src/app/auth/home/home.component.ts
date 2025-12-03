@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { PostService } from '../../core/services/post.service';
 import { ToastService } from '../../core/services/toast.service';
@@ -8,7 +9,7 @@ import { ToastService } from '../../core/services/toast.service';
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterModule],
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.css'],
 })
@@ -21,6 +22,7 @@ export class HomeComponent implements OnInit {
   };
   showCreateForm = false;
   expandedPosts = new Set<number>();
+  showFollowedOnly = false;
 
   constructor(
     private authService: AuthService,
@@ -30,12 +32,17 @@ export class HomeComponent implements OnInit {
 
   ngOnInit(): void {
     // Get the logged in user's information
-    this.username = localStorage.getItem('username') || '';
+    const userData = this.authService.getUserData();
+    this.username = userData?.username || 'Guest';
     this.loadPosts();
   }
 
   loadPosts(): void {
-    this.postService.getAllPosts().subscribe({
+    const postsObservable = this.showFollowedOnly
+      ? this.postService.getPostsFromFollowedUsers()
+      : this.postService.getAllPosts();
+
+    postsObservable.subscribe({
       next: (posts: any) => {
         this.posts = posts;
         // Load liked status for each post
@@ -57,12 +64,21 @@ export class HomeComponent implements OnInit {
     });
   }
 
+  toggleFeedFilter(): void {
+    this.showFollowedOnly = !this.showFollowedOnly;
+    this.loadPosts();
+  }
+
   createPost(): void {
     if (this.newPost.title && this.newPost.content) {
+      console.log('[HomeComponent] Creating post with data:', this.newPost);
+      console.log('[HomeComponent] Token from localStorage:', localStorage.getItem('jwt_token'));
+
       this.postService
         .createPost(this.newPost)
         .subscribe({
-          next: () => {
+          next: (response) => {
+            console.log('[HomeComponent] Post created successfully:', response);
             this.loadPosts();
             // Reset form
             this.newPost = { title: '', content: '' };
@@ -70,10 +86,23 @@ export class HomeComponent implements OnInit {
             this.toastService.show('Post published successfully!', 'success');
           },
           error: (error: any) => {
-            console.error('Error creating post:', error);
-            this.toastService.show('Failed to create post', 'error');
+            console.error('[HomeComponent] Error creating post:', error);
+            console.error('[HomeComponent] Error status:', error.status);
+            console.error('[HomeComponent] Error message:', error.message);
+            console.error('[HomeComponent] Error body:', error.error);
+
+            if (error.status === 403) {
+              this.toastService.show('Not authorized. Please login again.', 'error');
+            } else if (error.status === 401) {
+              this.toastService.show('Session expired. Please login again.', 'error');
+            } else {
+              this.toastService.show('Failed to create post: ' + (error.error?.message || error.message), 'error');
+            }
           },
         });
+    } else {
+      console.warn('[HomeComponent] Title or content is empty');
+      this.toastService.show('Please fill in both title and content', 'error');
     }
   }
 
@@ -135,5 +164,10 @@ export class HomeComponent implements OnInit {
 
   logout(): void {
     this.authService.logout();
+  }
+
+  isAdmin(): boolean {
+    const userData = this.authService.getUserData();
+    return userData && userData.role === 'ADMIN';
   }
 }

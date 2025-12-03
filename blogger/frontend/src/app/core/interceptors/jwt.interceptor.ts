@@ -14,11 +14,22 @@ export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
   const token = authService.getToken();
 
-  // Skip adding token for login and register requests
-  const isAuthRequest = req.url.includes('/auth/login') || req.url.includes('/auth/register');
+  // Skip adding token ONLY for login and register endpoints
+  const isLoginRequest = req.url.endsWith('/auth/login');
+  const isRegisterRequest = req.url.endsWith('/auth/register');
+  const skipToken = isLoginRequest || isRegisterRequest;
+
+  // Debug logging - only for POST requests to help troubleshoot
+  if (req.method === 'POST' && !skipToken) {
+    console.log('[JWT Interceptor] POST to:', req.url);
+    console.log('[JWT Interceptor] Token present:', !!token);
+    if (token) {
+      console.log('[JWT Interceptor] Token preview:', token.substring(0, 50) + '...');
+    }
+  }
 
   // If we have a token and it's not a login/register request, add it to the header
-  if (token && !isAuthRequest) {
+  if (token && !skipToken) {
     req = req.clone({
       setHeaders: {
         Authorization: `Bearer ${token}`,

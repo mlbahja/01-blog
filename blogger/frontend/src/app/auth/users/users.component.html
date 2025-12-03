@@ -1,0 +1,87 @@
+<!-- Navigation Header -->
+<header class="site-header">
+  <div class="header-container">
+    <div class="logo">
+      <h1 routerLink="/home">My Blog</h1>
+    </div>
+    <nav class="main-nav">
+      <a routerLink="/home" routerLinkActive="active" class="nav-link">Home</a>
+      <a routerLink="/users" routerLinkActive="active" class="nav-link">Users</a>
+      <a routerLink="/chat" routerLinkActive="active" class="nav-link">Chat</a>
+      <a routerLink="/profile" routerLinkActive="active" class="nav-link">Profile</a>
+      <a routerLink="/admin" routerLinkActive="active" class="nav-link">Admin Panel</a>
+    </nav>
+  </div>
+</header>
+
+<!-- Main Content -->
+<main class="main-content">
+  <div class="container">
+    <section class="users-section">
+      <h2 class="section-title">Discover Users</h2>
+      <p class="section-subtitle">Connect with other bloggers and follow their stories</p>
+
+      <!-- Loading State -->
+      <div class="loading-state" *ngIf="loading">
+        <p>Loading users...</p>
+      </div>
+
+      <!-- Users Grid -->
+      <div class="users-grid" *ngIf="!loading">
+        <div class="user-card" *ngFor="let user of users">
+          <div class="user-card-header">
+            <div class="user-avatar">
+              {{ user.username.charAt(0).toUpperCase() }}
+            </div>
+            <div class="user-info">
+              <h3 class="user-name">{{ user.username }}</h3>
+              <p class="user-email">{{ user.email }}</p>
+            </div>
+          </div>
+
+          <div class="user-stats">
+            <div class="stat">
+              <span class="stat-value">{{ user.followersCount || 0 }}</span>
+              <span class="stat-label">Followers</span>
+            </div>
+            <div class="stat">
+              <span class="stat-value">{{ user.followingCount || 0 }}</span>
+              <span class="stat-label">Following</span>
+            </div>
+          </div>
+
+          <div class="user-meta">
+            <span class="join-date">Joined {{ user.createdAt | date:'MMM yyyy' }}</span>
+            <span class="user-role" [class.admin-badge]="user.role === 'ADMIN'">
+              {{ user.role }}
+            </span>
+          </div>
+
+          <div class="user-actions">
+            <button
+              class="follow-btn"
+              [class.following]="user.isFollowing"
+              (click)="toggleFollow(user)">
+              {{ user.isFollowing ? 'Unfollow' : 'Follow' }}
+            </button>
+            <button class="message-btn" routerLink="/chat" [queryParams]="{userId: user.id}">
+              Message
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div class="empty-state" *ngIf="!loading && users.length === 0">
+        <p>No users found</p>
+      </div>
+    </section>
+  </div>
+</main>
+
+<!-- Footer -->
+<footer class="site-footer">
+  <div class="container">
+    <p>&copy; 2025 My Blog. All rights reserved.</p>
+  </div>
+</footer>

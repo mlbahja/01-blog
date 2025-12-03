@@ -14,6 +14,10 @@ export class PostService {
     return this.http.get<any[]>(this.apiUrl);
   }
 
+  getPostsFromFollowedUsers(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/following`);
+  }
+
   createPost(post: any): Observable<any> {
     return this.http.post(this.apiUrl, post);
   }
