@@ -27,8 +27,27 @@ public class PostService {
     @Autowired
     private PostLikeRepository postLikeRepository;
 
+    @Autowired
+    private SubscriptionService subscriptionService;
+
     public List<Post> getAllPosts() {
         return postRepository.findByOrderByCreatedAtDesc();
+    }
+
+    /**
+     * Get posts only from users that the current user follows
+     * If user doesn't follow anyone, returns empty list
+     */
+    public List<Post> getPostsFromFollowedUsers(String currentUsername) {
+        // Get IDs of users that current user follows
+        List<Long> followingIds = subscriptionService.getFollowingIds(currentUsername);
+
+        if (followingIds.isEmpty()) {
+            return List.of(); // Return empty list if not following anyone
+        }
+
+        // Get posts from followed users
+        return postRepository.findByAuthorIdInOrderByCreatedAtDesc(followingIds);
     }
 
     public Optional<Post> getPostById(Long id) {

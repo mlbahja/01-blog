@@ -14,6 +14,7 @@ import com.blog.blogger.models.Comment;
 import com.blog.blogger.models.Post;
 import com.blog.blogger.models.User;
 import com.blog.blogger.repository.UserRepository;
+import com.blog.blogger.service.CommentService;
 import com.blog.blogger.service.PostService;
 
 @RestController
@@ -24,11 +25,21 @@ public class PostController {
     private PostService postService;
 
     @Autowired
+    private CommentService commentService;
+
+    @Autowired
     private UserRepository userRepository;
 
     @GetMapping
     public ResponseEntity<List<Post>> getAllPosts() {
         return ResponseEntity.ok(postService.getAllPosts());
+    }
+
+    @GetMapping("/following")
+    public ResponseEntity<List<Post>> getPostsFromFollowedUsers(
+            @AuthenticationPrincipal UserDetails userDetails) {
+        List<Post> posts = postService.getPostsFromFollowedUsers(userDetails.getUsername());
+        return ResponseEntity.ok(posts);
     }
 
     @GetMapping("/{id}")
@@ -126,6 +137,57 @@ public class PostController {
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         boolean liked = postService.hasUserLikedPost(id, user);
+        return ResponseEntity.ok(liked);
+    }
+
+    /**
+     * POST /auth/posts/{postId}/comments/{commentId}/like
+     * Like a comment (authenticated users only)
+     */
+    @PostMapping("/{postId}/comments/{commentId}/like")
+    public ResponseEntity<?> likeComment(@PathVariable Long postId,
+                                         @PathVariable Long commentId,
+                                         @AuthenticationPrincipal UserDetails userDetails) {
+        User user = userRepository.findByUsername(userDetails.getUsername())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Comment comment = commentService.likeComment(commentId, user);
+        return ResponseEntity.ok(java.util.Map.of(
+            "message", "Comment liked",
+            "likeCount", comment.getLikeCount()
+        ));
+    }
+
+    /**
+     * DELETE /auth/posts/{postId}/comments/{commentId}/like
+     * Unlike a comment (authenticated users only)
+     */
+    @DeleteMapping("/{postId}/comments/{commentId}/like")
+    public ResponseEntity<?> unlikeComment(@PathVariable Long postId,
+                                           @PathVariable Long commentId,
+                                           @AuthenticationPrincipal UserDetails userDetails) {
+        User user = userRepository.findByUsername(userDetails.getUsername())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Comment comment = commentService.unlikeComment(commentId, user);
+        return ResponseEntity.ok(java.util.Map.of(
+            "message", "Comment unliked",
+            "likeCount", comment.getLikeCount()
+        ));
+    }
+
+    /**
+     * GET /auth/posts/{postId}/comments/{commentId}/liked
+     * Check if the current user has liked this comment
+     */
+    @GetMapping("/{postId}/comments/{commentId}/liked")
+    public ResponseEntity<Boolean> hasLikedComment(@PathVariable Long postId,
+                                                    @PathVariable Long commentId,
+                                                    @AuthenticationPrincipal UserDetails userDetails) {
+        User user = userRepository.findByUsername(userDetails.getUsername())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        boolean liked = commentService.hasUserLikedComment(commentId, user);
         return ResponseEntity.ok(liked);
     }
 }

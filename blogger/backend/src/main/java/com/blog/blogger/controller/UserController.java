@@ -14,6 +14,11 @@ import com.blog.blogger.dto.UpdateProfileDTO;
 import com.blog.blogger.dto.UserProfileDTO;
 import com.blog.blogger.models.User;
 import com.blog.blogger.service.UserService;
+import com.blog.blogger.service.SubscriptionService;
+import com.blog.blogger.repository.UserRepository;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * UserController - Handles user profile operations
@@ -30,9 +35,13 @@ import com.blog.blogger.service.UserService;
 public class UserController {
 
     private final UserService userService;
+    private final SubscriptionService subscriptionService;
+    private final UserRepository userRepository;
 
-    public UserController(UserService userService) {
+    public UserController(UserService userService, SubscriptionService subscriptionService, UserRepository userRepository) {
         this.userService = userService;
+        this.subscriptionService = subscriptionService;
+        this.userRepository = userRepository;
     }
 
     /**
@@ -165,5 +174,102 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", e.getMessage()));
         }
+    }
+
+    /**
+     * GET /auth/users
+     * Get all users (excluding current user)
+     */
+    @GetMapping
+    public ResponseEntity<?> getAllUsers(Principal principal) {
+        try {
+            String currentUsername = principal.getName();
+            List<User> users = userRepository.findAll();
+
+            List<Map<String, Object>> userList = users.stream()
+                    .filter(user -> !user.getUsername().equals(currentUsername))
+                    .map(user -> {
+                        Map<String, Object> userMap = new HashMap<>();
+                        userMap.put("id", user.getId());
+                        userMap.put("username", user.getUsername());
+                        userMap.put("email", user.getEmail());
+                        userMap.put("role", user.getRole());
+                        userMap.put("createdAt", user.getCreatedAt());
+
+                        // Add follow stats
+                        Map<String, Object> stats = subscriptionService.getFollowStats(user.getUsername());
+                        userMap.put("followersCount", stats.get("followersCount"));
+                        userMap.put("followingCount", stats.get("followingCount"));
+
+                        // Check if current user is following this user
+                        userMap.put("isFollowing", subscriptionService.isFollowing(currentUsername, user.getId()));
+
+                        return userMap;
+                    })
+                    .collect(Collectors.toList());
+
+            return ResponseEntity.ok(userList);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    /**
+     * POST /auth/users/{userId}/follow
+     * Follow a user
+     */
+    @PostMapping("/{userId}/follow")
+    public ResponseEntity<?> followUser(@PathVariable Long userId, Principal principal) {
+        try {
+            subscriptionService.followUser(principal.getName(), userId);
+            return ResponseEntity.ok(Map.of("message", "Successfully followed user"));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    /**
+     * DELETE /auth/users/{userId}/follow
+     * Unfollow a user
+     */
+    @DeleteMapping("/{userId}/follow")
+    public ResponseEntity<?> unfollowUser(@PathVariable Long userId, Principal principal) {
+        try {
+            subscriptionService.unfollowUser(principal.getName(), userId);
+            return ResponseEntity.ok(Map.of("message", "Successfully unfollowed user"));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    /**
+     * GET /auth/users/{userId}/is-following
+     * Check if current user is following another user
+     */
+    @GetMapping("/{userId}/is-following")
+    public ResponseEntity<Boolean> isFollowing(@PathVariable Long userId, Principal principal) {
+        boolean isFollowing = subscriptionService.isFollowing(principal.getName(), userId);
+        return ResponseEntity.ok(isFollowing);
+    }
+
+    /**
+     * GET /auth/users/following
+     * Get list of users that current user follows
+     */
+    @GetMapping("/following")
+    public ResponseEntity<List<Map<String, Object>>> getFollowing(Principal principal) {
+        List<Map<String, Object>> following = subscriptionService.getFollowing(principal.getName());
+        return ResponseEntity.ok(following);
+    }
+
+    /**
+     * GET /auth/users/followers
+     * Get list of current user's followers
+     */
+    @GetMapping("/followers")
+    public ResponseEntity<List<Map<String, Object>>> getFollowers(Principal principal) {
+        List<Map<String, Object>> followers = subscriptionService.getFollowers(principal.getName());
+        return ResponseEntity.ok(followers);
     }
 }
