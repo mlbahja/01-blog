@@ -1,6 +1,8 @@
 package com.blog.blogger.controller;
 
 import com.blog.blogger.models.Message;
+import com.blog.blogger.models.User;
+import com.blog.blogger.repository.UserRepository;
 import com.blog.blogger.service.MessageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +21,18 @@ public class MessageController {
     @Autowired
     private MessageService messageService;
 
+    @Autowired
+    private UserRepository userRepository;
+
+    /**
+     * Check if user is banned and throw exception if so
+     */
+    private void checkUserBanned(User user) {
+        if (user.getIsBanned() != null && user.getIsBanned()) {
+            throw new RuntimeException("User account is banned and cannot perform this action");
+        }
+    }
+
     /**
      * Send a message to another user
      * POST /auth/messages
@@ -27,6 +41,11 @@ public class MessageController {
     @PostMapping
     public ResponseEntity<?> sendMessage(@RequestBody Map<String, Object> payload, Principal principal) {
         try {
+            // Check if user is banned
+            User user = userRepository.findByUsername(principal.getName())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+            checkUserBanned(user);
+
             Long receiverId = Long.valueOf(payload.get("receiverId").toString());
             String content = payload.get("content").toString();
 
@@ -103,6 +122,11 @@ public class MessageController {
     @DeleteMapping("/{messageId}")
     public ResponseEntity<?> deleteMessage(@PathVariable Long messageId, Principal principal) {
         try {
+            // Check if user is banned
+            User user = userRepository.findByUsername(principal.getName())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+            checkUserBanned(user);
+
             messageService.deleteMessage(principal.getName(), messageId);
             return ResponseEntity.ok(Map.of("message", "Message deleted successfully"));
         } catch (RuntimeException e) {

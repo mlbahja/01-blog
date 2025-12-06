@@ -49,6 +49,11 @@ public class CustomUserDetailsService implements UserDetailsService {
                             )
                 );
 
+        // Check if user is banned
+        if (user.getIsBanned() != null && user.getIsBanned()) {
+            throw new UsernameNotFoundException("User account is banned: " + username);
+        }
+
         // Convert our User entity to Spring Security's UserDetails
         // This tells Spring Security:
         // - What's the username?

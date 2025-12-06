@@ -30,6 +30,15 @@ public class PostController {
     @Autowired
     private UserRepository userRepository;
 
+    /**
+     * Check if user is banned and throw exception if so
+     */
+    private void checkUserBanned(User user) {
+        if (user.getIsBanned() != null && user.getIsBanned()) {
+            throw new RuntimeException("User account is banned and cannot perform this action");
+        }
+    }
+
     @GetMapping
     public ResponseEntity<List<Post>> getAllPosts() {
         return ResponseEntity.ok(postService.getAllPosts());
@@ -55,6 +64,9 @@ public class PostController {
         User author = userRepository.findByUsername(userDetails.getUsername())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
+        // Check if user is banned
+        checkUserBanned(author);
+
         Post post = Post.builder()
                 .title(dto.getTitle())
                 .content(dto.getContent())
@@ -77,6 +89,9 @@ public class PostController {
                                            @AuthenticationPrincipal UserDetails userDetails) {
         User author = userRepository.findByUsername(userDetails.getUsername())
                 .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Check if user is banned
+        checkUserBanned(author);
 
         Post post = postService.getPostById(postId)
                 .orElseThrow(() -> new RuntimeException("Post not found"));
@@ -108,6 +123,9 @@ public class PostController {
         User user = userRepository.findByUsername(userDetails.getUsername())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
+        // Check if user is banned
+        checkUserBanned(user);
+
         Post post = postService.likePost(id, user);
         return ResponseEntity.ok(post);
     }
@@ -121,6 +139,9 @@ public class PostController {
                                            @AuthenticationPrincipal UserDetails userDetails) {
         User user = userRepository.findByUsername(userDetails.getUsername())
                 .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Check if user is banned
+        checkUserBanned(user);
 
         Post post = postService.unlikePost(id, user);
         return ResponseEntity.ok(post);
@@ -151,6 +172,9 @@ public class PostController {
         User user = userRepository.findByUsername(userDetails.getUsername())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
+        // Check if user is banned
+        checkUserBanned(user);
+
         Comment comment = commentService.likeComment(commentId, user);
         return ResponseEntity.ok(java.util.Map.of(
             "message", "Comment liked",
@@ -168,6 +192,9 @@ public class PostController {
                                            @AuthenticationPrincipal UserDetails userDetails) {
         User user = userRepository.findByUsername(userDetails.getUsername())
                 .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Check if user is banned
+        checkUserBanned(user);
 
         Comment comment = commentService.unlikeComment(commentId, user);
         return ResponseEntity.ok(java.util.Map.of(

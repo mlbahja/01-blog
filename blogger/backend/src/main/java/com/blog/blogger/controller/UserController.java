@@ -45,6 +45,15 @@ public class UserController {
     }
 
     /**
+     * Check if user is banned and throw exception if so
+     */
+    private void checkUserBanned(User user) {
+        if (user.getIsBanned() != null && user.getIsBanned()) {
+            throw new RuntimeException("User account is banned and cannot perform this action");
+        }
+    }
+
+    /**
      * GET /auth/users/me
      * Get current logged-in user's profile
      */
@@ -96,6 +105,9 @@ public class UserController {
             User currentUser = userService.getUserByUsername(username)
                     .orElseThrow(() -> new RuntimeException("User not found"));
 
+            // Check if user is banned
+            checkUserBanned(currentUser);
+
             // Check if user is updating their own profile or is admin
             if (!currentUser.getId().equals(id) && !userService.isAdmin(currentUser.getId())) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN)
@@ -127,6 +139,9 @@ public class UserController {
             String username = principal.getName();
             User currentUser = userService.getUserByUsername(username)
                     .orElseThrow(() -> new RuntimeException("User not found"));
+
+            // Check if user is banned
+            checkUserBanned(currentUser);
 
             // Users can only change their own password (not even admin can change others' passwords)
             if (!currentUser.getId().equals(id)) {
@@ -222,6 +237,11 @@ public class UserController {
     @PostMapping("/{userId}/follow")
     public ResponseEntity<?> followUser(@PathVariable Long userId, Principal principal) {
         try {
+            // Check if user is banned
+            User currentUser = userRepository.findByUsername(principal.getName())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+            checkUserBanned(currentUser);
+
             subscriptionService.followUser(principal.getName(), userId);
             return ResponseEntity.ok(Map.of("message", "Successfully followed user"));
         } catch (RuntimeException e) {
@@ -236,6 +256,11 @@ public class UserController {
     @DeleteMapping("/{userId}/follow")
     public ResponseEntity<?> unfollowUser(@PathVariable Long userId, Principal principal) {
         try {
+            // Check if user is banned
+            User currentUser = userRepository.findByUsername(principal.getName())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+            checkUserBanned(currentUser);
+
             subscriptionService.unfollowUser(principal.getName(), userId);
             return ResponseEntity.ok(Map.of("message", "Successfully unfollowed user"));
         } catch (RuntimeException e) {

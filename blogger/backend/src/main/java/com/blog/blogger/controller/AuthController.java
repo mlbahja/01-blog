@@ -75,7 +75,6 @@ public class AuthController {
         String identifier = (req.getEmail() != null && !req.getEmail().isBlank())
                 ? req.getEmail()
                 : req.getUsername();
-
         log.info("Login attempt for: {}", identifier);
         var opt = userService.login(identifier, req.getPassword());
 
@@ -85,6 +84,12 @@ public class AuthController {
         }
 
         User user = opt.get();
+
+        // Check if user is banned
+        if (user.getIsBanned() != null && user.getIsBanned()) {
+            log.warn("Login blocked - user is banned: {}", identifier);
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Your account has been banned. Please contact support.");
+        }
 
         // Generate JWT token for the authenticated user
         String token = jwtUtil.generateToken(user.getUsername());

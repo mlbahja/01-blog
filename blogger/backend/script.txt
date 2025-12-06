@@ -1,3 +1,13 @@
 docker run --name mysql_db -e MYSQL_ROOT_PASSWORD=pass123 -e MYSQL_DATABASE=blog_db -p 3307:3306 -d mysql:8.0
 docker rm -f blogger_mysql
 docker exec -it mysql_db mysql -u root -p
+
+
+
+
+/*
+docker 
+start mysql_db
+docker exec -it mysql_db mysql -u root -p
+
+*/
