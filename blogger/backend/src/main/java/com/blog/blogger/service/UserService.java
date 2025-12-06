@@ -7,12 +7,19 @@ import java.util.stream.Collectors;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.blog.blogger.dto.ChangePasswordDTO;
 import com.blog.blogger.dto.UpdateProfileDTO;
 import com.blog.blogger.dto.UserProfileDTO;
 import com.blog.blogger.models.Role;
 import com.blog.blogger.models.User;
+import com.blog.blogger.repository.CommentLikeRepository;
+import com.blog.blogger.repository.CommentRepository;
+import com.blog.blogger.repository.MessageRepository;
+import com.blog.blogger.repository.PostLikeRepository;
+import com.blog.blogger.repository.PostRepository;
+import com.blog.blogger.repository.SubscriptionRepository;
 import com.blog.blogger.repository.UserRepository;
 
 /**
@@ -29,10 +36,30 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final PostRepository postRepository;
+    private final CommentRepository commentRepository;
+    private final MessageRepository messageRepository;
+    private final PostLikeRepository postLikeRepository;
+    private final CommentLikeRepository commentLikeRepository;
+    private final SubscriptionRepository subscriptionRepository;
 
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public UserService(
+            UserRepository userRepository,
+            PasswordEncoder passwordEncoder,
+            PostRepository postRepository,
+            CommentRepository commentRepository,
+            MessageRepository messageRepository,
+            PostLikeRepository postLikeRepository,
+            CommentLikeRepository commentLikeRepository,
+            SubscriptionRepository subscriptionRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.postRepository = postRepository;
+        this.commentRepository = commentRepository;
+        this.messageRepository = messageRepository;
+        this.postLikeRepository = postLikeRepository;
+        this.commentLikeRepository = commentLikeRepository;
+        this.subscriptionRepository = subscriptionRepository;
     }
 
     // ========== Authentication Methods ==========
@@ -149,9 +176,60 @@ public class UserService {
 
     // ========== User Management Methods ==========
 
+    /**
+     * Delete a user and all their related data
+     * This method deletes:
+     * - All subscriptions (following/followers)
+     * - All post likes by the user
+     * - All comment likes by the user
+     * - All messages sent/received by the user
+     * - All posts by the user (which cascades to delete their comments)
+     * - Finally the user account itself
+     */
+    @Transactional
     public void deleteUser(Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
+
+        // 1. Delete all subscriptions where user is follower
+        List<com.blog.blogger.models.Subscription> asFollower = subscriptionRepository.findByFollower(user);
+        subscriptionRepository.deleteAll(asFollower);
+
+        // 2. Delete all subscriptions where user is being followed
+        List<com.blog.blogger.models.Subscription> asFollowing = subscriptionRepository.findByFollowing(user);
+        subscriptionRepository.deleteAll(asFollowing);
+
+        // 3. Delete all post likes by the user
+        List<com.blog.blogger.models.PostLike> postLikes = postLikeRepository.findAll().stream()
+                .filter(like -> like.getUser().getId().equals(id))
+                .collect(Collectors.toList());
+        postLikeRepository.deleteAll(postLikes);
+
+        // 4. Delete all comment likes by the user
+        List<com.blog.blogger.models.CommentLike> commentLikes = commentLikeRepository.findAll().stream()
+                .filter(like -> like.getUser().getId().equals(id))
+                .collect(Collectors.toList());
+        commentLikeRepository.deleteAll(commentLikes);
+
+        // 5. Delete all messages sent by the user
+        List<com.blog.blogger.models.Message> sentMessages = messageRepository.findBySenderOrderByCreatedAtDesc(user);
+        messageRepository.deleteAll(sentMessages);
+
+        // 6. Delete all messages received by the user
+        List<com.blog.blogger.models.Message> receivedMessages = messageRepository.findByReceiverOrderByCreatedAtDesc(user);
+        messageRepository.deleteAll(receivedMessages);
+
+        // 7. Delete all comments by the user (need to do this before deleting posts)
+        List<com.blog.blogger.models.Comment> comments = commentRepository.findAll().stream()
+                .filter(comment -> comment.getAuthor().getId().equals(id))
+                .collect(Collectors.toList());
+        commentRepository.deleteAll(comments);
+
+        // 8. Delete all posts by the user (this will cascade delete remaining related data)
+        List<com.blog.blogger.models.Post> posts = postRepository.findByAuthor(user);
+        postRepository.deleteAll(posts);
+
+        // 9. Finally, delete the user
         userRepository.delete(user);
     }
 

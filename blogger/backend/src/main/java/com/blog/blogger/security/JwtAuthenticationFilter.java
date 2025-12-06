@@ -72,6 +72,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
                 // 6. Load user details from database
+                // This will throw UsernameNotFoundException if user is banned
                 UserDetails userDetails = userDetailsService.loadUserByUsername(username);
                 logger.info("User details loaded for: " + username);
 
@@ -98,6 +99,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     logger.error("Token validation failed for: " + username);
                 }
             }
+        } catch (org.springframework.security.core.userdetails.UsernameNotFoundException e) {
+            // User is banned or not found
+            logger.error("JWT Authentication failed - User banned or not found: " + e.getMessage());
+            // Return 403 Forbidden response
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            response.setContentType("application/json");
+            response.getWriter().write("{\"error\": \"" + e.getMessage() + "\", \"banned\": true}");
+            return; // Stop filter chain
         } catch (Exception e) {
             // Token is invalid, malformed, or expired
             // Log the error but continue without authentication
