@@ -8,6 +8,10 @@ import com.blog.blogger.repository.PostRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 
 import java.util.List;
 import java.util.Optional;
@@ -30,8 +34,9 @@ public class PostService {
     @Autowired
     private SubscriptionService subscriptionService;
 
-    public List<Post> getAllPosts() {
-        return postRepository.findByOrderByCreatedAtDesc();
+    public Page<Post> getAllPosts(int page, int size) {
+         Pageable pageable = PageRequest.of(page - 1, size, Sort.by("createdAt").descending());
+        return postRepository.findAll(pageable);
     }
 
     /**
@@ -40,15 +45,19 @@ public class PostService {
      */
     public List<Post> getPostsFromFollowedUsers(String currentUsername) {
         // Get IDs of users that current user follows
+        System.out.println(currentUsername);
         List<Long> followingIds = subscriptionService.getFollowingIds(currentUsername);
-
         if (followingIds.isEmpty()) {
             return List.of(); // Return empty list if not following anyone
         }
-
         // Get posts from followed users
         return postRepository.findByAuthorIdInOrderByCreatedAtDesc(followingIds);
     }
+    /**
+     * pagination of posts that can showing by just follewed or not folwed okay 
+     * If user doesn't follow anyone, returns empty list
+     */
+    
 
     public Optional<Post> getPostById(Long id) {
         return postRepository.findById(id);

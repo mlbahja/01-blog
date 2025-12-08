@@ -151,6 +151,9 @@
         </article>
       </div>
 
+      
+
+
       <!-- Empty State -->
       <div class="empty-state" *ngIf="posts.length === 0">
         <div class="empty-state-content">
@@ -160,6 +163,9 @@
         </div>
       </div>
     </section>
+    <button (click)="prevPage()" [disabled]="currentPage === 1">Previous</button>
+      <span>Page {{ currentPage }}</span>
+      <button (click)="nextPage()" [disabled]="currentPage * pageSize >= totalPosts">Next</button>
   </div>
 </main>
 

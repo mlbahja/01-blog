@@ -1,44 +1,60 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
 })
 export class PostService {
-  private apiUrl = 'http://localhost:8080/auth/posts'; // Backend API URL
+  private apiUrl = 'http://localhost:8080/auth'; // FIXED
 
   constructor(private http: HttpClient) {}
 
-  getAllPosts(): Observable<any[]> {
-    return this.http.get<any[]>(this.apiUrl);
+  // GET paginated posts
+  getAllPosts(page: number = 1, size: number = 10): Observable<any> {
+    const params = new HttpParams()
+      .set('page', page)
+      .set('size', size);
+
+    return this.http.get(`${this.apiUrl}/posts`, { params });
   }
 
-  getPostsFromFollowedUsers(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/following`);
+  // GET posts from followed users
+  getPostsFromFollowedUsers(page: number = 1, size: number = 10): Observable<any> {
+    const params = new HttpParams()
+      .set('page', page)
+      .set('size', size);
+
+    return this.http.get(`${this.apiUrl}/posts/followed`, { params });
   }
 
+  // CREATE post
   createPost(post: any): Observable<any> {
-    return this.http.post(this.apiUrl, post);
+    return this.http.post(`${this.apiUrl}/posts`, post);
   }
 
+  // ADD comment
   addComment(postId: number, comment: any): Observable<any> {
-    return this.http.post(`${this.apiUrl}/${postId}/comments`, comment);
+    return this.http.post(`${this.apiUrl}/posts/${postId}/comments`, comment);
   }
 
+  // DELETE post
   deletePost(postId: number): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/${postId}`);
+    return this.http.delete(`${this.apiUrl}/posts/${postId}`);
   }
 
+  // LIKE
   likePost(postId: number): Observable<any> {
-    return this.http.post(`${this.apiUrl}/${postId}/like`, {});
+    return this.http.post(`${this.apiUrl}/posts/${postId}/like`, {});
   }
 
+  // UNLIKE
   unlikePost(postId: number): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/${postId}/like`);
+    return this.http.delete(`${this.apiUrl}/posts/${postId}/like`);
   }
 
+  // CHECK IF USER LIKED A POST
   hasLikedPost(postId: number): Observable<boolean> {
-    return this.http.get<boolean>(`${this.apiUrl}/${postId}/liked`);
+    return this.http.get<boolean>(`${this.apiUrl}/posts/${postId}/liked`);
   }
 }

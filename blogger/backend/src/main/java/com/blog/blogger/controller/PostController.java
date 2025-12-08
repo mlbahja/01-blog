@@ -6,7 +6,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import  org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.blog.blogger.dto.CreateCommentDTO;
 import com.blog.blogger.dto.CreatePostDTO;
@@ -16,6 +23,10 @@ import com.blog.blogger.models.User;
 import com.blog.blogger.repository.UserRepository;
 import com.blog.blogger.service.CommentService;
 import com.blog.blogger.service.PostService;
+//pagination of Posts 
+import org.springframework.data.domain.Page;
+import java.util.Map;
+import java.util.HashMap;
 
 @RestController
 @RequestMapping("/auth/posts")
@@ -38,11 +49,21 @@ public class PostController {
             throw new RuntimeException("User account is banned and cannot perform this action");
         }
     }
+    @GetMapping()
+    public ResponseEntity<Map<String, Object>> getAllPosts(
+        @RequestParam(defaultValue = "1") int page,
+        @RequestParam(defaultValue = "10") int size
+) {
+    Page<Post> postPage = postService.getAllPosts(page, size);
 
-    @GetMapping
-    public ResponseEntity<List<Post>> getAllPosts() {
-        return ResponseEntity.ok(postService.getAllPosts());
-    }
+    Map<String, Object> response = new HashMap<>();
+    response.put("posts", postPage.getContent());
+    response.put("total", postPage.getTotalElements());
+    response.put("totalPages", postPage.getTotalPages());
+    response.put("currentPage", page);
+
+    return ResponseEntity.ok(response);
+}
 
     @GetMapping("/following")
     public ResponseEntity<List<Post>> getPostsFromFollowedUsers(

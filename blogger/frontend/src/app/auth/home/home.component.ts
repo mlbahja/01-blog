@@ -23,6 +23,9 @@ export class HomeComponent implements OnInit {
   showCreateForm = false;
   expandedPosts = new Set<number>();
   showFollowedOnly = false;
+  currentPage: number = 1;
+  pageSize: number = 10;
+  totalPosts: number = 0;
 
   constructor(
     private authService: AuthService,
@@ -36,11 +39,11 @@ export class HomeComponent implements OnInit {
     this.username = userData?.username || 'Guest';
     this.loadPosts();
   }
-
+/*
   loadPosts(): void {
     const postsObservable = this.showFollowedOnly
-      ? this.postService.getPostsFromFollowedUsers()
-      : this.postService.getAllPosts();
+      ? this.postService.getPostsFromFollowedUsers(1,10)
+      : this.postService.getAllPosts(1,10);
 
     postsObservable.subscribe({
       next: (posts: any) => {
@@ -62,7 +65,49 @@ export class HomeComponent implements OnInit {
         this.toastService.show('Failed to load posts', 'error');
       },
     });
+  }*/
+loadPosts(): void {
+  const postsObservable = this.showFollowedOnly
+    ? this.postService.getPostsFromFollowedUsers(this.currentPage, this.pageSize)
+    : this.postService.getAllPosts(this.currentPage, this.pageSize);
+
+  postsObservable.subscribe({
+    next: (response: any) => {
+      console.log("Response from backend:", response);
+
+      // Support different backend formats
+      this.posts = response.posts || response.content || response;
+
+      // Very important!!
+      this.totalPosts = response.total || response.totalElements || 0;
+
+      // Load liked status
+      this.posts.forEach(post => {
+        this.postService.hasLikedPost(post.id).subscribe({
+          next: liked => post.isLiked = liked,
+          error: () => post.isLiked = false
+        });
+      });
+    },
+    error: () => {
+      this.toastService.show("Failed to load posts", "error");
+    }
+  });
+}
+
+nextPage() {
+  if (this.currentPage * this.pageSize < this.totalPosts) {
+    this.currentPage++;
+    this.loadPosts();
   }
+}
+
+prevPage() {
+  if (this.currentPage > 1) {
+    this.currentPage--;
+    this.loadPosts();
+  }
+}
 
   toggleFeedFilter(): void {
     this.showFollowedOnly = !this.showFollowedOnly;
