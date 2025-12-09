@@ -144,7 +144,7 @@ prevPage() {
               this.toastService.show('Failed to create post: ' + (error.error?.message || error.message), 'error');
             }
           },
-        });
+        });     
     } else {
       console.warn('[HomeComponent] Title or content is empty');
       this.toastService.show('Please fill in both title and content', 'error');
