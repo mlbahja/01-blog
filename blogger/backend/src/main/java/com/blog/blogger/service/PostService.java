@@ -1,20 +1,21 @@
 package com.blog.blogger.service;
 
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.blog.blogger.models.Post;
 import com.blog.blogger.models.PostLike;
 import com.blog.blogger.models.User;
 import com.blog.blogger.repository.PostLikeRepository;
 import com.blog.blogger.repository.PostRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
-
-import java.util.List;
-import java.util.Optional;
 
 /**
  * PostService - Handles post-related business logic
@@ -45,12 +46,13 @@ public class PostService {
      */
     public List<Post> getPostsFromFollowedUsers(String currentUsername) {
         // Get IDs of users that current user follows
-        System.out.println(currentUsername);
+        System.out.println("currentUsername ========> " + currentUsername);
         List<Long> followingIds = subscriptionService.getFollowingIds(currentUsername);
         if (followingIds.isEmpty()) {
             return List.of(); // Return empty list if not following anyone
         }
         // Get posts from followed users
+        System.out.println("*********************************" + followingIds);
         return postRepository.findByAuthorIdInOrderByCreatedAtDesc(followingIds);
     }
     /**

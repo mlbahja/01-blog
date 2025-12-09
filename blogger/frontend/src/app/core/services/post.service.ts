@@ -25,7 +25,7 @@ export class PostService {
       .set('page', page)
       .set('size', size);
 
-    return this.http.get(`${this.apiUrl}/posts/followed`, { params });
+    return this.http.get(`${this.apiUrl}/posts/following`, { params });
   }
 
   // CREATE post
