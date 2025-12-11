@@ -33,6 +33,13 @@ export class PostService {
     return this.http.post(`${this.apiUrl}/posts`, post);
   }
 
+  // UPLOAD media file
+  uploadMedia(file: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post(`${this.apiUrl}/posts/upload`, formData);
+  }
+
   // ADD comment
   addComment(postId: number, comment: any): Observable<any> {
     return this.http.post(`${this.apiUrl}/posts/${postId}/comments`, comment);

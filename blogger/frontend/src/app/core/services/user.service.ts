@@ -97,4 +97,13 @@ export class UserService {
   getFollowers(): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/followers`);
   }
+
+  /**
+   * Upload profile picture
+   */
+  uploadProfilePicture(file: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post(`${this.apiUrl}/upload-profile-picture`, formData);
+  }
 }

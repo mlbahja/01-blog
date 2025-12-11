@@ -42,7 +42,24 @@
     </div>
 
     <div class="form-group">
-      <label for="profilePictureUrl">Profile Picture URL</label>
+      <label for="profilePictureUrl">Profile Picture</label>
+      <div class="file-upload-section">
+        <label class="file-input-label">
+          <input
+            type="file"
+            (change)="onProfilePictureSelected($event)"
+            accept="image/*"
+            class="file-input"
+          />
+          <span class="file-input-text">
+            {{ selectedProfilePicture ? selectedProfilePicture.name : 'Choose a profile picture from your device' }}
+          </span>
+        </label>
+        <button type="button" class="btn btn-upload" *ngIf="selectedProfilePicture" (click)="uploadProfilePicture()">
+          {{ uploading ? 'Uploading...' : 'Upload Now' }}
+        </button>
+      </div>
+      <small class="form-hint">Or enter a URL below:</small>
       <input
         type="text"
         id="profilePictureUrl"
@@ -51,14 +68,13 @@
         placeholder="https://example.com/profile.jpg"
         class="form-control"
       />
-      <small class="form-hint">Enter a URL to an image for your profile picture</small>
     </div>
 
     <!-- Preview -->
     <div class="preview-section" *ngIf="avatar || profilePictureUrl">
       <label>Preview:</label>
       <img
-        [src]="avatar || profilePictureUrl"
+        [src]="getProfilePictureUrl()"
         alt="Preview"
         class="preview-image"
         onerror="this.src='https://via.placeholder.com/100'"

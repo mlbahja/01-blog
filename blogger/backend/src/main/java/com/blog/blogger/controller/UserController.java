@@ -15,10 +15,13 @@ import com.blog.blogger.dto.UserProfileDTO;
 import com.blog.blogger.models.User;
 import com.blog.blogger.service.UserService;
 import com.blog.blogger.service.SubscriptionService;
+import com.blog.blogger.service.FileStorageService;
 import com.blog.blogger.repository.UserRepository;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.http.MediaType;
 
 /**
  * UserController - Handles user profile operations
@@ -37,11 +40,14 @@ public class UserController {
     private final UserService userService;
     private final SubscriptionService subscriptionService;
     private final UserRepository userRepository;
+    private final FileStorageService fileStorageService;
 
-    public UserController(UserService userService, SubscriptionService subscriptionService, UserRepository userRepository) {
+    public UserController(UserService userService, SubscriptionService subscriptionService,
+                          UserRepository userRepository, FileStorageService fileStorageService) {
         this.userService = userService;
         this.subscriptionService = subscriptionService;
         this.userRepository = userRepository;
+        this.fileStorageService = fileStorageService;
     }
 
     /**
@@ -296,5 +302,55 @@ public class UserController {
     public ResponseEntity<List<Map<String, Object>>> getFollowers(Principal principal) {
         List<Map<String, Object>> followers = subscriptionService.getFollowers(principal.getName());
         return ResponseEntity.ok(followers);
+    }
+
+    /**
+     * POST /auth/users/upload-profile-picture
+     * Upload profile picture
+     */
+    @PostMapping(value = "/upload-profile-picture", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Map<String, String>> uploadProfilePicture(
+            @RequestParam("file") MultipartFile file,
+            Principal principal) {
+        try {
+            // Get current user
+            User currentUser = userRepository.findByUsername(principal.getName())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            // Check if user is banned
+            checkUserBanned(currentUser);
+
+            // Validate file
+            if (file.isEmpty()) {
+                throw new RuntimeException("Please select a file to upload");
+            }
+
+            // Validate file type (only images)
+            String contentType = file.getContentType();
+            if (contentType == null || !contentType.startsWith("image/")) {
+                throw new RuntimeException("Only image files are allowed for profile pictures");
+            }
+
+            // Store file
+            String filename = fileStorageService.storeFile(file);
+            String fileUrl = "/uploads/" + filename;
+
+            // Update user's profilePictureUrl
+            currentUser.setProfilePictureUrl(fileUrl);
+            userRepository.save(currentUser);
+
+            Map<String, String> response = new HashMap<>();
+            response.put("filename", filename);
+            response.put("url", fileUrl);
+            response.put("message", "Profile picture uploaded successfully");
+
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", e.getMessage()));
+        }
     }
 }

@@ -46,6 +46,12 @@ public class Post {
     @Column(columnDefinition = "TEXT", nullable = false)
     private String content;
 
+    @Column(name = "media_type")
+    private String mediaType; // "image", "video", "gif", or null for text-only
+
+    @Column(name = "media_url")
+    private String mediaUrl; // URL/path to the uploaded media file
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "author_id", nullable = false)
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "password"})

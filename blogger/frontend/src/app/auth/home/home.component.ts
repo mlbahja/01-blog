@@ -19,7 +19,11 @@ export class HomeComponent implements OnInit {
   newPost = {
     title: '',
     content: '',
+    mediaType: '',
+    mediaUrl: '',
   };
+  selectedFile: File | null = null;
+  uploading = false;
   showCreateForm = false;
   expandedPosts = new Set<number>();
   showFollowedOnly = false;
@@ -114,41 +118,90 @@ prevPage() {
     this.loadPosts();
   }
 
+  onFileSelected(event: any): void {
+    const file = event.target.files[0];
+    if (file) {
+      this.selectedFile = file;
+    }
+  }
+
+  removeFile(): void {
+    this.selectedFile = null;
+    this.newPost.mediaType = '';
+    this.newPost.mediaUrl = '';
+  }
+
   createPost(): void {
     if (this.newPost.title && this.newPost.content) {
       console.log('[HomeComponent] Creating post with data:', this.newPost);
-      console.log('[HomeComponent] Token from localStorage:', localStorage.getItem('jwt_token'));
+      console.log('[HomeComponent] Selected file:', this.selectedFile);
 
-      this.postService
-        .createPost(this.newPost)
-        .subscribe({
-          next: (response) => {
-            console.log('[HomeComponent] Post created successfully:', response);
-            this.loadPosts();
-            // Reset form
-            this.newPost = { title: '', content: '' };
-            this.showCreateForm = false;
-            this.toastService.show('Post published successfully!', 'success');
+      // If file is selected, upload it first
+      if (this.selectedFile) {
+        console.log('[HomeComponent] Starting file upload...');
+        console.log('[HomeComponent] File size:', this.selectedFile.size, 'bytes');
+        console.log('[HomeComponent] File type:', this.selectedFile.type);
+
+        this.uploading = true;
+        this.postService.uploadMedia(this.selectedFile).subscribe({
+          next: (uploadResponse) => {
+            console.log('[HomeComponent] File uploaded successfully:', uploadResponse);
+            this.newPost.mediaUrl = uploadResponse.url;
+            this.newPost.mediaType = uploadResponse.mediaType;
+            this.submitPost();
           },
           error: (error: any) => {
-            console.error('[HomeComponent] Error creating post:', error);
+            console.error('[HomeComponent] Error uploading file:', error);
             console.error('[HomeComponent] Error status:', error.status);
             console.error('[HomeComponent] Error message:', error.message);
-            console.error('[HomeComponent] Error body:', error.error);
+            console.error('[HomeComponent] Error details:', error.error);
+            this.uploading = false;
 
-            if (error.status === 403) {
-              this.toastService.show('Not authorized. Please login again.', 'error');
-            } else if (error.status === 401) {
-              this.toastService.show('Session expired. Please login again.', 'error');
-            } else {
-              this.toastService.show('Failed to create post: ' + (error.error?.message || error.message), 'error');
+            let errorMsg = 'Failed to upload media file';
+            if (error.status === 413) {
+              errorMsg = 'File is too large. Maximum size is 10MB';
+            } else if (error.error?.message) {
+              errorMsg = error.error.message;
             }
-          },
-        });     
+
+            this.toastService.show(errorMsg, 'error');
+          }
+        });
+      } else {
+        // No file, just create the post
+        this.submitPost();
+      }
     } else {
       console.warn('[HomeComponent] Title or content is empty');
       this.toastService.show('Please fill in both title and content', 'error');
     }
+  }
+
+  private submitPost(): void {
+    this.postService.createPost(this.newPost).subscribe({
+      next: (response) => {
+        console.log('[HomeComponent] Post created successfully:', response);
+        this.loadPosts();
+        // Reset form
+        this.newPost = { title: '', content: '', mediaType: '', mediaUrl: '' };
+        this.selectedFile = null;
+        this.uploading = false;
+        this.showCreateForm = false;
+        this.toastService.show('Post published successfully!', 'success');
+      },
+      error: (error: any) => {
+        console.error('[HomeComponent] Error creating post:', error);
+        this.uploading = false;
+
+        if (error.status === 403) {
+          this.toastService.show('Not authorized. Please login again.', 'error');
+        } else if (error.status === 401) {
+          this.toastService.show('Session expired. Please login again.', 'error');
+        } else {
+          this.toastService.show('Failed to create post: ' + (error.error?.message || error.message), 'error');
+        }
+      }
+    });
   }
 
   addComment(postId: number, commentText: string): void {

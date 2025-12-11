@@ -23,10 +23,14 @@ import com.blog.blogger.models.User;
 import com.blog.blogger.repository.UserRepository;
 import com.blog.blogger.service.CommentService;
 import com.blog.blogger.service.PostService;
-//pagination of Posts 
+import com.blog.blogger.service.FileStorageService;
+//pagination of Posts
 import org.springframework.data.domain.Page;
 import java.util.Map;
 import java.util.HashMap;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.http.MediaType;
 
 @RestController
 @RequestMapping("/auth/posts")
@@ -40,6 +44,9 @@ public class PostController {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private FileStorageService fileStorageService;
 
     /**
      * Check if user is banned and throw exception if so
@@ -91,11 +98,48 @@ public class PostController {
         Post post = Post.builder()
                 .title(dto.getTitle())
                 .content(dto.getContent())
+                .mediaType(dto.getMediaType())
+                .mediaUrl(dto.getMediaUrl())
                 .author(author)
                 .build();
 
         Post savedPost = postService.createPost(post);
         return ResponseEntity.ok(savedPost);
+    }
+
+    /**
+     * POST /auth/posts/upload
+     * Upload a media file for a post
+     */
+    @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Map<String, String>> uploadMedia(
+            @RequestParam("file") MultipartFile file,
+            @AuthenticationPrincipal UserDetails userDetails) {
+
+        User user = userRepository.findByUsername(userDetails.getUsername())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Check if user is banned
+        checkUserBanned(user);
+
+        // Validate file
+        if (file.isEmpty()) {
+            throw new RuntimeException("Please select a file to upload");
+        }
+
+        // Store file
+        String filename = fileStorageService.storeFile(file);
+        String mediaType = fileStorageService.determineMediaType(file);
+
+        // Build the URL
+        String fileUrl = "/uploads/" + filename;
+
+        Map<String, String> response = new HashMap<>();
+        response.put("filename", filename);
+        response.put("url", fileUrl);
+        response.put("mediaType", mediaType);
+
+        return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/{id}")

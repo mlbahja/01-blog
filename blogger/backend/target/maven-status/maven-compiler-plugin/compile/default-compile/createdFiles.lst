@@ -10,6 +10,7 @@ com/blog/blogger/security/CustomUserDetailsService.class
 com/blog/blogger/repository/MessageRepository.class
 com/blog/blogger/dto/UpdateProfileDTO.class
 com/blog/blogger/config/SecurityConfig.class
+com/blog/blogger/controller/FileController.class
 com/blog/blogger/dto/CreatePostDTO.class
 com/blog/blogger/dto/LoginRequest.class
 com/blog/blogger/models/User.class
@@ -44,6 +45,7 @@ com/blog/blogger/models/Message$MessageBuilder.class
 com/blog/blogger/BloggerApplication.class
 com/blog/blogger/models/PostLike$PostLikeBuilder.class
 com/blog/blogger/dto/UserProfileDTO.class
+com/blog/blogger/service/FileStorageService.class
 com/blog/blogger/exception/GlobalExceptionHandler.class
 com/blog/blogger/models/CommentLike.class
 com/blog/blogger/security/JwtAuthenticationFilter.class

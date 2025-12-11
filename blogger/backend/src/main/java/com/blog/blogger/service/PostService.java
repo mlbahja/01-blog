@@ -118,7 +118,6 @@ public class PostService {
 
         // Delete the like
         postLikeRepository.delete(likeOpt.get());
-
         // Decrement like count (but don't go below 0)
         post.setLikeCount(Math.max(0, post.getLikeCount() - 1));
         return postRepository.save(post);

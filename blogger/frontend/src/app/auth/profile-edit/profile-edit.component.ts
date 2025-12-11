@@ -20,7 +20,9 @@ export class ProfileEditComponent implements OnInit {
   avatar = '';
   profilePictureUrl = '';
   loading = false;
+  uploading = false;
   currentUserId: number | null = null;
+  selectedProfilePicture: File | null = null;
 
   constructor(
     private userService: UserService,
@@ -78,5 +80,37 @@ export class ProfileEditComponent implements OnInit {
 
   cancel(): void {
     this.router.navigate(['/profile']);
+  }
+
+  onProfilePictureSelected(event: any): void {
+    const file = event.target.files[0];
+    if (file) {
+      this.selectedProfilePicture = file;
+    }
+  }
+
+  uploadProfilePicture(): void {
+    if (this.selectedProfilePicture) {
+      this.uploading = true;
+      this.userService.uploadProfilePicture(this.selectedProfilePicture).subscribe({
+        next: (response) => {
+          this.profilePictureUrl = response.url;
+          this.selectedProfilePicture = null;
+          this.uploading = false;
+          this.toastService.show('Profile picture uploaded successfully!', 'success');
+        },
+        error: (err) => {
+          this.uploading = false;
+          this.toastService.show('Failed to upload profile picture', 'error');
+        }
+      });
+    }
+  }
+
+  getProfilePictureUrl(): string {
+    if (this.profilePictureUrl && this.profilePictureUrl.startsWith('/uploads/')) {
+      return 'http://localhost:8080' + this.profilePictureUrl;
+    }
+    return this.avatar || this.profilePictureUrl;
   }
 }

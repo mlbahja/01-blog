@@ -49,6 +49,8 @@ public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Excepti
             // Public endpoints
             .requestMatchers("/auth/register", "/auth/login", "/auth/home").permitAll()
             .requestMatchers("/error").permitAll()
+            // Allow access to uploaded files
+            .requestMatchers("/uploads/**").permitAll()
             // Allow GET requests to posts (public view)
             .requestMatchers(HttpMethod.GET, "/auth/posts", "/auth/posts/**").permitAll()
             // All other requests require authentication
