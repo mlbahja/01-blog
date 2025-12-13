@@ -1,7 +1,8 @@
 package com.blog.blogger.controller;
 
 import java.util.List;
-
+// Add this import statement
+import org.springframework.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -142,11 +143,63 @@ public class PostController {
         return ResponseEntity.ok(response);
     }
 
+
+    /*
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletePost(@PathVariable Long id) {
         postService.deletePost(id);
         return ResponseEntity.ok().build();
     }
+    */
+
+////////////////////////////////////////////////////////////////Delet Posts
+
+@DeleteMapping("/{id}")
+public ResponseEntity<?> deletePost(@PathVariable Long id,
+                                   @AuthenticationPrincipal UserDetails userDetails) {
+    try {
+        // Get current user
+        User currentUser = userRepository.findByUsername(userDetails.getUsername())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        
+        // Check if user is banned
+        checkUserBanned(currentUser);
+        
+        // Get the post
+        Post post = postService.getPostById(id)
+                .orElseThrow(() -> new RuntimeException("Post not found with id: " + id));
+        
+        // Check if user owns the post OR is admin
+        boolean isOwner = post.getAuthor().getId().equals(currentUser.getId());
+        boolean isAdmin = currentUser.getRole().name().equals("ADMIN");
+        
+        if (!isOwner && !isAdmin) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of(
+                        "error", "Forbidden",
+                        "message", "You can only delete your own posts"
+                    ));
+        }
+        
+        // Delete the post
+        postService.deletePost(id);
+        
+        return ResponseEntity.ok(Map.of(
+            "success", true,
+            "message", "Post deleted successfully"
+        ));
+        
+    } catch (RuntimeException e) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(Map.of("error", e.getMessage()));
+    } catch (Exception e) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", "Internal server error"));
+    }
+}
+/////////////////////////////////////////////////////////////// 
+
+
 
     @PostMapping("/{postId}/comments")
     public ResponseEntity<?> addComment(@PathVariable Long postId,

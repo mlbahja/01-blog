@@ -140,7 +140,7 @@
       <div class="posts-grid">
         <article class="post-card" *ngFor="let post of posts.slice(1); let i = index">
           <div class="post-card-content">
-            <div>
+            <!-- <div>
               DELET POST BUTTON
               <button class="delet_post">
                 <p>Delet Post</p>
@@ -148,6 +148,7 @@
                 <p>repost this Post</p>
               </button>
             </div>
+            -->
             <h3 class="post-card-title">{{ post.title }}</h3>
             <p class="post-card-excerpt">
               {{ post.content | slice: 0 : 150 }}{{ post.content.length > 150 ? '...' : '' }}
@@ -171,6 +172,43 @@
               <span class="author">{{ post.author?.username || 'Unknown' }}</span>
               <span class="separator">•</span>
               <span class="date">{{ post.createdAt | date: 'MMM d' }}</span>
+
+              <!--<button
+                *ngIf="canDeletePost(post)"
+                class="delete-post-btn"
+                (click)="confirmDelete(post.id, post.title)"
+                title="Delete this post"
+              >
+                🗑️</button>
+              -->
+              <button
+                style="
+                  background: yellow;
+                  color: black;
+                  font-weight: bold;
+                  padding: 10px;
+                  border: 3px solid black;
+                "
+                (click)="testButtonClick(post.id, post.title)"
+              >
+                🗑️ CLICK ME TO DELETE
+              </button>
+              <!-- <button
+                (click)="debugLoginState()"
+                style="background: orange; color: white; margin: 10px"
+              >
+                Debug Login
+              </button>
+              <button (click)="debugPosts()" style="background: purple; color: white; margin: 10px">
+                Debug Posts
+              </button>
+              <button
+                (click)="testDeleteAnyPost()"
+                style="background: darkred; color: white; margin: 10px"
+              >
+                Test Delete Any Post
+              </button>
+            -->
               <span class="separator">•</span>
               <button class="like-btn" (click)="toggleLike(post)" [class.liked]="post.isLiked">
                 <span class="like-icon">{{ post.isLiked ? '❤️' : '🤍' }}</span>
