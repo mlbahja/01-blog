@@ -182,17 +182,14 @@
                 🗑️</button>
               -->
               <button
-                style="
-                  background: yellow;
-                  color: black;
-                  font-weight: bold;
-                  padding: 10px;
-                  border: 3px solid black;
-                "
-                (click)="testButtonClick(post.id, post.title)"
+                *ngIf="canDeletePost(post)"
+                class="delete-post-btn"
+                (click)="confirmDelete(post.id, post.title)"
+                title="Delete this post"
               >
-                🗑️ CLICK ME TO DELETE
+                🗑️ 
               </button>
+              <span *ngIf="isAdmin()" class="admin-badge"></span>
               <!-- <button
                 (click)="debugLoginState()"
                 style="background: orange; color: white; margin: 10px"

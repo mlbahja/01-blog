@@ -531,80 +531,39 @@ export class HomeComponent implements OnInit {
   // ========== DELETE POST METHODS ==========
 
   canDeletePost(post: any): boolean {
-    console.log('=== Checking delete permission for post ===');
-    console.log('Post ID:', post.id);
-    console.log('Post title:', post.title);
-    console.log('Full post object:', post);
+    // Quick debug
+    console.log('🔍 Checking delete permission for post:', post.id);
 
-    // Get current user data
+    // Get current user
     const userData = this.authService.getUserData();
-    console.log('Current user data:', userData);
 
     if (!userData) {
-      console.log('❌ No user data found');
+      console.log('❌ No user data');
       return false;
     }
 
-    // Check if post has author
-    if (!post.author) {
-      console.log('❌ Post has no author property');
-      console.log('Available post properties:', Object.keys(post));
-      return false;
-    }
-
-    console.log('Post author object:', post.author);
-    console.log('Post author ID:', post.author.id);
-    console.log('Post author username:', post.author.username);
-    console.log('Current user ID:', userData.id);
-    console.log('Current user username:', userData.username);
-
-    // Check if user is admin
+    // Check if user is ADMIN
     const isAdmin = userData.role === 'ADMIN';
     if (isAdmin) {
       console.log('✅ User is ADMIN - can delete any post');
       return true;
     }
 
-    // Check if user is the author - try multiple comparison methods
-    let isOwner = false;
-
-    // Method 1: Compare IDs (most reliable)
-    if (post.author.id && userData.id) {
-      isOwner = post.author.id === userData.id;
-      console.log('ID comparison:', post.author.id, '===', userData.id, '=', isOwner);
+    // Check if post has author info
+    if (!post.author) {
+      console.log('❌ Post has no author info');
+      return false;
     }
 
-    // Method 2: Compare usernames
-    if (!isOwner && post.author.username && userData.username) {
-      isOwner = post.author.username === userData.username;
-      console.log(
-        'Username comparison:',
-        post.author.username,
-        '===',
-        userData.username,
-        '=',
-        isOwner,
-      );
-    }
+    // Check if current user is the author
+    const isOwner = post.author.id === userData.id;
 
-    // Method 3: Compare email
-    if (!isOwner && post.author.email && userData.email) {
-      isOwner = post.author.email === userData.email;
-      console.log('Email comparison:', post.author.email, '===', userData.email, '=', isOwner);
-    }
+    console.log(
+      `📊 Check: Post author ID (${post.author.id}) === User ID (${userData.id}) = ${isOwner}`,
+    );
+    console.log(`📊 Result: ${isOwner ? '✅ Can delete (owner)' : '❌ Cannot delete (not owner)'}`);
 
-    // Method 4: Check if author object IS the user object
-    if (!isOwner && post.author && typeof post.author === 'object') {
-      const authorStr = JSON.stringify(post.author);
-      const userStr = JSON.stringify(userData);
-      isOwner = authorStr === userStr;
-      console.log('Object comparison:', isOwner);
-    }
-
-    console.log('Final result - Is owner?', isOwner);
-    console.log('Can delete?', isOwner || isAdmin);
-
-    return isOwner || isAdmin;
+    return isOwner;
   }
 
   // ========== DELETE POST METHODS ==========
@@ -715,23 +674,23 @@ export class HomeComponent implements OnInit {
   }
   ////////////////////////////////////////////////////////////debug test
   // Add this method to test button clicks
-testButtonClick(postId: number, postTitle: string) {
-  console.log('🔥 BUTTON CLICKED!', postId, postTitle);
-  alert(`Button clicked! Post: ${postTitle} (ID: ${postId})`);
-  
-  // Test if canDeletePost returns true
-  const post = this.posts.find(p => p.id === postId);
-  if (post) {
-    //should remove this alert its not good practice to add alert for every transaction
-    
-    const canDelete = this.canDeletePost(post);
-    alert(`canDeletePost returns: ${canDelete}`);
-    
-    if (canDelete) {
-      this.confirmDelete(postId, postTitle);
+  testButtonClick(postId: number, postTitle: string) {
+    // console.log('🔥 BUTTON CLICKED!', postId, postTitle);
+    // alert(`Button clicked! Post: ${postTitle} (ID: ${postId})`);
+
+    // Test if canDeletePost returns true
+    const post = this.posts.find((p) => p.id === postId);
+    if (post) {
+      //should remove this alert its not good practice to add alert for every transaction
+
+      const canDelete = this.canDeletePost(post);
+      // alert(`canDeletePost returns: ${canDelete}`);
+
+      if (canDelete) {
+        this.confirmDelete(postId, postTitle);
+      }
     }
   }
-}
   /*
   debugLoginState() {
     console.log('=== DEBUG LOGIN STATE ===');
@@ -769,7 +728,7 @@ testButtonClick(postId: number, postTitle: string) {
     }
   }*/
   ///debug post
- /*
+  /*
   debugPosts() {
     console.log('=== DEBUG POSTS ===');
     console.log('Total posts:', this.posts.length);
