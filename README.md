@@ -238,7 +238,7 @@ blog-frontend/
 | **GET** | `/{id}` | Get report details |
 | **DELETE** | `/{id}` | Delete report (Admin only) |
 
----
+--- 
 
 ## 🛠️ AdminController — Admin Tools
 **Base URL:** `/api/admin`
