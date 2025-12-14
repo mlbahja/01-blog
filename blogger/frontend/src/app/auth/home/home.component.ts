@@ -49,6 +49,9 @@ export class HomeComponent implements OnInit {
     this.loadPosts();
   }
 
+
+
+  
   loadPosts(): void {
     const postsObservable = this.showFollowedOnly
       ? this.postService.getPostsFromFollowedUsers(this.currentPage, this.pageSize)
