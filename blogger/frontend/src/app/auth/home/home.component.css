@@ -10,14 +10,14 @@
   /* Emily Henderson Inspired Color Palette */
   --color-primary: #000000;
   --color-secondary: #191818;
-  --color-accent: #CAA54D;
+  --color-accent: #caa54d;
   --color-text: #191818;
   --color-text-light: #666666;
   --color-text-lighter: #999999;
-  --color-border: #E5E5E5;
+  --color-border: #e5e5e5;
   --color-background: #ffffff;
-  --color-background-light: #F6F4ED;
-  --color-background-cream: #FAFAF8;
+  --color-background-light: #f6f4ed;
+  --color-background-cream: #fafaf8;
   --spacing-xs: 0.5rem;
   --spacing-sm: 1rem;
   --spacing-md: 1.5rem;
@@ -368,8 +368,8 @@
   font-size: 0.875rem;
   font-weight: 400;
   padding: 1rem 1.5rem;
-  border: none;
-  border-radius: 0;
+ /* border: none;*/
+  border-radius: 15px;
   cursor: pointer;
   box-shadow: 0 2px 8px rgba(202, 165, 77, 0.3);
   transition: var(--transition);
@@ -899,11 +899,6 @@
 }
 /* css of the button */
 /* Add to your component's CSS */
-
-
-
-
-
 
 .post-header {
   display: flex;
