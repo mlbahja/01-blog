@@ -10,20 +10,24 @@ export class PostService {
 
   constructor(private http: HttpClient) {}
 
+  private getAuthHeaders() {
+    const token = localStorage.getItem('jwt_token');
+    return {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    };
+  }
+
   // GET paginated posts
   getAllPosts(page: number = 1, size: number = 10): Observable<any> {
-    const params = new HttpParams()
-      .set('page', page)
-      .set('size', size);
+    const params = new HttpParams().set('page', page).set('size', size);
 
     return this.http.get(`${this.apiUrl}/posts`, { params });
   }
 
   // GET posts from followed users
   getPostsFromFollowedUsers(page: number = 1, size: number = 10): Observable<any> {
-    const params = new HttpParams()
-      .set('page', page)
-      .set('size', size);
+    const params = new HttpParams().set('page', page).set('size', size);
 
     return this.http.get(`${this.apiUrl}/posts/following`, { params });
   }
@@ -63,5 +67,12 @@ export class PostService {
   // CHECK IF USER LIKED A POST
   hasLikedPost(postId: number): Observable<boolean> {
     return this.http.get<boolean>(`${this.apiUrl}/posts/${postId}/liked`);
+  }
+
+  // In your PostService (post.service.ts)
+  getPostById(postId: number): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/posts/${postId}`, {
+      headers: this.getAuthHeaders(),
+    });
   }
 }

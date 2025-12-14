@@ -1,0 +1,159 @@
+<div class="post-detail-container">
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-state">
+    <div class="spinner"></div>
+    <p>Loading post...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error && !loading" class="error-state">
+    <h2>😕 Post Not Found</h2>
+    <p>{{ error }}</p>
+    <button class="btn btn-primary" (click)="goBack()">Back to Home</button>
+  </div>
+
+  <!-- Post Content -->
+  <div *ngIf="post && !loading" class="post-detail">
+    <!-- Back Button -->
+    <button class="back-btn" (click)="goBack()">← Back to Posts</button>
+
+    <!-- Post Header -->
+    <header class="post-header">
+      <div class="post-meta">
+        <div class="author-info">
+          <div class="author-avatar">
+            <img
+              [src]="post.author?.profilePicture || 'assets/default-avatar.png'"
+              [alt]="post.author?.username"
+            />
+          </div>
+          <div class="author-details">
+            <h3 class="author-name">{{ post.author?.username || 'Unknown' }}</h3>
+            <span class="post-date">{{ post.createdAt | date: 'MMMM d, yyyy' }}</span>
+            <span class="read-time">• {{ calculateReadTime(post.content) }} min read</span>
+          </div>
+        </div>
+
+        <div class="post-actions">
+          <button class="action-btn" (click)="sharePost()" title="Share">📤 Share</button>
+          <button class="action-btn" (click)="openInNewTab()" title="Open in new tab">
+            ↗️ New Tab
+          </button>
+          <button
+            *ngIf="canDeletePost()"
+            class="action-btn delete-btn"
+            (click)="confirmDelete()"
+            title="Delete post"
+          >
+            🗑️ Delete
+          </button>
+        </div>
+      </div>
+
+      <h1 class="post-title">{{ post.title }}</h1>
+
+      <div class="post-tags">
+        <span *ngFor="let tag of post.tags" class="tag">{{ tag }}</span>
+      </div>
+    </header>
+
+    <!-- Featured Media -->
+    <div *ngIf="post.mediaUrl" class="featured-media">
+      <img
+        *ngIf="post.mediaType === 'image' || post.mediaType === 'gif'"
+        [src]="'http://localhost:8080' + post.mediaUrl"
+        [alt]="post.title"
+        class="post-media"
+      />
+      <video
+        *ngIf="post.mediaType === 'video'"
+        [src]="'http://localhost:8080' + post.mediaUrl"
+        controls
+        class="post-video"
+      ></video>
+    </div>
+
+    <!-- Post Content -->
+    <article class="post-content">
+      <div [innerHTML]="formatContent(post.content)" class="content-text"></div>
+    </article>
+
+    <!-- Post Footer -->
+    <footer class="post-footer">
+      <div class="engagement-stats">
+        <button class="like-btn" (click)="toggleLike()" [class.liked]="post.isLiked">
+          <span class="like-icon">{{ post.isLiked ? '❤️' : '🤍' }}</span>
+          <span class="like-count">{{ post.likeCount || 0 }} Likes</span>
+        </button>
+
+        <div class="comment-count">💬 {{ post.comments?.length || 0 }} Comments</div>
+
+        <div class="view-count">👁️ {{ post.viewCount || 0 }} Views</div>
+      </div>
+
+      <!-- Share Options -->
+      <div class="share-options">
+        <button class="share-btn twitter" (click)="shareOnTwitter()">🐦 Twitter</button>
+        <button class="share-btn facebook" (click)="shareOnFacebook()">📘 Facebook</button>
+        <button class="share-btn copy" (click)="copyPostLink()">📋 Copy Link</button>
+      </div>
+    </footer>
+
+    <!-- Comments Section -->
+    <section class="comments-section">
+      <h3>Comments ({{ post.comments?.length || 0 }})</h3>
+
+      <!-- Add Comment Form -->
+      <div class="add-comment">
+        <textarea
+          [(ngModel)]="newComment"
+          placeholder="Share your thoughts..."
+          rows="3"
+          class="comment-input"
+        >
+        </textarea>
+        <button
+          (click)="addComment()"
+          [disabled]="!newComment.trim() || submittingComment"
+          class="submit-comment-btn"
+        >
+          {{ submittingComment ? 'Posting...' : 'Post Comment' }}
+        </button>
+      </div>
+
+      <!-- Comments List -->
+      <div *ngIf="post.comments && post.comments.length > 0" class="comments-list">
+        <div *ngFor="let comment of post.comments" class="comment">
+          <div class="comment-header">
+            <div class="comment-author">
+              <img
+                [src]="comment.author?.profilePicture || 'assets/default-avatar.png'"
+                [alt]="comment.author?.username"
+              />
+              <span class="comment-author-name">{{ comment.author?.username }}</span>
+            </div>
+            <span class="comment-date">{{ comment.createdAt | date: 'MMM d, yyyy' }}</span>
+          </div>
+          <p class="comment-text">{{ comment.content }}</p>
+        </div>
+      </div>
+
+      <div *ngIf="!post.comments || post.comments.length === 0" class="no-comments">
+        <p>No comments yet. Be the first to share your thoughts!</p>
+      </div>
+    </section>
+
+    <!-- Related Posts -->
+    <section *ngIf="relatedPosts.length > 0" class="related-posts">
+      <h3>More from {{ post.author?.username }}</h3>
+      <div class="related-posts-grid">
+        <div *ngFor="let relatedPost of relatedPosts" class="related-post-card">
+          <h4 [routerLink]="['/post', relatedPost.id]" class="related-post-title">
+            {{ relatedPost.title }}
+          </h4>
+          <p class="related-post-excerpt">{{ relatedPost.content | slice: 0 : 100 }}...</p>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>

@@ -17,6 +17,7 @@ import { authGuard } from './core/guards/auth.guard';
 import { guestGuard } from './core/guards/guest.guard';
 import { adminGuard } from './core/guards/admin.guard';
 import { AuthService } from './core/services/auth.service';
+import { PostDetailComponent } from './auth/post-detail/post-detail.component';
 
 /**
  * Application Routes Configuration
@@ -66,6 +67,11 @@ export const routes: Routes = [
   {
     path: 'home',
     component: HomeComponent,
+    canActivate: [authGuard],
+  },
+  {
+    path: 'post/:id',
+    component: PostDetailComponent,
     canActivate: [authGuard],
   },
   {

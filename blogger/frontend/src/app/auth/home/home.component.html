@@ -173,21 +173,21 @@
               <span class="separator">•</span>
               <span class="date">{{ post.createdAt | date: 'MMM d' }}</span>
 
-              <!--<button
-                *ngIf="canDeletePost(post)"
-                class="delete-post-btn"
-                (click)="confirmDelete(post.id, post.title)"
-                title="Delete this post"
+              <button
+                class="open-post-btn"
+                (click)="viewPostDetails(post.id)"
+                title="Open in new tab"
               >
-                🗑️</button>
-              -->
+                ↗️
+              </button>
+
               <button
                 *ngIf="canDeletePost(post)"
                 class="delete-post-btn"
                 (click)="confirmDelete(post.id, post.title)"
                 title="Delete this post"
               >
-                🗑️ 
+                🗑️
               </button>
               <span *ngIf="isAdmin()" class="admin-badge"></span>
               <!-- <button
