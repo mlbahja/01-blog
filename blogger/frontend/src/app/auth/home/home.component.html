@@ -23,76 +23,15 @@
 <!-- Main Content -->
 <main class="main-content">
   <div class="container">
-    <!-- Create Post Section -->
-    <section class="create-post-section" *ngIf="showCreateForm">
-      <div class="section-header">
-        <h2 class="section-title">Share Your Story</h2>
-        <button class="close-form-btn" (click)="showCreateForm = false">&times;</button>
-      </div>
-      <form class="post-form" (ngSubmit)="createPost()">
-        <div class="form-group">
-          <input
-            type="text"
-            [(ngModel)]="newPost.title"
-            name="title"
-            placeholder="Enter your post title..."
-            class="form-input title-input"
-            required
-          />
-        </div>
-        <div class="form-group">
-          <textarea
-            [(ngModel)]="newPost.content"
-            name="content"
-            placeholder="Tell your story..."
-            class="form-textarea"
-            rows="6"
-            required
-          ></textarea>
-        </div>
-        <div class="form-group">
-          <label class="file-input-label">
-            <input
-              type="file"
-              (change)="onFileSelected($event)"
-              accept="image/*,video/*,.gif"
-              class="file-input"
-            />
-            <span class="file-input-text">{{
-              selectedFile ? selectedFile.name : 'Add Image, Video, or GIF (Optional)'
-            }}</span>
-          </label>
-          <button type="button" class="btn btn-remove" *ngIf="selectedFile" (click)="removeFile()">
-            Remove File
-          </button>
-        </div>
-        <div class="form-actions">
-          <button type="submit" class="btn btn-primary" [disabled]="uploading">
-            {{ uploading ? 'Uploading...' : 'Publish Post' }}
-          </button>
-          <button type="button" class="btn btn-secondary" (click)="showCreateForm = false">
-            Cancel
-          </button>
-        </div>
-      </form>
-    </section>
-
-    <!-- Floating Create Button -->
-    <button class="floating-create-btn" *ngIf="!showCreateForm" (click)="showCreateForm = true">
-      <span class="plus-icon">+</span> New Post
-    </button>
-
     <!-- Featured Post (if available) -->
     <section class="featured-section" *ngIf="posts.length > 0">
       <article class="featured-post">
         <div class="featured-content">
           <span class="featured-label">Featured Story</span>
-
           <h2 class="featured-title">{{ posts[0].title }}</h2>
           <p class="featured-excerpt">
             {{ posts[0].content | slice: 0 : 200 }}{{ posts[0].content.length > 200 ? '...' : '' }}
           </p>
-          <!-- Media Display -->
           <div class="post-media" *ngIf="posts[0].mediaUrl">
             <img
               *ngIf="posts[0].mediaType === 'image' || posts[0].mediaType === 'gif'"
@@ -137,23 +76,14 @@
           {{ showFollowedOnly ? 'Show All Posts' : 'Show Followed Only' }}
         </button>
       </div>
+
       <div class="posts-grid">
         <article class="post-card" *ngFor="let post of posts.slice(1); let i = index">
           <div class="post-card-content">
-            <!-- <div>
-              DELET POST BUTTON
-              <button class="delet_post">
-                <p>Delet Post</p>
-                <p>Open post in other tab</p>
-                <p>repost this Post</p>
-              </button>
-            </div>
-            -->
             <h3 class="post-card-title">{{ post.title }}</h3>
             <p class="post-card-excerpt">
               {{ post.content | slice: 0 : 150 }}{{ post.content.length > 150 ? '...' : '' }}
             </p>
-            <!-- Media Display -->
             <div class="post-media" *ngIf="post.mediaUrl">
               <img
                 *ngIf="post.mediaType === 'image' || post.mediaType === 'gif'"
@@ -180,7 +110,6 @@
               >
                 ↗️
               </button>
-
               <button
                 *ngIf="canDeletePost(post)"
                 class="delete-post-btn"
@@ -189,29 +118,13 @@
               >
                 🗑️
               </button>
-              <span *ngIf="isAdmin()" class="admin-badge"></span>
-              <!-- <button
-                (click)="debugLoginState()"
-                style="background: orange; color: white; margin: 10px"
-              >
-                Debug Login
-              </button>
-              <button (click)="debugPosts()" style="background: purple; color: white; margin: 10px">
-                Debug Posts
-              </button>
-              <button
-                (click)="testDeleteAnyPost()"
-                style="background: darkred; color: white; margin: 10px"
-              >
-                Test Delete Any Post
-              </button>
-            -->
               <span class="separator">•</span>
               <button class="like-btn" (click)="toggleLike(post)" [class.liked]="post.isLiked">
                 <span class="like-icon">{{ post.isLiked ? '❤️' : '🤍' }}</span>
                 <span class="like-count">{{ post.likeCount || 0 }}</span>
               </button>
             </div>
+
             <button class="read-more-btn" (click)="expandPost(i + 1)">
               {{ expandedPosts.has(i + 1) ? 'Show Less' : 'Read More' }}
             </button>
@@ -272,11 +185,75 @@
           </button>
         </div>
       </div>
+
+      <!-- Pagination -->
+      <div class="pagination">
+        <button (click)="prevPage()" [disabled]="currentPage === 1">Previous</button>
+        <span>Page {{ currentPage }}</span>
+        <button (click)="nextPage()" [disabled]="currentPage * pageSize >= totalPosts">Next</button>
+      </div>
     </section>
-    <button (click)="prevPage()" [disabled]="currentPage === 1">Previous</button>
-    <span>Page {{ currentPage }}</span>
-    <button (click)="nextPage()" [disabled]="currentPage * pageSize >= totalPosts">Next</button>
   </div>
+
+  <!-- Create Post Modal (popup) -->
+  <div class="modal-backdrop" *ngIf="showCreateForm" (click)="showCreateForm = false"></div>
+  <section class="create-post-modal" *ngIf="showCreateForm">
+    <div class="section-header">
+      <h2 class="section-title">Share Your Story</h2>
+      <button class="close-form-btn" (click)="showCreateForm = false">&times;</button>
+    </div>
+    <form class="post-form" (ngSubmit)="createPost()">
+      <div class="form-group">
+        <input
+          type="text"
+          [(ngModel)]="newPost.title"
+          name="title"
+          placeholder="Enter your post title..."
+          class="form-input title-input"
+          required
+        />
+      </div>
+      <div class="form-group">
+        <textarea
+          [(ngModel)]="newPost.content"
+          name="content"
+          placeholder="Tell your story..."
+          class="form-textarea"
+          rows="6"
+          required
+        ></textarea>
+      </div>
+      <div class="form-group">
+        <label class="file-input-label">
+          <input
+            type="file"
+            (change)="onFileSelected($event)"
+            accept="image/*,video/*,.gif"
+            class="file-input"
+          />
+          <span class="file-input-text">{{
+            selectedFile ? selectedFile.name : 'Add Image, Video, or GIF (Optional)'
+          }}</span>
+        </label>
+        <button type="button" class="btn btn-remove" *ngIf="selectedFile" (click)="removeFile()">
+          Remove File
+        </button>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary" [disabled]="uploading">
+          {{ uploading ? 'Uploading...' : 'Publish Post' }}
+        </button>
+        <button type="button" class="btn btn-secondary" (click)="showCreateForm = false">
+          Cancel
+        </button>
+      </div>
+    </form>
+  </section>
+
+  <!-- Floating Create Button -->
+  <button class="floating-create-btn" *ngIf="!showCreateForm" (click)="showCreateForm = true">
+    <span class="plus-icon">+</span> New Post
+  </button>
 </main>
 
 <!-- Footer -->
