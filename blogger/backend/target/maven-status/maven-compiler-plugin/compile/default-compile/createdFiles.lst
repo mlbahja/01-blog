@@ -15,6 +15,7 @@ com/blog/blogger/dto/CreatePostDTO.class
 com/blog/blogger/dto/LoginRequest.class
 com/blog/blogger/models/User.class
 com/blog/blogger/controller/AdminController.class
+com/blog/blogger/models/ReportPost.class
 com/blog/blogger/models/Subscription.class
 com/blog/blogger/service/AdminService.class
 com/blog/blogger/dto/PostDTO$PostDTOBuilder.class
@@ -47,6 +48,7 @@ com/blog/blogger/models/PostLike$PostLikeBuilder.class
 com/blog/blogger/dto/UserProfileDTO.class
 com/blog/blogger/service/FileStorageService.class
 com/blog/blogger/exception/GlobalExceptionHandler.class
+com/blog/blogger/repository/PostReportRepository.class
 com/blog/blogger/models/CommentLike.class
 com/blog/blogger/security/JwtAuthenticationFilter.class
 com/blog/blogger/dto/PostDTO$AuthorDTO.class
