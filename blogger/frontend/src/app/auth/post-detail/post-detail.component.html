@@ -87,7 +87,6 @@
         </button>
 
         <div class="comment-count">💬 {{ post.comments?.length || 0 }} Comments</div>
-
         <div class="view-count">👁️ {{ post.viewCount || 0 }} Views</div>
       </div>
 
@@ -96,9 +95,9 @@
         <button class="share-btn twitter" (click)="shareOnTwitter()">🐦 Twitter</button>
         <button class="share-btn facebook" (click)="shareOnFacebook()">📘 Facebook</button>
         <button class="share-btn copy" (click)="copyPostLink()">📋 Copy Link</button>
+        <button class="share-btn report">🚩 Report</button>
       </div>
     </footer>
-
     <!-- Comments Section -->
     <section class="comments-section">
       <h3>Comments ({{ post.comments?.length || 0 }})</h3>

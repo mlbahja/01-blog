@@ -30,6 +30,7 @@
 /mnt/c/Users/mlbah/bloging/01-blog/blogger/backend/src/main/java/com/blog/blogger/repository/CommentRepository.java
 /mnt/c/Users/mlbah/bloging/01-blog/blogger/backend/src/main/java/com/blog/blogger/repository/MessageRepository.java
 /mnt/c/Users/mlbah/bloging/01-blog/blogger/backend/src/main/java/com/blog/blogger/repository/PostLikeRepository.java
+/mnt/c/Users/mlbah/bloging/01-blog/blogger/backend/src/main/java/com/blog/blogger/repository/PostReportRepository.java
 /mnt/c/Users/mlbah/bloging/01-blog/blogger/backend/src/main/java/com/blog/blogger/repository/PostRepository.java
 /mnt/c/Users/mlbah/bloging/01-blog/blogger/backend/src/main/java/com/blog/blogger/repository/SubscriptionRepository.java
 /mnt/c/Users/mlbah/bloging/01-blog/blogger/backend/src/main/java/com/blog/blogger/repository/UserRepository.java
