@@ -38,7 +38,7 @@ public class SecurityConfig {
         this.userDetailsService = userDetailsService;
     }
 
-    @Bean
+@Bean
 public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     http
         .cors(cors -> cors.configurationSource(corsConfigurationSource()))
@@ -53,6 +53,10 @@ public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Excepti
             .requestMatchers("/uploads/**").permitAll()
             // Allow GET requests to posts (public view)
             .requestMatchers(HttpMethod.GET, "/auth/posts", "/auth/posts/**").permitAll()
+            // In your security/SecurityConfig.java
+            .requestMatchers(HttpMethod.POST, "/auth/reports").authenticated()
+            .requestMatchers(HttpMethod.GET, "/auth/reports/my").authenticated()
+            .requestMatchers("/auth/reports/admin/**").hasRole("ADMIN")
             // All other requests require authentication
             .anyRequest().authenticated()
         )
