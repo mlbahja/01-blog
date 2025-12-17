@@ -49,6 +49,9 @@ public class PostController {
     @Autowired
     private FileStorageService fileStorageService;
 
+    @Autowired
+    private com.blog.blogger.services.NotificationService notificationService;
+
     /**
      * Check if user is banned and throw exception if so
      */
@@ -222,6 +225,9 @@ public ResponseEntity<?> deletePost(@PathVariable Long id,
 
         post.addComment(comment);
         postService.createPost(post);
+
+        // Notify post author about the new comment
+        notificationService.notifyUserAboutComment(post, author);
 
         // Return a simple success response instead of the full post to avoid circular reference issues
         return ResponseEntity.ok(java.util.Map.of(

@@ -7,6 +7,7 @@
 /mnt/c/Users/mlbah/bloging/01-blog/blogger/backend/src/main/java/com/blog/blogger/controller/PostController.java
 /mnt/c/Users/mlbah/bloging/01-blog/blogger/backend/src/main/java/com/blog/blogger/controller/ReportController.java
 /mnt/c/Users/mlbah/bloging/01-blog/blogger/backend/src/main/java/com/blog/blogger/controller/UserController.java
+/mnt/c/Users/mlbah/bloging/01-blog/blogger/backend/src/main/java/com/blog/blogger/controllers/NotificationController.java
 /mnt/c/Users/mlbah/bloging/01-blog/blogger/backend/src/main/java/com/blog/blogger/dto/AdminStatsDTO.java
 /mnt/c/Users/mlbah/bloging/01-blog/blogger/backend/src/main/java/com/blog/blogger/dto/AuthResponse.java
 /mnt/c/Users/mlbah/bloging/01-blog/blogger/backend/src/main/java/com/blog/blogger/dto/ChangePasswordDTO.java
@@ -24,19 +25,19 @@
 /mnt/c/Users/mlbah/bloging/01-blog/blogger/backend/src/main/java/com/blog/blogger/models/Comment.java
 /mnt/c/Users/mlbah/bloging/01-blog/blogger/backend/src/main/java/com/blog/blogger/models/CommentLike.java
 /mnt/c/Users/mlbah/bloging/01-blog/blogger/backend/src/main/java/com/blog/blogger/models/Message.java
+/mnt/c/Users/mlbah/bloging/01-blog/blogger/backend/src/main/java/com/blog/blogger/models/Notification.java
 /mnt/c/Users/mlbah/bloging/01-blog/blogger/backend/src/main/java/com/blog/blogger/models/Post.java
 /mnt/c/Users/mlbah/bloging/01-blog/blogger/backend/src/main/java/com/blog/blogger/models/PostLike.java
 /mnt/c/Users/mlbah/bloging/01-blog/blogger/backend/src/main/java/com/blog/blogger/models/Report.java
-/mnt/c/Users/mlbah/bloging/01-blog/blogger/backend/src/main/java/com/blog/blogger/models/ReportPost.java
 /mnt/c/Users/mlbah/bloging/01-blog/blogger/backend/src/main/java/com/blog/blogger/models/Response.java
 /mnt/c/Users/mlbah/bloging/01-blog/blogger/backend/src/main/java/com/blog/blogger/models/Role.java
 /mnt/c/Users/mlbah/bloging/01-blog/blogger/backend/src/main/java/com/blog/blogger/models/Subscription.java
 /mnt/c/Users/mlbah/bloging/01-blog/blogger/backend/src/main/java/com/blog/blogger/models/User.java
+/mnt/c/Users/mlbah/bloging/01-blog/blogger/backend/src/main/java/com/blog/blogger/repositories/NotificationRepository.java
 /mnt/c/Users/mlbah/bloging/01-blog/blogger/backend/src/main/java/com/blog/blogger/repository/CommentLikeRepository.java
 /mnt/c/Users/mlbah/bloging/01-blog/blogger/backend/src/main/java/com/blog/blogger/repository/CommentRepository.java
 /mnt/c/Users/mlbah/bloging/01-blog/blogger/backend/src/main/java/com/blog/blogger/repository/MessageRepository.java
 /mnt/c/Users/mlbah/bloging/01-blog/blogger/backend/src/main/java/com/blog/blogger/repository/PostLikeRepository.java
-/mnt/c/Users/mlbah/bloging/01-blog/blogger/backend/src/main/java/com/blog/blogger/repository/PostReportRepository.java
 /mnt/c/Users/mlbah/bloging/01-blog/blogger/backend/src/main/java/com/blog/blogger/repository/PostRepository.java
 /mnt/c/Users/mlbah/bloging/01-blog/blogger/backend/src/main/java/com/blog/blogger/repository/ReportRepository.java
 /mnt/c/Users/mlbah/bloging/01-blog/blogger/backend/src/main/java/com/blog/blogger/repository/SubscriptionRepository.java
@@ -52,4 +53,5 @@
 /mnt/c/Users/mlbah/bloging/01-blog/blogger/backend/src/main/java/com/blog/blogger/service/ReportService.java
 /mnt/c/Users/mlbah/bloging/01-blog/blogger/backend/src/main/java/com/blog/blogger/service/SubscriptionService.java
 /mnt/c/Users/mlbah/bloging/01-blog/blogger/backend/src/main/java/com/blog/blogger/service/UserService.java
+/mnt/c/Users/mlbah/bloging/01-blog/blogger/backend/src/main/java/com/blog/blogger/services/NotificationService.java
 /mnt/c/Users/mlbah/bloging/01-blog/blogger/backend/src/main/java/com/blog/blogger/utils/PasswordEncoder.java

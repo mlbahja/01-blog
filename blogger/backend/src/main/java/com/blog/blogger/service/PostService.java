@@ -35,6 +35,9 @@ public class PostService {
     @Autowired
     private SubscriptionService subscriptionService;
 
+    @Autowired
+    private com.blog.blogger.services.NotificationService notificationService;
+
     public Page<Post> getAllPosts(int page, int size) {
          Pageable pageable = PageRequest.of(page - 1, size, Sort.by("createdAt").descending());
         return postRepository.findAll(pageable);
@@ -65,10 +68,17 @@ public class PostService {
         return postRepository.findById(id);
     }
 
+    @Transactional
     public Post createPost(Post post) {
         System.out.println(post);
-        
-        return postRepository.save(post);
+
+        Post savedPost = postRepository.save(post);
+
+        // Get followers and notify them about the new post
+        List<User> followers = subscriptionService.getFollowers(savedPost.getAuthor());
+        notificationService.notifyFollowersAboutNewPost(savedPost, followers);
+
+        return savedPost;
     }
 
     public void deletePost(Long id) {
@@ -98,7 +108,12 @@ public class PostService {
 
         // Increment like count
         post.setLikeCount(post.getLikeCount() + 1);
-        return postRepository.save(post);
+        Post savedPost = postRepository.save(post);
+
+        // Notify post author about the like
+        notificationService.notifyUserAboutPostLike(savedPost, user);
+
+        return savedPost;
     }
 
     /**

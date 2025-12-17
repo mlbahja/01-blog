@@ -22,6 +22,9 @@ public class SubscriptionService {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private com.blog.blogger.services.NotificationService notificationService;
+
     /**
      * Follow a user
      */
@@ -48,7 +51,12 @@ public class SubscriptionService {
                 .following(following)
                 .build();
 
-        return subscriptionRepository.save(subscription);
+        Subscription savedSubscription = subscriptionRepository.save(subscription);
+
+        // Notify the followed user about the new follower
+        notificationService.notifyUserAboutNewFollower(following, follower);
+
+        return savedSubscription;
     }
 
     /**
@@ -147,6 +155,17 @@ public class SubscriptionService {
 
         return subscriptions.stream()
                 .map(sub -> sub.getFollowing().getId())
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Get all followers of a user (returns User objects)
+     * Used by NotificationService to notify followers
+     */
+    public List<User> getFollowers(User user) {
+        List<Subscription> subscriptions = subscriptionRepository.findByFollowing(user);
+        return subscriptions.stream()
+                .map(Subscription::getFollower)
                 .collect(Collectors.toList());
     }
 }

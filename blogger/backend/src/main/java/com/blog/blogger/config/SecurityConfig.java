@@ -54,11 +54,30 @@ public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Excepti
             // Allow GET requests to posts (public view)
             .requestMatchers(HttpMethod.GET, "/auth/posts", "/auth/posts/**").permitAll()
             // In your security/SecurityConfig.java
+
+
+
+
+
+
+
+
             .requestMatchers(HttpMethod.POST, "/auth/reports").authenticated()
             .requestMatchers(HttpMethod.GET, "/auth/reports/my").authenticated()
             .requestMatchers("/auth/reports/admin/**").hasRole("ADMIN")
+            // Notification endpoints - require authentication
+            .requestMatchers("/auth/notifications/**").authenticated()
             // All other requests require authentication
             .anyRequest().authenticated()
+
+
+
+
+
+
+
+
+            
         )
         .sessionManagement(session ->
             session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
