@@ -6,7 +6,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import  org.springframework.web.bind.annotation.RequestParam;
@@ -78,8 +77,8 @@ public class PostController {
 
     @GetMapping("/following")
     public ResponseEntity<List<Post>> getPostsFromFollowedUsers(
-            @AuthenticationPrincipal UserDetails userDetails) {
-        List<Post> posts = postService.getPostsFromFollowedUsers(userDetails.getUsername());
+            @AuthenticationPrincipal User currentUser) {
+        List<Post> posts = postService.getPostsFromFollowedUsers(currentUser.getUsername());
         return ResponseEntity.ok(posts);
     }
 
@@ -92,19 +91,16 @@ public class PostController {
 
     @PostMapping
     public ResponseEntity<Post> createPost(@RequestBody CreatePostDTO dto,
-                                           @AuthenticationPrincipal UserDetails userDetails) {
-        User author = userRepository.findByUsername(userDetails.getUsername())
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
+                                           @AuthenticationPrincipal User currentUser) {
         // Check if user is banned
-        checkUserBanned(author);
+        checkUserBanned(currentUser);
 
         Post post = Post.builder()
                 .title(dto.getTitle())
                 .content(dto.getContent())
                 .mediaType(dto.getMediaType())
                 .mediaUrl(dto.getMediaUrl())
-                .author(author)
+                .author(currentUser)
                 .build();
 
         Post savedPost = postService.createPost(post);
@@ -118,13 +114,10 @@ public class PostController {
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Map<String, String>> uploadMedia(
             @RequestParam("file") MultipartFile file,
-            @AuthenticationPrincipal UserDetails userDetails) {
-
-        User user = userRepository.findByUsername(userDetails.getUsername())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+            @AuthenticationPrincipal User currentUser) {
 
         // Check if user is banned
-        checkUserBanned(user);
+        checkUserBanned(currentUser);
 
         // Validate file
         if (file.isEmpty()) {
@@ -159,12 +152,8 @@ public class PostController {
 
 @DeleteMapping("/{id}")
 public ResponseEntity<?> deletePost(@PathVariable Long id,
-                                   @AuthenticationPrincipal UserDetails userDetails) {
+                                   @AuthenticationPrincipal User currentUser) {
     try {
-        // Get current user
-        User currentUser = userRepository.findByUsername(userDetails.getUsername())
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        
         // Check if user is banned
         checkUserBanned(currentUser);
         
@@ -207,19 +196,16 @@ public ResponseEntity<?> deletePost(@PathVariable Long id,
     @PostMapping("/{postId}/comments")
     public ResponseEntity<?> addComment(@PathVariable Long postId,
                                            @RequestBody CreateCommentDTO dto,
-                                           @AuthenticationPrincipal UserDetails userDetails) {
-        User author = userRepository.findByUsername(userDetails.getUsername())
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
+                                           @AuthenticationPrincipal User currentUser) {
         // Check if user is banned
-        checkUserBanned(author);
+        checkUserBanned(currentUser);
 
         Post post = postService.getPostById(postId)
                 .orElseThrow(() -> new RuntimeException("Post not found"));
 
         Comment comment = Comment.builder()
                 .content(dto.getContent())
-                .author(author)
+                .author(currentUser)
                 .post(post)
                 .build();
 
@@ -227,13 +213,13 @@ public ResponseEntity<?> deletePost(@PathVariable Long id,
         postService.createPost(post);
 
         // Notify post author about the new comment
-        notificationService.notifyUserAboutComment(post, author);
+        notificationService.notifyUserAboutComment(post, currentUser);
 
         // Return a simple success response instead of the full post to avoid circular reference issues
         return ResponseEntity.ok(java.util.Map.of(
             "message", "Comment added successfully",
             "commentContent", comment.getContent(),
-            "author", author.getUsername()
+            "author", currentUser.getUsername()
         ));
     }
 
@@ -243,14 +229,11 @@ public ResponseEntity<?> deletePost(@PathVariable Long id,
      */
     @PostMapping("/{id}/like")
     public ResponseEntity<Post> likePost(@PathVariable Long id,
-                                         @AuthenticationPrincipal UserDetails userDetails) {
-        User user = userRepository.findByUsername(userDetails.getUsername())
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
+                                         @AuthenticationPrincipal User currentUser) {
         // Check if user is banned
-        checkUserBanned(user);
+        checkUserBanned(currentUser);
 
-        Post post = postService.likePost(id, user);
+        Post post = postService.likePost(id, currentUser);
         return ResponseEntity.ok(post);
     }
 
@@ -260,14 +243,11 @@ public ResponseEntity<?> deletePost(@PathVariable Long id,
      */
     @DeleteMapping("/{id}/like")
     public ResponseEntity<Post> unlikePost(@PathVariable Long id,
-                                           @AuthenticationPrincipal UserDetails userDetails) {
-        User user = userRepository.findByUsername(userDetails.getUsername())
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
+                                           @AuthenticationPrincipal User currentUser) {
         // Check if user is banned
-        checkUserBanned(user);
+        checkUserBanned(currentUser);
 
-        Post post = postService.unlikePost(id, user);
+        Post post = postService.unlikePost(id, currentUser);
         return ResponseEntity.ok(post);
     }
 
@@ -277,11 +257,8 @@ public ResponseEntity<?> deletePost(@PathVariable Long id,
      */
     @GetMapping("/{id}/liked")
     public ResponseEntity<Boolean> hasLikedPost(@PathVariable Long id,
-                                                @AuthenticationPrincipal UserDetails userDetails) {
-        User user = userRepository.findByUsername(userDetails.getUsername())
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        boolean liked = postService.hasUserLikedPost(id, user);
+                                                @AuthenticationPrincipal User currentUser) {
+        boolean liked = postService.hasUserLikedPost(id, currentUser);
         return ResponseEntity.ok(liked);
     }
 
@@ -292,14 +269,11 @@ public ResponseEntity<?> deletePost(@PathVariable Long id,
     @PostMapping("/{postId}/comments/{commentId}/like")
     public ResponseEntity<?> likeComment(@PathVariable Long postId,
                                          @PathVariable Long commentId,
-                                         @AuthenticationPrincipal UserDetails userDetails) {
-        User user = userRepository.findByUsername(userDetails.getUsername())
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
+                                         @AuthenticationPrincipal User currentUser) {
         // Check if user is banned
-        checkUserBanned(user);
+        checkUserBanned(currentUser);
 
-        Comment comment = commentService.likeComment(commentId, user);
+        Comment comment = commentService.likeComment(commentId, currentUser);
         return ResponseEntity.ok(java.util.Map.of(
             "message", "Comment liked",
             "likeCount", comment.getLikeCount()
@@ -313,14 +287,11 @@ public ResponseEntity<?> deletePost(@PathVariable Long id,
     @DeleteMapping("/{postId}/comments/{commentId}/like")
     public ResponseEntity<?> unlikeComment(@PathVariable Long postId,
                                            @PathVariable Long commentId,
-                                           @AuthenticationPrincipal UserDetails userDetails) {
-        User user = userRepository.findByUsername(userDetails.getUsername())
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
+                                           @AuthenticationPrincipal User currentUser) {
         // Check if user is banned
-        checkUserBanned(user);
+        checkUserBanned(currentUser);
 
-        Comment comment = commentService.unlikeComment(commentId, user);
+        Comment comment = commentService.unlikeComment(commentId, currentUser);
         return ResponseEntity.ok(java.util.Map.of(
             "message", "Comment unliked",
             "likeCount", comment.getLikeCount()
@@ -334,11 +305,8 @@ public ResponseEntity<?> deletePost(@PathVariable Long id,
     @GetMapping("/{postId}/comments/{commentId}/liked")
     public ResponseEntity<Boolean> hasLikedComment(@PathVariable Long postId,
                                                     @PathVariable Long commentId,
-                                                    @AuthenticationPrincipal UserDetails userDetails) {
-        User user = userRepository.findByUsername(userDetails.getUsername())
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        boolean liked = commentService.hasUserLikedComment(commentId, user);
+                                                    @AuthenticationPrincipal User currentUser) {
+        boolean liked = commentService.hasUserLikedComment(commentId, currentUser);
         return ResponseEntity.ok(liked);
     }
 }

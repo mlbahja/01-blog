@@ -14,6 +14,13 @@
       >
     </nav>
     <div class="header-actions">
+      <!-- Notifications Bell -->
+      <div class="notification-bell" routerLink="/notifications" title="Notifications">
+        <span class="bell-icon">🔔</span>
+        <span class="notification-badge" *ngIf="unreadNotificationCount > 0">
+          {{ unreadNotificationCount > 99 ? '99+' : unreadNotificationCount }}
+        </span>
+      </div>
       <span class="user-greeting">Hello, {{ username }}</span>
       <button class="logout-button" (click)="logout()">Logout</button>
     </div>
@@ -117,6 +124,14 @@
                 title="Delete this post"
               >
                 🗑️
+              </button>
+              <button
+                *ngIf="!isMyPost(post)"
+                class="report-post-btn"
+                (click)="openReportDialog(post)"
+                title="Report this post"
+              >
+                🚩
               </button>
               <span class="separator">•</span>
               <button class="like-btn" (click)="toggleLike(post)" [class.liked]="post.isLiked">
@@ -255,6 +270,32 @@
     <span class="plus-icon">+</span> New Post
   </button>
 </main>
+
+<!-- Report Post Modal -->
+<div class="modal-backdrop" *ngIf="showReportDialog" (click)="closeReportDialog()"></div>
+<div class="report-modal" *ngIf="showReportDialog">
+  <div class="modal-header">
+    <h3>Report Post</h3>
+    <button class="close-btn" (click)="closeReportDialog()">&times;</button>
+  </div>
+  <div class="modal-body">
+    <p class="report-post-title">Reporting: "{{ reportingPost?.title }}"</p>
+    <label for="reportReason">Reason for reporting:</label>
+    <textarea
+      id="reportReason"
+      [(ngModel)]="reportReason"
+      placeholder="Please describe why you're reporting this post..."
+      rows="5"
+      class="report-textarea"
+    ></textarea>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-danger" (click)="submitReport()" [disabled]="!reportReason.trim()">
+      Submit Report
+    </button>
+    <button class="btn btn-secondary" (click)="closeReportDialog()">Cancel</button>
+  </div>
+</div>
 
 <!-- Footer -->
 <footer class="site-footer">

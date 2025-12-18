@@ -35,10 +35,14 @@ export class ProfileComponent implements OnInit {
       this.currentUserId = userData.id;
       this.userService.getCurrentUserProfile().subscribe({
         next: (profile) => {
+          console.log('Profile loaded:', profile);
+          console.log('Avatar:', profile.avatar);
+          console.log('ProfilePictureUrl:', profile.profilePictureUrl);
           this.userProfile = profile;
           this.loading = false;
         },
         error: (err) => {
+          console.error('Failed to load profile:', err);
           this.toastService.show('Failed to load profile', 'error');
           this.loading = false;
         },
@@ -64,5 +68,25 @@ export class ProfileComponent implements OnInit {
         },
       });
     }
+  }
+
+  getProfilePictureUrl(): string {
+    if (!this.userProfile) {
+      return this.getDefaultAvatar();
+    }
+
+    // Prioritize profilePictureUrl (uploaded image) over avatar (URL)
+    const imageUrl = this.userProfile.profilePictureUrl || this.userProfile.avatar;
+
+    if (imageUrl && imageUrl.startsWith('/uploads/')) {
+      return 'http://localhost:8080' + imageUrl;
+    }
+
+    return imageUrl || this.getDefaultAvatar();
+  }
+
+  getDefaultAvatar(): string {
+    // Return a data URI for a simple gray circle with a user icon
+    return 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgZmlsbD0iI2UwZTBlMCIvPjxjaXJjbGUgY3g9Ijc1IiBjeT0iNTUiIHI9IjI1IiBmaWxsPSIjOTk5Ii8+PHBhdGggZD0iTTMwIDEyMGMwLTI1IDIwLTQ1IDQ1LTQ1czQ1IDIwIDQ1IDQ1IiBmaWxsPSIjOTk5Ii8+PC9zdmc+';
   }
 }

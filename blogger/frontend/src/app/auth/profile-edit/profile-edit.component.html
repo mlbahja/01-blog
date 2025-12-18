@@ -71,14 +71,14 @@
     </div>
 
     <!-- Preview -->
-    <div class="preview-section" *ngIf="avatar || profilePictureUrl">
+    <div class="preview-section">
       <label>Preview:</label>
       <img
         [src]="getProfilePictureUrl()"
         alt="Preview"
         class="preview-image"
-        onerror="this.src='https://via.placeholder.com/100'"
       />
+      <small class="form-hint">This is how your avatar will appear</small>
     </div>
 
     <div class="form-actions">

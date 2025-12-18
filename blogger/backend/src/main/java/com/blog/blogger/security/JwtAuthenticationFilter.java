@@ -71,27 +71,39 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             // 5. If we have a username and user is not already authenticated
             if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
-                // 6. Load user details from database
+                // 6. Load user details from database for authentication validation
                 // This will throw UsernameNotFoundException if user is banned
                 UserDetails userDetails = userDetailsService.loadUserByUsername(username);
                 logger.info("User details loaded for: " + username);
+
+                // Check if userDetails is null (defensive programming)
+                if (userDetails == null) {
+                    logger.error("UserDetails is null for username: " + username);
+                    filterChain.doFilter(request, response);
+                    return;
+                }
 
                 // 7. Validate token
                 if (jwtUtil.validateToken(token, userDetails.getUsername())) {
                     logger.info("Token validated successfully for: " + username);
 
-                    // 8. Create authentication token
+                    // 8. Get the actual User entity (not just UserDetails)
+                    // This is needed for @AuthenticationPrincipal to work correctly
+                    com.blog.blogger.models.User user = userDetailsService.getUserByUsername(username);
+                    logger.info("User entity loaded: " + user.getId());
+
+                    // 9. Create authentication token with User entity as principal
                     UsernamePasswordAuthenticationToken authToken =
                         new UsernamePasswordAuthenticationToken(
-                            userDetails,
+                            user,  // Use User entity as principal (not UserDetails)
                             null,  // credentials (password) - not needed after validation
                             userDetails.getAuthorities()  // user's roles/permissions
                         );
 
-                    // 9. Set additional details (IP address, session ID, etc.)
+                    // 10. Set additional details (IP address, session ID, etc.)
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
-                    // 10. Set authentication in SecurityContext
+                    // 11. Set authentication in SecurityContext
                     // This tells Spring Security: "This user is authenticated!"
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                     logger.info("Authentication set in SecurityContext for: " + username);

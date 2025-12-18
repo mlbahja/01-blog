@@ -151,4 +151,19 @@ export class UserManagementComponent implements OnInit {
       });
     }
   }
+
+  getUserAvatar(user: UserProfile): string {
+    const imageUrl = user.profilePictureUrl || user.avatar;
+
+    if (imageUrl && imageUrl.startsWith('/uploads/')) {
+      return 'http://localhost:8080' + imageUrl;
+    }
+
+    return imageUrl || this.getDefaultAvatar();
+  }
+
+  getDefaultAvatar(): string {
+    // Return a data URI for a simple gray circle with a user icon (40x40)
+    return 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBmaWxsPSIjZTBlMGUwIi8+PGNpcmNsZSBjeD0iMjAiIGN5PSIxNSIgcj0iNyIgZmlsbD0iIzk5OSIvPjxwYXRoIGQ9Ik04IDMyYzAtNyA1LjUtMTIgMTItMTJzMTIgNSAxMiAxMiIgZmlsbD0iIzk5OSIvPjwvc3ZnPg==';
+  }
 }

@@ -58,20 +58,28 @@ export class ProfileEditComponent implements OnInit {
 
     this.loading = true;
 
+    // Convert empty strings to undefined to prevent saving empty values
     const updateData: UpdateProfile = {
-      fullName: this.fullName || undefined,
-      bio: this.bio || undefined,
-      avatar: this.avatar || undefined,
-      profilePictureUrl: this.profilePictureUrl || undefined,
+      fullName: this.fullName?.trim() || undefined,
+      bio: this.bio?.trim() || undefined,
+      avatar: this.avatar?.trim() || undefined,
+      profilePictureUrl: this.profilePictureUrl?.trim() || undefined,
     };
 
+    console.log('Updating profile with:', updateData);
+
     this.userService.updateProfile(this.currentUserId, updateData).subscribe({
-      next: () => {
+      next: (response) => {
+        console.log('Profile updated:', response);
         this.toastService.show('Profile updated successfully!', 'success');
         this.loading = false;
-        this.router.navigate(['/profile']);
+        // Navigate with reload flag
+        this.router.navigate(['/profile']).then(() => {
+          window.location.reload();
+        });
       },
       error: (err) => {
+        console.error('Profile update error:', err);
         this.toastService.show('Failed to update profile', 'error');
         this.loading = false;
       },
@@ -111,6 +119,12 @@ export class ProfileEditComponent implements OnInit {
     if (this.profilePictureUrl && this.profilePictureUrl.startsWith('/uploads/')) {
       return 'http://localhost:8080' + this.profilePictureUrl;
     }
-    return this.avatar || this.profilePictureUrl;
+    const imageUrl = this.avatar || this.profilePictureUrl;
+    return imageUrl || this.getDefaultAvatar();
+  }
+
+  getDefaultAvatar(): string {
+    // Return a data URI for a simple gray circle with a user icon
+    return 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgZmlsbD0iI2UwZTBlMCIvPjxjaXJjbGUgY3g9Ijc1IiBjeT0iNTUiIHI9IjI1IiBmaWxsPSIjOTk5Ii8+PHBhdGggZD0iTTMwIDEyMGMwLTI1IDIwLTQ1IDQ1LTQ1czQ1IDIwIDQ1IDQ1IiBmaWxsPSIjOTk5Ii8+PC9zdmc+';
   }
 }

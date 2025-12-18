@@ -1,13 +1,16 @@
 /////////////////////////////////////////////////////////////
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { PostService } from '../../core/services/post.service';
 import { ToastService } from '../../core/services/toast.service';
+import { NotificationService } from '../../core/services/notification.service';
+import { ReportService } from '../../core/services/report.service';
 import { HttpClient } from '@angular/common/http'; // Add this import
 import { Route } from '@angular/router';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-home',
@@ -16,7 +19,7 @@ import { Route } from '@angular/router';
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.css'],
 })
-export class HomeComponent implements OnInit {
+export class HomeComponent implements OnInit, OnDestroy {
   username: string = '';
   posts: any[] = [];
   newPost = {
@@ -34,10 +37,21 @@ export class HomeComponent implements OnInit {
   pageSize: number = 10;
   totalPosts: number = 0;
 
+  // Notification properties
+  unreadNotificationCount: number = 0;
+  private notificationSubscription?: Subscription;
+
+  // Report properties
+  showReportDialog = false;
+  reportingPost: any = null;
+  reportReason: string = '';
+
   constructor(
     private authService: AuthService,
     private postService: PostService,
     private toastService: ToastService,
+    private notificationService: NotificationService,
+    private reportService: ReportService,
     private http: HttpClient, // Add HttpClient to constructor
     private router: Router, // Add Router if not already there
   ) {}
@@ -47,6 +61,20 @@ export class HomeComponent implements OnInit {
     const userData = this.authService.getUserData();
     this.username = userData?.username || 'Guest';
     this.loadPosts();
+
+    // Subscribe to notification count updates
+    this.notificationSubscription = this.notificationService.unreadCount$.subscribe(
+      count => {
+        this.unreadNotificationCount = count;
+      }
+    );
+  }
+
+  ngOnDestroy(): void {
+    // Clean up subscription
+    if (this.notificationSubscription) {
+      this.notificationSubscription.unsubscribe();
+    }
   }
 
 
@@ -479,4 +507,44 @@ export class HomeComponent implements OnInit {
     // Add this method for testing
   }
     */
+
+  // Report functionality
+  isMyPost(post: any): boolean {
+    const userData = this.authService.getUserData();
+    return post.author?.id === userData?.id;
+  }
+
+  openReportDialog(post: any): void {
+    this.reportingPost = post;
+    this.reportReason = '';
+    this.showReportDialog = true;
+  }
+
+  closeReportDialog(): void {
+    this.showReportDialog = false;
+    this.reportingPost = null;
+    this.reportReason = '';
+  }
+
+  submitReport(): void {
+    if (!this.reportReason.trim() || !this.reportingPost) {
+      return;
+    }
+
+    const reportData = {
+      postId: this.reportingPost.id,
+      message: this.reportReason.trim()
+    };
+
+    this.reportService.createReport(reportData).subscribe({
+      next: () => {
+        this.toastService.show('Report submitted successfully', 'success');
+        this.closeReportDialog();
+      },
+      error: (err) => {
+        console.error('Error submitting report:', err);
+        this.toastService.show(err.error?.error || 'Failed to submit report', 'error');
+      }
+    });
+  }
 }

@@ -1,5 +1,6 @@
 package com.blog.blogger.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -18,8 +19,9 @@ public class Notification {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id", nullable = false)
+    @JsonIgnoreProperties({"password", "email", "createdAt", "updatedAt", "isBanned", "bannedAt", "bio", "fullName", "avatar", "profilePictureUrl"})
     private User user; // The user who receives this notification
 
     @Column(nullable = false)

@@ -1,12 +1,12 @@
 package com.blog.blogger.controller;
 
-import java.security.Principal;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import com.blog.blogger.dto.ChangePasswordDTO;
@@ -64,13 +64,9 @@ public class UserController {
      * Get current logged-in user's profile
      */
     @GetMapping("/me")
-    public ResponseEntity<?> getCurrentUserProfile(Principal principal) {
+    public ResponseEntity<?> getCurrentUserProfile(@AuthenticationPrincipal User currentUser) {
         try {
-            String username = principal.getName();
-            User user = userService.getUserByUsername(username)
-                    .orElseThrow(() -> new RuntimeException("User not found"));
-
-            UserProfileDTO profile = userService.convertToProfileDTO(user);
+            UserProfileDTO profile = userService.convertToProfileDTO(currentUser);
             return ResponseEntity.ok(profile);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -104,13 +100,8 @@ public class UserController {
     public ResponseEntity<?> updateProfile(
             @PathVariable Long id,
             @RequestBody UpdateProfileDTO updateDTO,
-            Principal principal) {
+            @AuthenticationPrincipal User currentUser) {
         try {
-            // Get current user
-            String username = principal.getName();
-            User currentUser = userService.getUserByUsername(username)
-                    .orElseThrow(() -> new RuntimeException("User not found"));
-
             // Check if user is banned
             checkUserBanned(currentUser);
 
@@ -139,13 +130,8 @@ public class UserController {
     public ResponseEntity<?> changePassword(
             @PathVariable Long id,
             @RequestBody ChangePasswordDTO changePasswordDTO,
-            Principal principal) {
+            @AuthenticationPrincipal User currentUser) {
         try {
-            // Get current user
-            String username = principal.getName();
-            User currentUser = userService.getUserByUsername(username)
-                    .orElseThrow(() -> new RuntimeException("User not found"));
-
             // Check if user is banned
             checkUserBanned(currentUser);
 
@@ -173,13 +159,8 @@ public class UserController {
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteUser(
             @PathVariable Long id,
-            Principal principal) {
+            @AuthenticationPrincipal User currentUser) {
         try {
-            // Get current user
-            String username = principal.getName();
-            User currentUser = userService.getUserByUsername(username)
-                    .orElseThrow(() -> new RuntimeException("User not found"));
-
             // Check if user is deleting their own account or is admin
             if (!currentUser.getId().equals(id) && !userService.isAdmin(currentUser.getId())) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN)
@@ -202,9 +183,9 @@ public class UserController {
      * Get all users (excluding current user)
      */
     @GetMapping
-    public ResponseEntity<?> getAllUsers(Principal principal) {
+    public ResponseEntity<?> getAllUsers(@AuthenticationPrincipal User currentUser) {
         try {
-            String currentUsername = principal.getName();
+            String currentUsername = currentUser.getUsername();
             List<User> users = userRepository.findAll();
 
             List<Map<String, Object>> userList = users.stream()
@@ -241,14 +222,12 @@ public class UserController {
      * Follow a user
      */
     @PostMapping("/{userId}/follow")
-    public ResponseEntity<?> followUser(@PathVariable Long userId, Principal principal) {
+    public ResponseEntity<?> followUser(@PathVariable Long userId, @AuthenticationPrincipal User currentUser) {
         try {
             // Check if user is banned
-            User currentUser = userRepository.findByUsername(principal.getName())
-                    .orElseThrow(() -> new RuntimeException("User not found"));
             checkUserBanned(currentUser);
 
-            subscriptionService.followUser(principal.getName(), userId);
+            subscriptionService.followUser(currentUser.getUsername(), userId);
             return ResponseEntity.ok(Map.of("message", "Successfully followed user"));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
@@ -260,14 +239,12 @@ public class UserController {
      * Unfollow a user
      */
     @DeleteMapping("/{userId}/follow")
-    public ResponseEntity<?> unfollowUser(@PathVariable Long userId, Principal principal) {
+    public ResponseEntity<?> unfollowUser(@PathVariable Long userId, @AuthenticationPrincipal User currentUser) {
         try {
             // Check if user is banned
-            User currentUser = userRepository.findByUsername(principal.getName())
-                    .orElseThrow(() -> new RuntimeException("User not found"));
             checkUserBanned(currentUser);
 
-            subscriptionService.unfollowUser(principal.getName(), userId);
+            subscriptionService.unfollowUser(currentUser.getUsername(), userId);
             return ResponseEntity.ok(Map.of("message", "Successfully unfollowed user"));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
@@ -279,8 +256,8 @@ public class UserController {
      * Check if current user is following another user
      */
     @GetMapping("/{userId}/is-following")
-    public ResponseEntity<Boolean> isFollowing(@PathVariable Long userId, Principal principal) {
-        boolean isFollowing = subscriptionService.isFollowing(principal.getName(), userId);
+    public ResponseEntity<Boolean> isFollowing(@PathVariable Long userId, @AuthenticationPrincipal User currentUser) {
+        boolean isFollowing = subscriptionService.isFollowing(currentUser.getUsername(), userId);
         return ResponseEntity.ok(isFollowing);
     }
 
@@ -289,8 +266,8 @@ public class UserController {
      * Get list of users that current user follows
      */
     @GetMapping("/following")
-    public ResponseEntity<List<Map<String, Object>>> getFollowing(Principal principal) {
-        List<Map<String, Object>> following = subscriptionService.getFollowing(principal.getName());
+    public ResponseEntity<List<Map<String, Object>>> getFollowing(@AuthenticationPrincipal User currentUser) {
+        List<Map<String, Object>> following = subscriptionService.getFollowing(currentUser.getUsername());
         return ResponseEntity.ok(following);
     }
 
@@ -299,8 +276,8 @@ public class UserController {
      * Get list of current user's followers
      */
     @GetMapping("/followers")
-    public ResponseEntity<List<Map<String, Object>>> getFollowers(Principal principal) {
-        List<Map<String, Object>> followers = subscriptionService.getFollowers(principal.getName());
+    public ResponseEntity<List<Map<String, Object>>> getFollowers(@AuthenticationPrincipal User currentUser) {
+        List<Map<String, Object>> followers = subscriptionService.getFollowers(currentUser.getUsername());
         return ResponseEntity.ok(followers);
     }
 
@@ -311,12 +288,8 @@ public class UserController {
     @PostMapping(value = "/upload-profile-picture", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Map<String, String>> uploadProfilePicture(
             @RequestParam("file") MultipartFile file,
-            Principal principal) {
+            @AuthenticationPrincipal User currentUser) {
         try {
-            // Get current user
-            User currentUser = userRepository.findByUsername(principal.getName())
-                    .orElseThrow(() -> new RuntimeException("User not found"));
-
             // Check if user is banned
             checkUserBanned(currentUser);
 

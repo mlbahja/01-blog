@@ -131,17 +131,20 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
 
         // Update only non-null fields
+        // Empty strings are treated as clearing the field
         if (dto.getFullName() != null) {
-            user.setFullName(dto.getFullName());
+            user.setFullName(dto.getFullName().isEmpty() ? null : dto.getFullName());
         }
         if (dto.getBio() != null) {
-            user.setBio(dto.getBio());
+            user.setBio(dto.getBio().isEmpty() ? null : dto.getBio());
         }
         if (dto.getAvatar() != null) {
-            user.setAvatar(dto.getAvatar());
+            String avatar = dto.getAvatar().trim();
+            user.setAvatar(avatar.isEmpty() ? null : avatar);
         }
         if (dto.getProfilePictureUrl() != null) {
-            user.setProfilePictureUrl(dto.getProfilePictureUrl());
+            String profilePicUrl = dto.getProfilePictureUrl().trim();
+            user.setProfilePictureUrl(profilePicUrl.isEmpty() ? null : profilePicUrl);
         }
 
         User updatedUser = userRepository.save(user);

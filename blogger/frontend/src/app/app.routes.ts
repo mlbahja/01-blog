@@ -9,8 +9,10 @@ import { ChatComponent } from './auth/chat/chat.component';
 import { ProfileComponent } from './auth/profile/profile.component';
 import { ProfileEditComponent } from './auth/profile-edit/profile-edit.component';
 import { UserSettingsComponent } from './auth/user-settings/user-settings.component';
+import { NotificationsComponent } from './auth/notifications/notifications.component';
 import { AdminDashboardComponent } from './admin/admin-dashboard/admin-dashboard.component';
 import { UserManagementComponent } from './admin/user-management/user-management.component';
+import { AdminReportsComponent } from './admin/reports/reports.component';
 import { NotFoundComponent } from './shared/components/not-found/not-found.component';
 import { UnauthorizedComponent } from './shared/components/unauthorized/unauthorized.component';
 import { authGuard } from './core/guards/auth.guard';
@@ -103,6 +105,14 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
 
+  // ========== Notifications Route ==========
+  // User notifications
+  {
+    path: 'notifications',
+    component: NotificationsComponent,
+    canActivate: [authGuard],
+  },
+
   // ========== Admin Routes ==========
   // Only accessible for ADMIN users
   {
@@ -113,6 +123,11 @@ export const routes: Routes = [
   {
     path: 'admin/users',
     component: UserManagementComponent,
+    canActivate: [adminGuard],
+  },
+  {
+    path: 'admin/reports',
+    component: AdminReportsComponent,
     canActivate: [adminGuard],
   },
 

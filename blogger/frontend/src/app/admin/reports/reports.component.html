@@ -1,0 +1,109 @@
+<!-- Navigation Header -->
+<header class="site-header">
+  <div class="header-container">
+    <div class="logo">
+      <h1 routerLink="/home">My Blog</h1>
+    </div>
+    <nav class="main-nav">
+      <a routerLink="/home" routerLinkActive="active" class="nav-link">Home</a>
+      <a routerLink="/admin" routerLinkActive="active" class="nav-link">Dashboard</a>
+      <a routerLink="/admin/users" routerLinkActive="active" class="nav-link">Users</a>
+      <a routerLink="/admin/reports" routerLinkActive="active" class="nav-link">Reports</a>
+    </nav>
+    <div class="header-actions">
+      <span class="user-greeting">Hello, {{ username }}</span>
+      <button class="logout-button" (click)="logout()">Logout</button>
+    </div>
+  </div>
+</header>
+
+<!-- Main Content -->
+<main class="main-content">
+  <div class="container">
+    <!-- Page Header -->
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Reports Management</h1>
+        <p class="page-subtitle">Review and manage user reports</p>
+      </div>
+      <div class="header-actions-bar">
+        <span class="unresolved-badge" *ngIf="unresolvedCount > 0">
+          {{ unresolvedCount }} Unresolved
+        </span>
+        <button class="filter-btn" (click)="toggleFilter()">
+          {{ showResolvedOnly ? 'Show Unresolved Only' : 'Show All Reports' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div class="loading-state" *ngIf="loading">
+      <p>Loading reports...</p>
+    </div>
+
+    <!-- Empty State -->
+    <div class="empty-state" *ngIf="!loading && reports.length === 0">
+      <div class="empty-icon">🚩</div>
+      <h2>No Reports</h2>
+      <p>{{ showResolvedOnly ? 'All reports have been reviewed' : 'There are no reports at this time' }}</p>
+    </div>
+
+    <!-- Reports Table -->
+    <div class="reports-table-container" *ngIf="!loading && reports.length > 0">
+      <table class="reports-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Post</th>
+            <th>Reporter</th>
+            <th>Reason</th>
+            <th>Date</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let report of reports" [class.resolved-row]="report.resolved">
+            <td class="id-cell">{{ report.id }}</td>
+            <td class="post-cell">
+              <div class="post-title" (click)="viewPost(report.postId)" title="Click to view post">
+                {{ report.postTitle }}
+                <span class="view-icon">↗️</span>
+              </div>
+            </td>
+            <td class="reporter-cell">{{ report.reporterUsername }}</td>
+            <td class="reason-cell">
+              <div class="reason-text">{{ report.message }}</div>
+              <div class="admin-notes" *ngIf="report.adminNotes">
+                <strong>Admin Notes:</strong> {{ report.adminNotes }}
+              </div>
+            </td>
+            <td class="date-cell">{{ report.createdAt | date:'short' }}</td>
+            <td class="status-cell">
+              <span class="status-badge" [class.resolved]="report.resolved">
+                {{ report.resolved ? 'Resolved' : 'Pending' }}
+              </span>
+            </td>
+            <td class="actions-cell">
+              <button
+                *ngIf="!report.resolved"
+                class="action-btn resolve-btn"
+                (click)="markResolved(report)"
+                title="Mark as resolved"
+              >
+                ✓ Resolve
+              </button>
+              <button
+                class="action-btn delete-btn"
+                (click)="deleteReport(report)"
+                title="Delete report"
+              >
+                🗑️ Delete
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</main>

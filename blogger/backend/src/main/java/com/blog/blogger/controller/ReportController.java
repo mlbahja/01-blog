@@ -10,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -34,12 +33,9 @@ public class ReportController {
     @PostMapping
     public ResponseEntity<?> createReport(
             @RequestBody CreateReportDTO dto,
-            @AuthenticationPrincipal UserDetails userDetails) {
+            @AuthenticationPrincipal User currentUser) {
         try {
-            User reporter = userRepository.findByUsername(userDetails.getUsername())
-                    .orElseThrow(() -> new RuntimeException("User not found"));
-            
-            ReportResponseDTO report = reportService.createReport(dto, reporter);
+            ReportResponseDTO report = reportService.createReport(dto, currentUser);
             return ResponseEntity.status(HttpStatus.CREATED).body(report);
             
         } catch (RuntimeException e) {
@@ -58,12 +54,9 @@ public class ReportController {
      * Get my reports
      */
     @GetMapping("/my")
-    public ResponseEntity<?> getMyReports(@AuthenticationPrincipal UserDetails userDetails) {
+    public ResponseEntity<?> getMyReports(@AuthenticationPrincipal User currentUser) {
         try {
-            User user = userRepository.findByUsername(userDetails.getUsername())
-                    .orElseThrow(() -> new RuntimeException("User not found"));
-            
-            List<ReportResponseDTO> reports = reportService.getUserReports(user);
+            List<ReportResponseDTO> reports = reportService.getUserReports(currentUser);
             return ResponseEntity.ok(reports);
             
         } catch (Exception e) {

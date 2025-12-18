@@ -6,9 +6,9 @@ import com.blog.blogger.repository.UserRepository;
 import com.blog.blogger.service.MessageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.security.Principal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,17 +39,15 @@ public class MessageController {
      * Body: { "receiverId": 123, "content": "Hello!" }
      */
     @PostMapping
-    public ResponseEntity<?> sendMessage(@RequestBody Map<String, Object> payload, Principal principal) {
+    public ResponseEntity<?> sendMessage(@RequestBody Map<String, Object> payload, @AuthenticationPrincipal User currentUser) {
         try {
             // Check if user is banned
-            User user = userRepository.findByUsername(principal.getName())
-                    .orElseThrow(() -> new RuntimeException("User not found"));
-            checkUserBanned(user);
+            checkUserBanned(currentUser);
 
             Long receiverId = Long.valueOf(payload.get("receiverId").toString());
             String content = payload.get("content").toString();
 
-            Message message = messageService.sendMessage(principal.getName(), receiverId, content);
+            Message message = messageService.sendMessage(currentUser.getUsername(), receiverId, content);
 
             Map<String, Object> response = new HashMap<>();
             response.put("id", message.getId());
@@ -68,9 +66,9 @@ public class MessageController {
      * GET /auth/messages/conversation/{userId}
      */
     @GetMapping("/conversation/{userId}")
-    public ResponseEntity<?> getConversation(@PathVariable Long userId, Principal principal) {
+    public ResponseEntity<?> getConversation(@PathVariable Long userId, @AuthenticationPrincipal User currentUser) {
         try {
-            List<Map<String, Object>> messages = messageService.getConversation(principal.getName(), userId);
+            List<Map<String, Object>> messages = messageService.getConversation(currentUser.getUsername(), userId);
             return ResponseEntity.ok(messages);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
@@ -82,9 +80,9 @@ public class MessageController {
      * GET /auth/messages/conversations
      */
     @GetMapping("/conversations")
-    public ResponseEntity<?> getConversations(Principal principal) {
+    public ResponseEntity<?> getConversations(@AuthenticationPrincipal User currentUser) {
         try {
-            List<Map<String, Object>> conversations = messageService.getConversations(principal.getName());
+            List<Map<String, Object>> conversations = messageService.getConversations(currentUser.getUsername());
             return ResponseEntity.ok(conversations);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
@@ -96,9 +94,9 @@ public class MessageController {
      * PUT /auth/messages/read/{userId}
      */
     @PutMapping("/read/{userId}")
-    public ResponseEntity<?> markAsRead(@PathVariable Long userId, Principal principal) {
+    public ResponseEntity<?> markAsRead(@PathVariable Long userId, @AuthenticationPrincipal User currentUser) {
         try {
-            messageService.markMessagesAsRead(principal.getName(), userId);
+            messageService.markMessagesAsRead(currentUser.getUsername(), userId);
             return ResponseEntity.ok(Map.of("message", "Messages marked as read"));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
@@ -110,8 +108,8 @@ public class MessageController {
      * GET /auth/messages/unread-count
      */
     @GetMapping("/unread-count")
-    public ResponseEntity<Long> getUnreadCount(Principal principal) {
-        long count = messageService.getUnreadCount(principal.getName());
+    public ResponseEntity<Long> getUnreadCount(@AuthenticationPrincipal User currentUser) {
+        long count = messageService.getUnreadCount(currentUser.getUsername());
         return ResponseEntity.ok(count);
     }
 
@@ -120,14 +118,12 @@ public class MessageController {
      * DELETE /auth/messages/{messageId}
      */
     @DeleteMapping("/{messageId}")
-    public ResponseEntity<?> deleteMessage(@PathVariable Long messageId, Principal principal) {
+    public ResponseEntity<?> deleteMessage(@PathVariable Long messageId, @AuthenticationPrincipal User currentUser) {
         try {
             // Check if user is banned
-            User user = userRepository.findByUsername(principal.getName())
-                    .orElseThrow(() -> new RuntimeException("User not found"));
-            checkUserBanned(user);
+            checkUserBanned(currentUser);
 
-            messageService.deleteMessage(principal.getName(), messageId);
+            messageService.deleteMessage(currentUser.getUsername(), messageId);
             return ResponseEntity.ok(Map.of("message", "Message deleted successfully"));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));

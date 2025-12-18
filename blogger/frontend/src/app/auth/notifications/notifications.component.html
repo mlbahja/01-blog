@@ -1,0 +1,82 @@
+<!-- Navigation Header -->
+<header class="site-header">
+  <div class="header-container">
+    <div class="logo">
+      <h1 routerLink="/home">My Blog</h1>
+    </div>
+    <nav class="main-nav">
+      <a routerLink="/home" routerLinkActive="active" class="nav-link">Home</a>
+      <a routerLink="/users" routerLinkActive="active" class="nav-link">Users</a>
+      <a routerLink="/chat" routerLinkActive="active" class="nav-link">Chat</a>
+      <a routerLink="/profile" routerLinkActive="active" class="nav-link">Profile</a>
+      <a routerLink="/admin" routerLinkActive="active" class="nav-link" *ngIf="isAdmin()">Admin Panel</a>
+    </nav>
+    <div class="header-actions">
+      <div class="notification-bell active" routerLink="/notifications" title="Notifications">
+        <span class="bell-icon">🔔</span>
+      </div>
+      <span class="user-greeting">Hello, {{ username }}</span>
+      <button class="logout-button" (click)="logout()">Logout</button>
+    </div>
+  </div>
+</header>
+
+<!-- Main Content -->
+<main class="main-content">
+  <div class="container">
+    <!-- Page Header -->
+    <div class="page-header">
+      <h1 class="page-title">Notifications</h1>
+      <div class="header-actions-bar">
+        <button class="filter-btn" (click)="toggleFilter()">
+          {{ showUnreadOnly ? 'Show All' : 'Show Unread Only' }}
+        </button>
+        <button class="action-btn" (click)="markAllAsRead()" *ngIf="notifications.length > 0">
+          Mark All as Read
+        </button>
+        <button class="action-btn danger" (click)="deleteReadNotifications()" *ngIf="notifications.length > 0">
+          Clear Read
+        </button>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div class="loading-state" *ngIf="loading">
+      <p>Loading notifications...</p>
+    </div>
+
+    <!-- Empty State -->
+    <div class="empty-state" *ngIf="!loading && notifications.length === 0">
+      <div class="empty-icon">🔔</div>
+      <h2>No Notifications</h2>
+      <p>{{ showUnreadOnly ? 'You have no unread notifications' : 'You don\'t have any notifications yet' }}</p>
+    </div>
+
+    <!-- Notifications List -->
+    <div class="notifications-list" *ngIf="!loading && notifications.length > 0">
+      <div
+        *ngFor="let notification of notifications"
+        class="notification-item"
+        [class.unread]="!notification.isRead"
+        (click)="markAsRead(notification)"
+      >
+        <div class="notification-icon">
+          {{ getNotificationIcon(notification.type) }}
+        </div>
+        <div class="notification-content">
+          <p class="notification-message">{{ notification.message }}</p>
+          <span class="notification-time">{{ getTimeAgo(notification.createdAt) }}</span>
+        </div>
+        <div class="notification-actions">
+          <button
+            class="delete-btn"
+            (click)="deleteNotification(notification, $event)"
+            title="Delete notification"
+          >
+            🗑️
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>

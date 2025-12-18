@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Collections;
 
 @RestController
 @RequestMapping("/auth/notifications")
@@ -27,10 +28,18 @@ public class NotificationController {
      * GET /auth/notifications
      */
     @GetMapping
-    public ResponseEntity<List<Notification>> getUserNotifications(
+    public ResponseEntity<?> getUserNotifications(
             @AuthenticationPrincipal User currentUser) {
-        List<Notification> notifications = notificationService.getUserNotifications(currentUser);
-        return ResponseEntity.ok(notifications);
+        try {
+            if (currentUser == null) {
+                return ResponseEntity.status(401).body(Map.of("error", "User not authenticated"));
+            }
+            List<Notification> notifications = notificationService.getUserNotifications(currentUser);
+            return ResponseEntity.ok(notifications);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
+        }
     }
 
     /**

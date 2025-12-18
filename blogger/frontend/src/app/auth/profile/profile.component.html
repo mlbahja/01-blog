@@ -17,7 +17,7 @@
     <!-- Avatar Section -->
     <div class="avatar-section">
       <img
-        [src]="userProfile.avatar || userProfile.profilePictureUrl || 'https://via.placeholder.com/150'"
+        [src]="getProfilePictureUrl()"
         alt="Profile Avatar"
         class="avatar-large"
       />
