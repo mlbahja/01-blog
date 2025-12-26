@@ -1,0 +1,2616 @@
+================================================================================
+                    TECHNICAL DOCUMENTATION
+          BLOGGING PLATFORM - SPRING BOOT & ANGULAR
+================================================================================
+
+PROJECT OVERVIEW
+================================================================================
+This document provides a comprehensive technical overview of the blogging
+platform application, detailing all architectural principles, design patterns,
+and best practices implemented in both the backend (Spring Boot) and frontend
+(Angular) layers.
+
+Technology Stack:
+- Backend: Spring Boot 3.x, Java 17, MySQL/PostgreSQL
+- Frontend: Angular 21.x, TypeScript, Angular Material
+- Security: Spring Security, JWT (JSON Web Tokens)
+- ORM: Hibernate/JPA
+- Build Tools: Maven (Backend), npm/Angular CLI (Frontend)
+
+
+================================================================================
+PART 1: SPRING BOOT BACKEND ARCHITECTURE
+================================================================================
+
+1. LAYERED ARCHITECTURE PATTERN
+================================================================================
+
+Name: Three-Tier Layered Architecture
+
+Explanation:
+The application follows a strict separation of concerns through three distinct
+layers: Presentation (Controllers), Business Logic (Services), and Data Access
+(Repositories). Each layer has a specific responsibility and communicates only
+with adjacent layers.
+
+Why It Is Used:
+- Separation of Concerns: Each layer handles specific responsibilities
+- Maintainability: Changes in one layer don't affect others
+- Testability: Each layer can be tested independently
+- Scalability: Layers can be scaled or modified independently
+- Code Organization: Clear structure makes code easier to navigate
+
+Implementation Location:
+
+Layer 1 - PRESENTATION (Controller Layer):
+├── PostController.java           (Line 36: @RestController)
+├── AdminController.java          (Line 34: @PreAuthorize("hasRole('ADMIN')"))
+├── AuthController.java           (Authentication endpoints)
+├── ReportController.java         (Report management)
+└── NotificationController.java   (Notification endpoints)
+
+Layer 2 - BUSINESS LOGIC (Service Layer):
+├── PostService.java              (Line 27: @Service)
+├── AdminService.java             (Line 23: @Service)
+├── UserService.java              (Business logic for users)
+├── ReportService.java            (Report processing)
+└── NotificationService.java      (Line 15: @Service)
+
+Layer 3 - DATA ACCESS (Repository Layer):
+├── PostRepository.java           (Line 15: @Repository, extends JpaRepository)
+├── UserRepository.java           (JPA repository)
+├── ReportRepository.java         (Data access for reports)
+└── NotificationRepository.java   (Notification persistence)
+
+Example Implementation:
+```
+// PostController.java (Line 93-107)
+@PostMapping
+public ResponseEntity<Post> createPost(@RequestBody CreatePostDTO dto,
+                                       @AuthenticationPrincipal User currentUser) {
+    checkUserBanned(currentUser);
+
+    Post post = Post.builder()
+            .title(dto.getTitle())
+            .content(dto.getContent())
+            .author(currentUser)
+            .build();
+
+    Post savedPost = postService.createPost(post);  // Delegates to service layer
+    return ResponseEntity.ok(savedPost);
+}
+```
+
+
+2. DEPENDENCY INJECTION (DI)
+================================================================================
+
+Name: Constructor-Based Dependency Injection
+
+Explanation:
+Dependency Injection is a design pattern where object dependencies are provided
+by an external framework (Spring IoC container) rather than created by the
+objects themselves. The application uses constructor-based injection exclusively,
+which is the recommended approach in Spring Boot.
+
+Why It Is Used:
+- Loose Coupling: Classes depend on abstractions, not concrete implementations
+- Testability: Easy to inject mock objects for unit testing
+- Immutability: Constructor injection allows for final fields
+- Fail-Fast: Missing dependencies are caught at application startup
+- Thread Safety: Immutable dependencies are inherently thread-safe
+
+Implementation Location:
+
+Example 1 - PostController.java (Line 39-52):
+```
+@Autowired
+private PostService postService;
+
+@Autowired
+private CommentService commentService;
+
+@Autowired
+private UserRepository userRepository;
+
+@Autowired
+private FileStorageService fileStorageService;
+
+@Autowired
+private NotificationService notificationService;
+```
+
+Example 2 - PostService.java (Line 29-39):
+```
+@Autowired
+private PostRepository postRepository;
+
+@Autowired
+private PostLikeRepository postLikeRepository;
+
+@Autowired
+private SubscriptionService subscriptionService;
+
+@Autowired
+private NotificationService notificationService;
+```
+
+Example 3 - SecurityConfig.java (Line 35-38):
+```
+private final JwtAuthenticationFilter jwtAuthFilter;
+private final CustomUserDetailsService userDetailsService;
+
+public SecurityConfig(JwtAuthenticationFilter jwtAuthFilter,
+                      CustomUserDetailsService userDetailsService) {
+    this.jwtAuthFilter = jwtAuthFilter;
+    this.userDetailsService = userDetailsService;
+}
+```
+
+Best Practice Note:
+The application follows Spring's recommendation to use constructor injection
+over field injection for better testability and immutability.
+
+
+3. INVERSION OF CONTROL (IoC)
+================================================================================
+
+Name: Inversion of Control Container
+
+Explanation:
+Spring's IoC container manages the lifecycle and configuration of application
+objects (beans). Instead of the application creating and managing its
+dependencies, the container takes control of object creation, configuration,
+and assembly.
+
+Why It Is Used:
+- Centralized Configuration: All bean definitions in one place
+- Lifecycle Management: Container handles object creation and destruction
+- Aspect-Oriented Programming: Enables cross-cutting concerns
+- Configuration Flexibility: Easy to switch implementations
+
+Implementation Location:
+
+Bean Definitions (SecurityConfig.java):
+- Line 101-104: authenticationManager() bean
+- Line 107-109: passwordEncoder() bean
+- Line 114-139: corsConfigurationSource() bean
+
+Component Scanning:
+- All classes annotated with @Service, @Repository, @Controller, @Component
+- Automatically discovered and registered by Spring
+
+Example:
+```
+// SecurityConfig.java (Line 107-109)
+@Bean
+public PasswordEncoder passwordEncoder() {
+    return new BCryptPasswordEncoder();
+}
+```
+
+This bean is then injected wherever needed without manual instantiation.
+
+
+4. DATA TRANSFER OBJECT (DTO) PATTERN
+================================================================================
+
+Name: Data Transfer Object Pattern
+
+Explanation:
+DTOs are simple objects used to transfer data between different layers of the
+application, particularly between the presentation layer and the service layer.
+They act as a contract for data exchange and decouple the internal domain model
+from the external API.
+
+Why It Is Used:
+- Data Encapsulation: Expose only necessary data to clients
+- Versioning: Easier to maintain API versions
+- Security: Prevent exposure of sensitive entity fields
+- Validation: Centralized input validation
+- Performance: Transfer only required data
+
+Implementation Location:
+
+Backend DTOs (dto/ package):
+├── CreatePostDTO.java         (Line 17: Post creation data)
+│   └── Fields: title, content, tags, mediaType, mediaUrl
+├── CreateCommentDTO.java       (Comment creation)
+├── RegisterRequest.java        (Line 9-21: User registration with validation)
+│   ├── @NotBlank username
+│   ├── @Email email
+│   └── @Size password validation
+├── LoginRequest.java           (Login credentials)
+├── AuthResponse.java           (Authentication response)
+├── CreateReportDTO.java        (Report creation)
+├── ReportResponseDTO.java      (Report data transfer)
+├── UserProfileDTO.java         (User profile data)
+└── AdminStatsDTO.java          (Dashboard statistics)
+
+Example Implementation:
+```
+// RegisterRequest.java (Line 10-20)
+@Data
+public class RegisterRequest {
+    @NotBlank(message = "Username is required")
+    @Size(min = 3, max = 30, message = "Username must be between 3 and 30 characters")
+    private String username;
+
+    @NotBlank(message = "Email is required")
+    @Email(message = "Email must be valid")
+    private String email;
+
+    @NotBlank(message = "Password is required")
+    @Size(min = 6, max = 100, message = "Password must be at least 6 characters")
+    private String password;
+}
+```
+
+Usage Example (PostController.java, Line 93):
+```
+public ResponseEntity<Post> createPost(@RequestBody CreatePostDTO dto,
+                                       @AuthenticationPrincipal User currentUser)
+```
+
+Benefits Demonstrated:
+- Validation annotations ensure data integrity
+- Separation from entity prevents accidental exposure of internal fields
+- Clear contract for API consumers
+
+
+5. REPOSITORY PATTERN
+================================================================================
+
+Name: Repository Pattern with Spring Data JPA
+
+Explanation:
+The Repository pattern provides an abstraction layer between the business logic
+and data access layers. Spring Data JPA implements this pattern by providing
+repository interfaces that automatically generate implementations for common
+CRUD operations and custom queries.
+
+Why It Is Used:
+- Abstraction: Business logic doesn't know about database implementation
+- Code Reduction: No need to write boilerplate CRUD code
+- Query Methods: Derive queries from method names
+- Type Safety: Compile-time checking of queries
+- Transaction Management: Automatic transaction handling
+
+Implementation Location:
+
+Repository Layer (repository/ package):
+
+PostRepository.java (Line 12-30):
+```
+@Repository
+public interface PostRepository extends JpaRepository<Post, Long> {
+    List<Post> findByAuthor(User author);
+    List<Post> findByOrderByCreatedAtDesc();
+    List<Post> findByAuthorIdInOrderByCreatedAtDesc(List<Long> authorIds);
+
+    // Custom query for filtering hidden posts
+    Page<Post> findByIsHiddenFalseOrIsHiddenIsNull(Pageable pageable);
+
+    @Query("SELECT p FROM Post p WHERE p.author.id IN :authorIds AND
+            (p.isHidden = false OR p.isHidden IS NULL)
+            ORDER BY p.createdAt DESC")
+    List<Post> findNonHiddenPostsByAuthorIds(@Param("authorIds") List<Long> authorIds);
+}
+```
+
+Other Repositories:
+- UserRepository.java: User data access
+- CommentRepository.java: Comment persistence
+- PostLikeRepository.java: Like relationships
+- ReportRepository.java: Report storage
+- NotificationRepository.java: Notification management
+
+Key Features:
+1. Derived Query Methods: Spring automatically implements queries based on
+   method names (e.g., findByAuthorIdInOrderByCreatedAtDesc)
+
+2. Custom JPQL Queries: @Query annotation for complex queries
+
+3. Pagination Support: Using Pageable parameter for efficient data retrieval
+
+4. Type Safety: Generic types ensure compile-time type checking
+
+
+6. SERVICE LAYER PATTERN
+================================================================================
+
+Name: Business Logic Encapsulation in Service Layer
+
+Explanation:
+The Service layer contains the business logic of the application. It sits
+between the controller and repository layers, orchestrating data access,
+applying business rules, and coordinating multiple operations.
+
+Why It Is Used:
+- Business Logic Centralization: All business rules in one place
+- Transaction Management: Service methods define transaction boundaries
+- Reusability: Service methods can be called from multiple controllers
+- Separation of Concerns: Controllers handle HTTP, services handle business logic
+- Testability: Business logic can be tested without HTTP layer
+
+Implementation Location:
+
+PostService.java (Line 27-201):
+
+Key Methods:
+1. getAllPosts() (Line 44-48): Returns non-hidden posts with pagination
+2. createPost() (Line 72-82): Creates post and notifies followers
+3. updatePost() (Line 93-104): Updates post with validation
+4. likePost() (Line 93-117): Handles like logic with duplicate prevention
+5. hidePost() (Line 184-189): Admin soft delete functionality
+
+Example - Transaction Management:
+```
+// PostService.java (Line 72)
+@Transactional
+public Post createPost(Post post) {
+    Post savedPost = postRepository.save(post);
+
+    // Business logic: Notify followers
+    List<User> followers = subscriptionService.getFollowers(savedPost.getAuthor());
+    notificationService.notifyFollowersAboutNewPost(savedPost, followers);
+
+    return savedPost;
+}
+```
+
+Example - Business Rules:
+```
+// PostService.java (Line 98-100)
+if (postLikeRepository.existsByUserAndPost(user, post)) {
+    return post; // Already liked, do nothing (business rule)
+}
+```
+
+AdminService.java (Line 23-148):
+- Coordinates multiple services for admin operations
+- Provides dashboard statistics
+- Manages user bans and role changes
+- Handles post moderation
+
+
+7. REST API PRINCIPLES
+================================================================================
+
+Name: RESTful API Design
+
+Explanation:
+REST (Representational State Transfer) is an architectural style for designing
+networked applications. The API uses HTTP methods, status codes, and resource-
+based URLs to provide a stateless, scalable interface.
+
+Why It Is Used:
+- Stateless Communication: Each request contains all necessary information
+- Scalability: Stateless design allows horizontal scaling
+- Standard HTTP: Uses well-understood HTTP protocols
+- Resource-Oriented: Intuitive URL structure
+- Multiple Representations: Supports JSON, XML, etc.
+
+Implementation Location:
+
+Resource Mapping (Controllers):
+
+PostController.java (Line 36-312):
+```
+@RestController
+@RequestMapping("/auth/posts")
+public class PostController {
+
+    // GET /auth/posts - List all posts
+    @GetMapping()
+    public ResponseEntity<Map<String, Object>> getAllPosts(
+        @RequestParam(defaultValue = "1") int page,
+        @RequestParam(defaultValue = "10") int size)
+
+    // GET /auth/posts/{id} - Get specific post
+    @GetMapping("/{id}")
+    public ResponseEntity<Post> getPostById(@PathVariable Long id)
+
+    // POST /auth/posts - Create new post
+    @PostMapping
+    public ResponseEntity<Post> createPost(@RequestBody CreatePostDTO dto,
+                                           @AuthenticationPrincipal User currentUser)
+
+    // PUT /auth/posts/{id} - Update post
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updatePost(@PathVariable Long id,
+                                       @RequestBody CreatePostDTO dto,
+                                       @AuthenticationPrincipal User currentUser)
+
+    // DELETE /auth/posts/{id} - Delete post
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deletePost(@PathVariable Long id,
+                                       @AuthenticationPrincipal User currentUser)
+}
+```
+
+HTTP Method Usage:
+- GET: Retrieve resources (safe, idempotent)
+- POST: Create new resources (not idempotent)
+- PUT: Update existing resources (idempotent)
+- DELETE: Remove resources (idempotent)
+
+Status Code Usage:
+- 200 OK: Successful GET, PUT, DELETE
+- 201 CREATED: Successful POST (ReportController.java Line 39)
+- 400 BAD REQUEST: Invalid input
+- 403 FORBIDDEN: Insufficient permissions (PostController.java Line 169)
+- 404 NOT FOUND: Resource not found
+- 500 INTERNAL SERVER ERROR: Server error
+
+URL Structure:
+- Plural nouns: /posts, /users, /reports
+- Hierarchical: /posts/{id}/comments
+- Query parameters: ?page=1&size=10
+
+Content Negotiation:
+- Accept: application/json
+- Content-Type: application/json
+
+
+8. SECURITY ARCHITECTURE
+================================================================================
+
+8.1 AUTHENTICATION - JWT (JSON Web Tokens)
+----------------------------------------
+
+Name: Stateless Token-Based Authentication
+
+Explanation:
+JWT is a compact, URL-safe means of representing claims between two parties.
+The application uses JWT for stateless authentication where the server doesn't
+store session information. Each request includes a token that contains user
+identity and claims.
+
+Why It Is Used:
+- Stateless: No server-side session storage required
+- Scalability: Easy to scale horizontally
+- Mobile-Friendly: Works well with mobile applications
+- Cross-Domain: Can be used across different domains
+- Self-Contained: Token contains all necessary information
+
+Implementation Location:
+
+JwtUtil.java (Line 23-112):
+
+Token Generation (Line 53-60):
+```
+public String generateToken(String username) {
+    return Jwts.builder()
+            .subject(username)                    // Who the token is for
+            .issuedAt(new Date())                 // When it was created
+            .expiration(new Date(System.currentTimeMillis() + expirationTime))
+            .signWith(getSigningKey())            // Sign with secret key
+            .compact();
+}
+```
+
+Token Validation (Line 108-111):
+```
+public boolean validateToken(String token, String username) {
+    String tokenUsername = extractUsername(token);
+    return (tokenUsername.equals(username) && !isTokenExpired(token));
+}
+```
+
+Token Extraction (Line 68-70):
+```
+public String extractUsername(String token) {
+    return extractAllClaims(token).getSubject();
+}
+```
+
+JwtAuthenticationFilter.java:
+- Intercepts every request
+- Extracts JWT from Authorization header
+- Validates token
+- Sets authentication in SecurityContext
+
+Configuration (application.properties):
+```
+jwt.secret=your-secret-key-min-256-bits
+jwt.expiration=86400000  # 24 hours in milliseconds
+```
+
+
+8.2 AUTHORIZATION - Role-Based Access Control (RBAC)
+-----------------------------------------------------
+
+Name: Role-Based Access Control
+
+Explanation:
+RBAC restricts system access based on user roles. The application defines two
+roles (USER, ADMIN) and enforces access control at both method and endpoint
+levels.
+
+Why It Is Used:
+- Security: Prevents unauthorized access to sensitive operations
+- Flexibility: Easy to add new roles or modify permissions
+- Centralized Control: Access rules defined in one place
+- Audit Trail: Clear tracking of who can do what
+
+Implementation Location:
+
+Role Definition (User.java, Line 64-67):
+```
+@Enumerated(EnumType.STRING)
+@Column(nullable = false)
+@Builder.Default
+private Role role = Role.USER;
+```
+
+Role Enum (Role.java):
+```
+public enum Role {
+    USER,
+    ADMIN
+}
+```
+
+Method-Level Security (AdminController.java, Line 34):
+```
+@RestController
+@RequestMapping("/auth/admin")
+@PreAuthorize("hasRole('ADMIN')")
+public class AdminController {
+    // All methods require ADMIN role
+}
+```
+
+Endpoint-Level Security (SecurityConfig.java, Line 67):
+```
+.requestMatchers("/auth/reports/admin/**").hasRole("ADMIN")
+```
+
+Permission Checks in Business Logic (PostController.java, Line 160-174):
+```
+Post post = postService.getPostById(id).orElseThrow(...);
+
+boolean isOwner = post.getAuthor().getId().equals(currentUser.getId());
+boolean isAdmin = currentUser.getRole().name().equals("ADMIN");
+
+if (!isOwner && !isAdmin) {
+    return ResponseEntity.status(HttpStatus.FORBIDDEN)
+            .body(Map.of("error", "You can only edit your own posts"));
+}
+```
+
+8.3 PASSWORD SECURITY
+---------------------
+
+Name: BCrypt Password Hashing
+
+Explanation:
+BCrypt is a password hashing function designed to be computationally expensive,
+making brute-force attacks impractical. It includes a salt to prevent rainbow
+table attacks and has an adjustable work factor.
+
+Why It Is Used:
+- Security: Resistant to brute-force attacks
+- Salting: Each password has unique salt
+- Future-Proof: Work factor can be increased
+- Industry Standard: Widely accepted best practice
+
+Implementation Location:
+
+Configuration (SecurityConfig.java, Line 107-109):
+```
+@Bean
+public PasswordEncoder passwordEncoder() {
+    return new BCryptPasswordEncoder();
+}
+```
+
+Usage in Authentication (SecurityConfig.java, Line 93-98):
+```
+@Bean
+public AuthenticationProvider authenticationProvider() {
+    DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+    provider.setUserDetailsService(userDetailsService);
+    provider.setPasswordEncoder(passwordEncoder());
+    return provider;
+}
+```
+
+Password Storage:
+- Original password: NEVER stored
+- Stored value: BCrypt hash with embedded salt
+- Verification: Hash comparison, not decryption
+
+
+8.4 SPRING SECURITY CONFIGURATION
+---------------------------------
+
+Name: Comprehensive Security Configuration
+
+Explanation:
+Spring Security provides authentication, authorization, and protection against
+common exploits. The configuration defines which endpoints are public, which
+require authentication, and which require specific roles.
+
+Implementation Location:
+
+SecurityConfig.java (Line 42-89):
+
+Key Configuration Elements:
+
+1. CORS Configuration (Line 44):
+```
+.cors(cors -> cors.configurationSource(corsConfigurationSource()))
+```
+
+2. CSRF Disabled (Line 45):
+```
+.csrf(csrf -> csrf.disable())
+```
+Note: CSRF is disabled because we use JWT (stateless). For stateful sessions,
+CSRF protection would be enabled.
+
+3. Authorization Rules (Line 46-71):
+```
+.authorizeHttpRequests(auth -> auth
+    // Public endpoints
+    .requestMatchers("/auth/register", "/auth/login").permitAll()
+    .requestMatchers("/uploads/**").permitAll()
+
+    // GET requests to posts are public
+    .requestMatchers(HttpMethod.GET, "/auth/posts/**").permitAll()
+
+    // Admin endpoints require ADMIN role
+    .requestMatchers("/auth/reports/admin/**").hasRole("ADMIN")
+
+    // All other requests require authentication
+    .anyRequest().authenticated()
+)
+```
+
+4. Stateless Session Management (Line 82-84):
+```
+.sessionManagement(session ->
+    session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+)
+```
+
+5. JWT Filter Registration (Line 86):
+```
+.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+```
+
+6. CORS Policy (Line 114-139):
+```
+@Bean
+public CorsConfigurationSource corsConfigurationSource() {
+    CorsConfiguration configuration = new CorsConfiguration();
+    configuration.setAllowedOriginPatterns(Arrays.asList("http://localhost:4200"));
+    configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE"));
+    configuration.setAllowedHeaders(Arrays.asList("*"));
+    configuration.setAllowCredentials(true);
+
+    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+    source.registerCorsConfiguration("/**", configuration);
+    return source;
+}
+```
+
+
+9. DATABASE ACCESS & PERSISTENCE
+================================================================================
+
+9.1 JPA/HIBERNATE ORM
+--------------------
+
+Name: Java Persistence API with Hibernate
+
+Explanation:
+JPA is a specification for object-relational mapping (ORM) in Java. Hibernate
+is the implementation used. It automatically maps Java objects to database
+tables and handles SQL generation, allowing developers to work with objects
+instead of SQL.
+
+Why It Is Used:
+- Database Independence: Change databases without changing code
+- Productivity: No need to write SQL for common operations
+- Type Safety: Compile-time checking of queries
+- Caching: Built-in caching for performance
+- Relationship Management: Automatic handling of associations
+
+Implementation Location:
+
+Entity Mapping (Post.java, Line 29-93):
+```
+@Entity
+@Table(name = "posts")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class Post {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false)
+    private String title;
+
+    @Column(columnDefinition = "TEXT", nullable = false)
+    private String content;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "author_id", nullable = false)
+    private User author;
+
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private List<Comment> comments = new ArrayList<>();
+
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+}
+```
+
+Annotations Explained:
+- @Entity: Marks class as JPA entity
+- @Table: Specifies database table name
+- @Id: Marks primary key field
+- @GeneratedValue: Auto-generate ID values
+- @Column: Customizes column mapping
+- @ManyToOne: Many posts belong to one author
+- @OneToMany: One post has many comments
+- @CreationTimestamp: Automatically set creation time
+- @UpdateTimestamp: Automatically update modification time
+
+Configuration (application.properties):
+```
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQL8Dialect
+```
+
+9.2 ENTITY RELATIONSHIPS
+------------------------
+
+Name: JPA Relationship Mapping
+
+Explanation:
+JPA provides annotations to map object relationships to database foreign keys
+and join tables. The application uses various relationship types to model the
+domain effectively.
+
+Implementation Location:
+
+One-to-Many (Post → Comments):
+Post.java (Line 70-73):
+```
+@OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+@JsonManagedReference
+@Builder.Default
+private List<Comment> comments = new ArrayList<>();
+```
+- mappedBy: Indicates the owning side of the relationship
+- cascade: Operations on Post cascade to Comments
+- orphanRemoval: Delete comments when removed from collection
+
+Many-to-One (Post → Author):
+Post.java (Line 55-58):
+```
+@ManyToOne(fetch = FetchType.LAZY)
+@JoinColumn(name = "author_id", nullable = false)
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "password"})
+private User author;
+```
+- LAZY fetching: Author loaded only when accessed
+- @JoinColumn: Specifies foreign key column
+- @JsonIgnoreProperties: Prevents serialization issues
+
+Many-to-Many (through Join Entity - PostLike):
+PostLike.java:
+```
+@Entity
+public class PostLike {
+    @ManyToOne
+    private User user;
+
+    @ManyToOne
+    private Post post;
+}
+```
+
+Relationship Management:
+Post.java (Line 84-87):
+```
+public void addComment(Comment comment) {
+    comments.add(comment);
+    comment.setPost(this);  // Maintain bidirectional consistency
+}
+```
+
+9.3 TRANSACTION MANAGEMENT
+---------------------------
+
+Name: Declarative Transaction Management
+
+Explanation:
+Transactions ensure data integrity by grouping multiple database operations
+into an atomic unit. Spring's @Transactional annotation provides declarative
+transaction management, handling commit/rollback automatically.
+
+Why It Is Used:
+- Data Integrity: All operations succeed or all fail
+- Consistency: Database remains in valid state
+- Isolation: Concurrent transactions don't interfere
+- Automatic Rollback: Exceptions trigger rollback
+
+Implementation Location:
+
+PostService.java (Line 72):
+```
+@Transactional
+public Post createPost(Post post) {
+    Post savedPost = postRepository.save(post);
+
+    // If notification fails, entire transaction rolls back
+    List<User> followers = subscriptionService.getFollowers(savedPost.getAuthor());
+    notificationService.notifyFollowersAboutNewPost(savedPost, followers);
+
+    return savedPost;
+}
+```
+
+PostService.java (Line 93):
+```
+@Transactional
+public Post likePost(Long postId, User user) {
+    Post post = postRepository.findById(postId).orElseThrow(...);
+
+    if (postLikeRepository.existsByUserAndPost(user, post)) {
+        return post;
+    }
+
+    PostLike like = PostLike.builder().user(user).post(post).build();
+    postLikeRepository.save(like);
+
+    post.setLikeCount(post.getLikeCount() + 1);
+    Post savedPost = postRepository.save(post);
+
+    notificationService.notifyUserAboutPostLike(savedPost, user);
+
+    return savedPost;
+    // All operations commit together or rollback together
+}
+```
+
+Transaction Boundaries:
+- Service layer methods define transaction scope
+- Repository methods inherit service transactions
+- Read-only transactions can be optimized
+
+
+10. INPUT VALIDATION
+================================================================================
+
+Name: Bean Validation (JSR-303/JSR-380)
+
+Explanation:
+Bean Validation provides a declarative way to validate data using annotations.
+Spring Boot integrates with Hibernate Validator to automatically validate
+request payloads before they reach the business logic.
+
+Why It Is Used:
+- Early Validation: Catch invalid data before processing
+- Declarative: Validation rules defined with annotations
+- Reusability: Same validation for different contexts
+- Consistent Error Messages: Standardized validation errors
+- Security: Prevent malformed input
+
+Implementation Location:
+
+RegisterRequest.java (Line 10-20):
+```
+@Data
+public class RegisterRequest {
+    @NotBlank(message = "Username is required")
+    @Size(min = 3, max = 30, message = "Username must be between 3 and 30 characters")
+    private String username;
+
+    @NotBlank(message = "Email is required")
+    @Email(message = "Email must be valid")
+    private String email;
+
+    @NotBlank(message = "Password is required")
+    @Size(min = 6, max = 100, message = "Password must be at least 6 characters")
+    private String password;
+}
+```
+
+Controller Validation (AuthController.java):
+```
+public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request) {
+    // @Valid triggers validation
+    // If validation fails, MethodArgumentNotValidException is thrown
+}
+```
+
+Common Validation Annotations:
+- @NotNull: Field cannot be null
+- @NotBlank: String cannot be empty or whitespace
+- @Size: String length constraints
+- @Email: Valid email format
+- @Min/@Max: Numeric value constraints
+- @Pattern: Regular expression matching
+
+Global Exception Handler:
+GlobalExceptionHandler.java handles validation exceptions and returns
+appropriate error responses to clients.
+
+
+11. ERROR HANDLING
+================================================================================
+
+Name: Centralized Exception Handling
+
+Explanation:
+The application uses a global exception handler to catch and process exceptions
+from all controllers, providing consistent error responses and proper HTTP
+status codes.
+
+Implementation Location:
+
+GlobalExceptionHandler.java:
+```
+@ControllerAdvice
+public class GlobalExceptionHandler {
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<?> handleValidationExceptions(
+            MethodArgumentNotValidException ex) {
+        Map<String, String> errors = new HashMap<>();
+        ex.getBindingResult().getFieldErrors().forEach(error ->
+            errors.put(error.getField(), error.getDefaultMessage())
+        );
+        return ResponseEntity.badRequest().body(errors);
+    }
+
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<?> handleRuntimeException(RuntimeException ex) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", ex.getMessage()));
+    }
+}
+```
+
+Controller-Level Error Handling (PostController.java, Line 183-189):
+```
+try {
+    Post savedPost = postService.updatePost(id, updatedPost);
+    return ResponseEntity.ok(savedPost);
+} catch (RuntimeException e) {
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+            .body(Map.of("error", e.getMessage()));
+} catch (Exception e) {
+    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+            .body(Map.of("error", "Internal server error"));
+}
+```
+
+Error Response Format:
+```json
+{
+    "error": "Post not found with id: 123",
+    "timestamp": "2025-12-26T10:30:00",
+    "status": 404
+}
+```
+
+
+12. FILE STORAGE
+================================================================================
+
+Name: Local File Storage with Security
+
+Explanation:
+The application handles file uploads for media content (images, videos, GIFs)
+with security measures to prevent path traversal attacks and ensure unique
+storage.
+
+Implementation Location:
+
+FileStorageService.java (Line 19-70):
+
+Security Measures:
+
+1. Path Traversal Prevention (Line 42-44):
+```
+if (originalFilename.contains("..")) {
+    throw new RuntimeException("Invalid file path: " + originalFilename);
+}
+```
+
+2. Unique Filename Generation (Line 46-52):
+```
+String fileExtension = "";
+int dotIndex = originalFilename.lastIndexOf('.');
+if (dotIndex > 0) {
+    fileExtension = originalFilename.substring(dotIndex);
+}
+
+String uniqueFilename = UUID.randomUUID().toString() + fileExtension;
+```
+
+3. File Type Validation:
+```
+public String determineMediaType(MultipartFile file) {
+    String contentType = file.getContentType();
+    if (contentType.startsWith("image/")) return "image";
+    if (contentType.startsWith("video/")) return "video";
+    return "other";
+}
+```
+
+Upload Configuration (application.properties):
+```
+file.upload-dir=uploads
+spring.servlet.multipart.max-file-size=10MB
+spring.servlet.multipart.max-request-size=10MB
+```
+
+Upload Endpoint (PostController.java, Line 114-140):
+```
+@PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+public ResponseEntity<Map<String, String>> uploadMedia(
+        @RequestParam("file") MultipartFile file,
+        @AuthenticationPrincipal User currentUser) {
+
+    checkUserBanned(currentUser);
+
+    if (file.isEmpty()) {
+        throw new RuntimeException("Please select a file to upload");
+    }
+
+    String filename = fileStorageService.storeFile(file);
+    String mediaType = fileStorageService.determineMediaType(file);
+    String fileUrl = "/uploads/" + filename;
+
+    Map<String, String> response = new HashMap<>();
+    response.put("filename", filename);
+    response.put("url", fileUrl);
+    response.put("mediaType", mediaType);
+
+    return ResponseEntity.ok(response);
+}
+```
+
+
+================================================================================
+PART 2: ANGULAR FRONTEND ARCHITECTURE
+================================================================================
+
+13. COMPONENT-BASED ARCHITECTURE
+================================================================================
+
+Name: Angular Component Architecture
+
+Explanation:
+Angular applications are built using components, which are self-contained,
+reusable pieces of UI with their own logic and template. Each component
+encapsulates its view, style, and behavior.
+
+Why It Is Used:
+- Reusability: Components can be reused across the application
+- Separation of Concerns: Each component has a single responsibility
+- Maintainability: Easier to update and debug isolated components
+- Testability: Components can be tested independently
+- Code Organization: Clear structure and hierarchy
+
+Implementation Location:
+
+Component Structure:
+```
+frontend/src/app/
+├── auth/                           (User-facing components)
+│   ├── login/
+│   │   ├── login.component.ts      (Component logic)
+│   │   ├── login.component.html    (Template)
+│   │   └── login.component.css     (Styles)
+│   ├── register/
+│   ├── home/
+│   ├── profile/
+│   ├── post-detail/
+│   │   ├── post-detail.component.ts (Line 17: Component class)
+│   │   ├── post-detail.component.html
+│   │   └── post-detail.component.css
+│   └── notifications/
+├── admin/                          (Admin components)
+│   ├── admin-dashboard/
+│   ├── user-management/
+│   └── reports/
+└── shared/                         (Shared components)
+    └── components/
+        ├── not-found/
+        └── unauthorized/
+```
+
+Component Example (post-detail.component.ts):
+```
+@Component({
+  selector: 'app-post-detail',
+  standalone: true,
+  imports: [CommonModule, RouterModule, FormsModule],
+  templateUrl: './post-detail.component.html',
+  styleUrls: ['./post-detail.component.css'],
+})
+export class PostDetailComponent implements OnInit {
+  // Component state
+  post: any = null;
+  loading: boolean = true;
+
+  // Constructor injection
+  constructor(
+    private route: ActivatedRoute,
+    private postService: PostService,
+    private authService: AuthService
+  ) {}
+
+  // Lifecycle hook
+  ngOnInit(): void {
+    this.route.params.subscribe((params) => {
+      this.postId = +params['id'];
+      this.loadPost();
+    });
+  }
+
+  // Component methods
+  loadPost(): void {
+    this.postService.getPostById(this.postId).subscribe({
+      next: (post) => {
+        this.post = post;
+        this.loading = false;
+      },
+      error: (error) => {
+        this.error = 'Failed to load post';
+      }
+    });
+  }
+}
+```
+
+Component Decorators:
+- @Component: Marks class as Angular component
+- selector: HTML tag to use component
+- standalone: Modern standalone component (no module required)
+- imports: Dependencies needed by component
+- templateUrl: Path to HTML template
+- styleUrls: Component-specific styles
+
+
+14. DEPENDENCY INJECTION (ANGULAR)
+================================================================================
+
+Name: Angular Dependency Injection System
+
+Explanation:
+Angular has its own DI framework that manages the creation and lifecycle of
+services. Components and services declare their dependencies via constructor
+parameters, and Angular's injector provides the instances.
+
+Why It Is Used:
+- Loose Coupling: Components depend on abstractions
+- Testability: Easy to inject mock services
+- Singleton Services: Share state across components
+- Hierarchical Injection: Different injection scopes
+
+Implementation Location:
+
+Service Definition (post.service.ts, Line 5-7):
+```
+@Injectable({
+  providedIn: 'root',  // Application-wide singleton
+})
+export class PostService {
+  // Service implementation
+}
+```
+
+Service Injection (post-detail.component.ts, Line 37-45):
+```
+constructor(
+  private route: ActivatedRoute,
+  private router: Router,
+  private postService: PostService,      // Injected service
+  private authService: AuthService,      // Injected service
+  private toastService: ToastService,    // Injected service
+  private http: HttpClient,              // Injected Angular service
+  private sanitizer: DomSanitizer        // Injected Angular service
+) {}
+```
+
+Service Hierarchy:
+```
+core/services/
+├── auth.service.ts        (Authentication logic)
+├── post.service.ts        (Post API calls)
+├── notification.service.ts (Notifications)
+└── toast.service.ts       (Toast messages)
+```
+
+Provider Scopes:
+1. Root: Application-wide singleton (providedIn: 'root')
+2. Component: New instance per component
+3. Platform: Shared across multiple apps
+
+
+15. REACTIVE PROGRAMMING WITH RxJS
+================================================================================
+
+Name: Observable Pattern with RxJS
+
+Explanation:
+Angular uses RxJS (Reactive Extensions for JavaScript) for handling
+asynchronous operations. Observables provide a powerful way to work with
+streams of data, handling HTTP requests, user input, and state changes.
+
+Why It Is Used:
+- Async Handling: Clean handling of asynchronous operations
+- Composability: Chain and combine multiple operations
+- Cancellation: Unsubscribe to cancel operations
+- Error Handling: Built-in error handling operators
+- Backpressure: Handle rapid data streams
+
+Implementation Location:
+
+HTTP Requests (post.service.ts, Line 22-26):
+```
+getAllPosts(page: number = 1, size: number = 10): Observable<any> {
+  const params = new HttpParams().set('page', page).set('size', size);
+  return this.http.get(`${this.apiUrl}/posts`, { params });
+}
+```
+
+Component Subscription (post-detail.component.ts, Line 52-70):
+```
+this.postService.getPostById(this.postId).subscribe({
+  next: (post) => {
+    this.post = post;
+    this.loading = false;
+  },
+  error: (error) => {
+    console.error('Error loading post:', error);
+    this.error = 'Failed to load post';
+    this.toastService.show(this.error, 'error');
+  }
+});
+```
+
+Route Parameter Observation (post-detail.component.ts, Line 49-51):
+```
+this.route.params.subscribe((params) => {
+  this.postId = +params['id'];
+  this.loadPost();
+});
+```
+
+Observable Operators (auth.service.ts):
+```
+login(credentials: LoginRequest): Observable<AuthResponse> {
+  return this.http.post<AuthResponse>(`${this.apiUrl}/login`, credentials)
+    .pipe(
+      tap(response => {
+        // Side effect: Store token
+        localStorage.setItem('jwt_token', response.token);
+      }),
+      catchError(error => {
+        // Error handling
+        return throwError(() => new Error('Login failed'));
+      })
+    );
+}
+```
+
+
+16. ROUTING AND NAVIGATION
+================================================================================
+
+Name: Angular Router with Guards
+
+Explanation:
+Angular Router enables navigation between different views/components. Route
+guards provide control over navigation, enabling authentication and
+authorization checks before accessing routes.
+
+Implementation Location:
+
+Route Configuration (app.routes.ts):
+```
+export const routes: Routes = [
+  // Root redirect
+  {
+    path: '',
+    canActivate: [
+      () => {
+        const authService = inject(AuthService);
+        const router = inject(Router);
+        return authService.isLoggedIn()
+          ? router.createUrlTree(['/home'])
+          : router.createUrlTree(['/login']);
+      },
+    ],
+  },
+
+  // Public routes (protected by guestGuard)
+  {
+    path: 'login',
+    component: LoginComponent,
+    canActivate: [guestGuard]
+  },
+  {
+    path: 'register',
+    component: RegisterComponent,
+    canActivate: [guestGuard]
+  },
+
+  // Protected routes (require authentication)
+  {
+    path: 'home',
+    component: HomeComponent,
+    canActivate: [authGuard]
+  },
+  {
+    path: 'profile',
+    component: ProfileComponent,
+    canActivate: [authGuard]
+  },
+  {
+    path: 'post/:id',
+    component: PostDetailComponent,
+    canActivate: [authGuard]
+  },
+
+  // Admin routes (require ADMIN role)
+  {
+    path: 'admin',
+    component: AdminDashboardComponent,
+    canActivate: [authGuard, adminGuard]
+  },
+  {
+    path: 'admin/users',
+    component: UserManagementComponent,
+    canActivate: [authGuard, adminGuard]
+  },
+
+  // Error routes
+  {
+    path: 'unauthorized',
+    component: UnauthorizedComponent
+  },
+  {
+    path: '**',
+    component: NotFoundComponent
+  }
+];
+```
+
+Auth Guard Implementation (auth.guard.ts):
+```
+export const authGuard: CanActivateFn = (route, state) => {
+  const authService = inject(AuthService);
+  const router = inject(Router);
+
+  if (authService.isLoggedIn()) {
+    return true;
+  } else {
+    return router.createUrlTree(['/login']);
+  }
+};
+```
+
+Admin Guard Implementation (admin.guard.ts):
+```
+export const adminGuard: CanActivateFn = (route, state) => {
+  const authService = inject(AuthService);
+  const router = inject(Router);
+
+  const user = authService.getUserData();
+
+  if (user && user.role === 'ADMIN') {
+    return true;
+  } else {
+    return router.createUrlTree(['/unauthorized']);
+  }
+};
+```
+
+Navigation Usage (component):
+```
+// Programmatic navigation
+this.router.navigate(['/home']);
+
+// Navigation with parameters
+this.router.navigate(['/post', postId]);
+
+// Navigation with query parameters
+this.router.navigate(['/home'], {
+  queryParams: { author: authorId }
+});
+```
+
+Route Parameters Access (post-detail.component.ts):
+```
+this.route.params.subscribe((params) => {
+  this.postId = +params['id'];  // Extract route parameter
+});
+```
+
+
+17. HTTP CLIENT COMMUNICATION
+================================================================================
+
+Name: Angular HTTP Client for API Communication
+
+Explanation:
+Angular's HttpClient service provides a simplified API for HTTP functionality,
+including request/response interception, type-safe requests, and testability.
+All backend communication goes through dedicated service classes.
+
+Implementation Location:
+
+Service Layer Pattern (post.service.ts):
+```
+@Injectable({
+  providedIn: 'root',
+})
+export class PostService {
+  private apiUrl = 'http://localhost:8080/auth';
+
+  constructor(private http: HttpClient) {}
+
+  // GET request with query parameters
+  getAllPosts(page: number = 1, size: number = 10): Observable<any> {
+    const params = new HttpParams()
+      .set('page', page)
+      .set('size', size);
+
+    return this.http.get(`${this.apiUrl}/posts`, { params });
+  }
+
+  // POST request with body
+  createPost(post: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/posts`, post);
+  }
+
+  // PUT request
+  updatePost(postId: number, post: any): Observable<any> {
+    return this.http.put(`${this.apiUrl}/posts/${postId}`, post);
+  }
+
+  // DELETE request
+  deletePost(postId: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/posts/${postId}`);
+  }
+
+  // File upload
+  uploadMedia(file: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post(`${this.apiUrl}/posts/upload`, formData);
+  }
+
+  // GET request with path parameter
+  getPostById(postId: number): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/posts/${postId}`, {
+      headers: this.getAuthHeaders(),
+    });
+  }
+
+  private getAuthHeaders() {
+    const token = localStorage.getItem('jwt_token');
+    return {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    };
+  }
+}
+```
+
+HTTP Interceptors (if implemented):
+- Automatically add JWT token to requests
+- Handle errors globally
+- Add loading indicators
+- Transform requests/responses
+
+
+18. DATA BINDING
+================================================================================
+
+Name: Angular Data Binding
+
+Explanation:
+Data binding is the mechanism that coordinates the component's data with the
+DOM. Angular supports four types of data binding: interpolation, property
+binding, event binding, and two-way binding.
+
+Implementation Location:
+
+1. INTERPOLATION (Component → View):
+post-detail.component.html:
+```
+<h1 class="post-title">{{ post.title }}</h1>
+<span class="post-date">{{ post.createdAt | date: 'MMMM d, yyyy' }}</span>
+<span class="like-count">{{ post.likeCount || 0 }} Likes</span>
+```
+
+2. PROPERTY BINDING (Component → View):
+post-detail.component.html:
+```
+<img [src]="'http://localhost:8080' + post.mediaUrl" [alt]="post.title" />
+<div [innerHTML]="formatContent(post.content)"></div>
+<button [disabled]="submittingEdit">Save Changes</button>
+```
+
+3. EVENT BINDING (View → Component):
+post-detail.component.html:
+```
+<button (click)="startEditing()">Edit</button>
+<button (click)="saveEdit()">Save Changes</button>
+<button (click)="cancelEditing()">Cancel</button>
+<textarea (change)="onFileSelected($event)"></textarea>
+```
+
+4. TWO-WAY BINDING (Component ↔ View):
+post-detail.component.html:
+```
+<input
+  id="edit-title"
+  type="text"
+  [(ngModel)]="editedTitle"
+  class="form-control"
+  placeholder="Post title"
+/>
+
+<textarea
+  id="edit-content"
+  [(ngModel)]="editedContent"
+  class="form-control"
+  rows="10"
+></textarea>
+
+<textarea
+  [(ngModel)]="newComment"
+  placeholder="Share your thoughts..."
+></textarea>
+```
+
+Component Side (post-detail.component.ts):
+```
+export class PostDetailComponent {
+  editedTitle: string = '';
+  editedContent: string = '';
+  newComment: string = '';
+
+  startEditing(): void {
+    this.editedTitle = this.post.title;    // Set initial value
+    this.editedContent = this.post.content;
+  }
+}
+```
+
+19. DIRECTIVES
+================================================================================
+
+Name: Angular Structural and Attribute Directives
+
+Explanation:
+Directives are instructions in the DOM that tell Angular how to transform the
+DOM. Structural directives change the DOM layout by adding/removing elements,
+while attribute directives change the appearance or behavior of elements.
+
+Implementation Location:
+
+Structural Directives:
+
+1. *ngIf (Conditional Rendering):
+post-detail.component.html:
+```
+<div *ngIf="loading" class="loading-state">
+  <div class="spinner"></div>
+  <p>Loading post...</p>
+</div>
+
+<div *ngIf="error && !loading" class="error-state">
+  <p>{{ error }}</p>
+</div>
+
+<div *ngIf="post && !loading" class="post-detail">
+  <!-- Post content -->
+</div>
+
+<div *ngIf="isEditing" class="edit-form">
+  <!-- Edit form -->
+</div>
+
+<button *ngIf="canEditPost() && !isEditing">Edit</button>
+<button *ngIf="canDeletePost()">Delete</button>
+```
+
+2. *ngFor (List Rendering):
+post-detail.component.html:
+```
+<div *ngFor="let tag of post.tags" class="tag">{{ tag }}</div>
+
+<div *ngFor="let comment of post.comments" class="comment">
+  <p class="comment-text">{{ comment.content }}</p>
+</div>
+
+<div *ngFor="let relatedPost of relatedPosts" class="related-post-card">
+  <h4>{{ relatedPost.title }}</h4>
+</div>
+```
+
+Attribute Directives:
+
+1. [ngClass] (Dynamic Classes):
+```
+<button
+  [ngClass]="{
+    'liked': post.isLiked,
+    'disabled': submitting
+  }"
+>
+  Like
+</button>
+```
+
+2. [ngStyle] (Dynamic Styles):
+```
+<div [ngStyle]="{
+  'background-color': post.isHidden ? '#f0f0f0' : '#ffffff',
+  'opacity': loading ? 0.5 : 1
+}">
+```
+
+3. Router Directives:
+```
+<a routerLink="/profile" routerLinkActive="active">Profile</a>
+<a [routerLink]="['/post', post.id]">View Post</a>
+```
+
+
+20. FORMS AND VALIDATION
+================================================================================
+
+Name: Template-Driven Forms with Validation
+
+Explanation:
+Angular provides two approaches to handling forms: Template-driven and
+Reactive. This application primarily uses template-driven forms with two-way
+data binding and built-in validation.
+
+Implementation Location:
+
+Login Form (login.component.html):
+```
+<form (ngSubmit)="onSubmit()" #loginForm="ngForm">
+  <div class="form-group">
+    <input
+      type="text"
+      name="username"
+      [(ngModel)]="credentials.username"
+      required
+      minlength="3"
+      #username="ngModel"
+      placeholder="Username"
+    />
+    <div *ngIf="username.invalid && username.touched" class="error">
+      <span *ngIf="username.errors?.['required']">Username is required</span>
+      <span *ngIf="username.errors?.['minlength']">
+        Username must be at least 3 characters
+      </span>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <input
+      type="password"
+      name="password"
+      [(ngModel)]="credentials.password"
+      required
+      minlength="6"
+      #password="ngModel"
+      placeholder="Password"
+    />
+    <div *ngIf="password.invalid && password.touched" class="error">
+      <span *ngIf="password.errors?.['required']">Password is required</span>
+      <span *ngIf="password.errors?.['minlength']">
+        Password must be at least 6 characters
+      </span>
+    </div>
+  </div>
+
+  <button type="submit" [disabled]="loginForm.invalid || isLoading">
+    {{ isLoading ? 'Logging in...' : 'Login' }}
+  </button>
+</form>
+```
+
+Component Logic (login.component.ts):
+```
+export class LoginComponent {
+  credentials = {
+    username: '',
+    password: ''
+  };
+
+  isLoading = false;
+
+  onSubmit(): void {
+    if (this.loginForm.invalid) {
+      return;
+    }
+
+    this.isLoading = true;
+    this.authService.login(this.credentials).subscribe({
+      next: (response) => {
+        this.router.navigate(['/home']);
+      },
+      error: (error) => {
+        this.isLoading = false;
+        this.toastService.show('Login failed', 'error');
+      }
+    });
+  }
+}
+```
+
+Edit Post Form (post-detail.component.html):
+```
+<div *ngIf="isEditing" class="edit-form">
+  <div class="form-group">
+    <label for="edit-title">Title</label>
+    <input
+      id="edit-title"
+      type="text"
+      [(ngModel)]="editedTitle"
+      required
+      class="form-control"
+    />
+  </div>
+
+  <div class="form-group">
+    <label for="edit-content">Content</label>
+    <textarea
+      id="edit-content"
+      [(ngModel)]="editedContent"
+      required
+      class="form-control"
+      rows="10"
+    ></textarea>
+  </div>
+
+  <div class="edit-actions">
+    <button
+      (click)="saveEdit()"
+      [disabled]="submittingEdit || !editedTitle.trim() || !editedContent.trim()"
+      class="btn btn-primary"
+    >
+      {{ submittingEdit ? 'Saving...' : 'Save Changes' }}
+    </button>
+    <button (click)="cancelEditing()" [disabled]="submittingEdit">
+      Cancel
+    </button>
+  </div>
+</div>
+```
+
+Validation States:
+- pristine/dirty: Has the user changed the value?
+- untouched/touched: Has the user interacted with the field?
+- valid/invalid: Does the value meet validation rules?
+
+
+21. STATE MANAGEMENT
+================================================================================
+
+Name: Service-Based State Management
+
+Explanation:
+The application uses singleton services to manage shared state across
+components. Services store data in memory and provide methods to update state,
+with components subscribing to changes through Observables.
+
+Implementation Location:
+
+Auth State (auth.service.ts):
+```
+@Injectable({
+  providedIn: 'root',
+})
+export class AuthService {
+  private currentUser: any = null;
+
+  constructor(private http: HttpClient) {
+    // Load user from localStorage on initialization
+    const storedUser = localStorage.getItem('user_data');
+    if (storedUser) {
+      this.currentUser = JSON.parse(storedUser);
+    }
+  }
+
+  login(credentials: LoginRequest): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`${this.apiUrl}/login`, credentials)
+      .pipe(
+        tap(response => {
+          // Update state
+          this.currentUser = response.user;
+          localStorage.setItem('jwt_token', response.token);
+          localStorage.setItem('user_data', JSON.stringify(response.user));
+        })
+      );
+  }
+
+  logout(): void {
+    // Clear state
+    this.currentUser = null;
+    localStorage.removeItem('jwt_token');
+    localStorage.removeItem('user_data');
+  }
+
+  isLoggedIn(): boolean {
+    return !!localStorage.getItem('jwt_token');
+  }
+
+  getUserData(): any {
+    return this.currentUser || JSON.parse(localStorage.getItem('user_data') || 'null');
+  }
+
+  isAdmin(): boolean {
+    const user = this.getUserData();
+    return user?.role === 'ADMIN';
+  }
+}
+```
+
+Components Access State:
+```
+export class HomeComponent {
+  constructor(private authService: AuthService) {}
+
+  ngOnInit(): void {
+    const currentUser = this.authService.getUserData();
+    console.log('Current user:', currentUser);
+  }
+
+  isAdmin(): boolean {
+    return this.authService.isAdmin();
+  }
+}
+```
+
+State Persistence:
+- localStorage: Persist authentication state across sessions
+- sessionStorage: Session-only data
+- In-memory: Temporary state during app runtime
+
+
+22. LIFECYCLE HOOKS
+================================================================================
+
+Name: Angular Component Lifecycle Hooks
+
+Explanation:
+Angular provides lifecycle hooks that give visibility into key moments in a
+component's lifecycle, from creation to destruction. These hooks allow you to
+execute custom logic at specific times.
+
+Implementation Location:
+
+Common Lifecycle Hooks Used:
+
+1. ngOnInit (post-detail.component.ts, Line 47):
+```
+ngOnInit(): void {
+  // Called once after component initialization
+  // Used for:
+  // - Loading initial data
+  // - Setting up subscriptions
+  // - Initializing component state
+
+  this.route.params.subscribe((params) => {
+    this.postId = +params['id'];
+    this.loadPost();
+  });
+}
+```
+
+2. ngOnDestroy (for cleanup):
+```
+ngOnDestroy(): void {
+  // Called before component destruction
+  // Used for:
+  // - Unsubscribing from Observables
+  // - Clearing timers
+  // - Releasing resources
+
+  if (this.subscription) {
+    this.subscription.unsubscribe();
+  }
+}
+```
+
+Hook Execution Order:
+1. constructor() - Component instantiation
+2. ngOnInit() - After first data-bound properties
+3. ngAfterViewInit() - After view initialization
+4. ngOnDestroy() - Before component destruction
+
+
+23. PIPES (DATA TRANSFORMATION)
+================================================================================
+
+Name: Angular Pipes for Data Transformation
+
+Explanation:
+Pipes transform displayed values within a template. They take data as input
+and transform it to a desired output format for display.
+
+Implementation Location:
+
+Built-in Pipes (post-detail.component.html):
+```
+<!-- Date pipe -->
+<span class="post-date">
+  {{ post.createdAt | date: 'MMMM d, yyyy' }}
+</span>
+<span class="comment-date">
+  {{ comment.createdAt | date: 'MMM d, yyyy' }}
+</span>
+
+<!-- Slice pipe -->
+<p class="related-post-excerpt">
+  {{ relatedPost.content | slice: 0 : 100 }}...
+</p>
+
+<!-- Currency pipe (if used) -->
+<span>{{ price | currency: 'USD' }}</span>
+
+<!-- Lowercase/Uppercase pipe -->
+<span>{{ username | lowercase }}</span>
+```
+
+Custom Method as Transformation (post-detail.component.ts, Line 100-110):
+```
+formatContent(content: string): SafeHtml {
+  if (!content) {
+    return '';
+  }
+
+  // Replace newlines with <br> tags
+  const formattedContent = content.replace(/\n/g, '<br>');
+
+  // Sanitize HTML to prevent XSS attacks
+  return this.sanitizer.sanitize(1, formattedContent) || '';
+}
+```
+
+Usage in Template:
+```
+<div [innerHTML]="formatContent(post.content)" class="content-text"></div>
+```
+
+
+24. SECURITY IN ANGULAR
+================================================================================
+
+Name: Frontend Security Best Practices
+
+Explanation:
+The Angular application implements several security measures to protect against
+common web vulnerabilities.
+
+Implementation Location:
+
+1. XSS Protection with DomSanitizer:
+
+Before (Vulnerable):
+```
+<div [innerHTML]="post.content"></div>  // XSS risk!
+```
+
+After (Secure - post-detail.component.ts, Line 100-110):
+```
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+
+formatContent(content: string): SafeHtml {
+  const formattedContent = content.replace(/\n/g, '<br>');
+  return this.sanitizer.sanitize(1, formattedContent) || '';
+}
+```
+
+2. Route Guards for Authorization:
+
+auth.guard.ts:
+```
+export const authGuard: CanActivateFn = (route, state) => {
+  const authService = inject(AuthService);
+  const router = inject(Router);
+
+  if (authService.isLoggedIn()) {
+    return true;
+  } else {
+    return router.createUrlTree(['/login']);
+  }
+};
+```
+
+admin.guard.ts:
+```
+export const adminGuard: CanActivateFn = (route, state) => {
+  const user = authService.getUserData();
+
+  if (user && user.role === 'ADMIN') {
+    return true;
+  } else {
+    return router.createUrlTree(['/unauthorized']);
+  }
+};
+```
+
+3. JWT Token Security:
+
+auth.service.ts:
+```
+// Secure token storage
+private setAuthToken(token: string): void {
+  localStorage.setItem('jwt_token', token);
+}
+
+// Token in headers for authenticated requests
+private getAuthHeaders() {
+  const token = localStorage.getItem('jwt_token');
+  return {
+    Authorization: `Bearer ${token}`,
+    'Content-Type': 'application/json',
+  };
+}
+```
+
+4. Input Validation (template-driven):
+```
+<input
+  type="email"
+  [(ngModel)]="email"
+  required
+  pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
+/>
+```
+
+5. HTTPS Enforcement (production):
+- All API calls should use HTTPS
+- Configure CSP headers
+- Enable HSTS
+
+
+================================================================================
+PART 3: CROSS-CUTTING CONCERNS
+================================================================================
+
+25. PAGINATION
+================================================================================
+
+Name: Server-Side Pagination
+
+Explanation:
+Pagination divides large datasets into smaller pages, reducing data transfer
+and improving performance. The application implements server-side pagination
+where the backend controls which data to return.
+
+Implementation Location:
+
+Backend (PostController.java, Line 62-76):
+```
+@GetMapping()
+public ResponseEntity<Map<String, Object>> getAllPosts(
+    @RequestParam(defaultValue = "1") int page,
+    @RequestParam(defaultValue = "10") int size
+) {
+    Page<Post> postPage = postService.getAllPosts(page, size);
+
+    Map<String, Object> response = new HashMap<>();
+    response.put("posts", postPage.getContent());
+    response.put("total", postPage.getTotalElements());
+    response.put("totalPages", postPage.getTotalPages());
+    response.put("currentPage", page);
+
+    return ResponseEntity.ok(response);
+}
+```
+
+Service Layer (PostService.java, Line 44-48):
+```
+public Page<Post> getAllPosts(int page, int size) {
+    Pageable pageable = PageRequest.of(page - 1, size,
+                                      Sort.by("createdAt").descending());
+    return postRepository.findByIsHiddenFalseOrIsHiddenIsNull(pageable);
+}
+```
+
+Frontend (post.service.ts, Line 22-26):
+```
+getAllPosts(page: number = 1, size: number = 10): Observable<any> {
+  const params = new HttpParams()
+    .set('page', page)
+    .set('size', size);
+
+  return this.http.get(`${this.apiUrl}/posts`, { params });
+}
+```
+
+Benefits:
+- Reduced memory usage
+- Faster page loads
+- Better user experience
+- Scalable for large datasets
+
+
+26. NOTIFICATIONS SYSTEM
+================================================================================
+
+Name: Real-Time Notification System
+
+Explanation:
+The application implements an event-driven notification system where users
+receive notifications for various activities (new posts from followed users,
+likes, comments, new followers).
+
+Implementation Location:
+
+Backend (NotificationService.java, Line 28-46):
+```
+@Transactional
+public void notifyFollowersAboutNewPost(Post post, List<User> followers) {
+    User author = post.getAuthor();
+
+    for (User follower : followers) {
+        if (follower.getIsBanned()) {
+            continue;
+        }
+
+        Notification notification = new Notification();
+        notification.setUser(follower);
+        notification.setMessage(author.getUsername() +
+                              " published a new post: " + post.getTitle());
+        notification.setType(Notification.NotificationType.NEW_POST);
+        notification.setRelatedPostId(post.getId());
+        notification.setRelatedUserId(author.getId());
+
+        notificationRepository.save(notification);
+    }
+}
+```
+
+Integration (PostService.java, Line 78-79):
+```
+List<User> followers = subscriptionService.getFollowers(savedPost.getAuthor());
+notificationService.notifyFollowersAboutNewPost(savedPost, followers);
+```
+
+Notification Types:
+- NEW_POST: When followed user creates a post
+- NEW_FOLLOWER: When someone follows you
+- POST_LIKE: When someone likes your post
+- COMMENT: When someone comments on your post
+
+Frontend Display:
+- NotificationsComponent shows user notifications
+- Real-time updates (could be enhanced with WebSocket)
+
+
+27. SOFT DELETE PATTERN
+================================================================================
+
+Name: Soft Delete with Hidden Flag
+
+Explanation:
+Instead of permanently deleting records from the database, soft delete marks
+them as deleted/hidden. This allows for data recovery, audit trails, and
+compliance requirements.
+
+Implementation Location:
+
+Model (Post.java, Line 64-66):
+```
+@Column(name = "is_hidden")
+@Builder.Default
+private Boolean isHidden = false;
+```
+
+Repository Queries (PostRepository.java, Line 24-29):
+```
+// Find all non-hidden posts
+Page<Post> findByIsHiddenFalseOrIsHiddenIsNull(Pageable pageable);
+
+// Find non-hidden posts by author IDs
+@Query("SELECT p FROM Post p WHERE p.author.id IN :authorIds AND
+        (p.isHidden = false OR p.isHidden IS NULL)
+        ORDER BY p.createdAt DESC")
+List<Post> findNonHiddenPostsByAuthorIds(@Param("authorIds") List<Long> authorIds);
+```
+
+Service Methods (PostService.java, Line 184-200):
+```
+@Transactional
+public Post hidePost(Long postId) {
+    Post post = postRepository.findById(postId).orElseThrow(...);
+    post.setIsHidden(true);
+    return postRepository.save(post);
+}
+
+@Transactional
+public Post unhidePost(Long postId) {
+    Post post = postRepository.findById(postId).orElseThrow(...);
+    post.setIsHidden(false);
+    return postRepository.save(post);
+}
+```
+
+Admin Endpoints (AdminController.java, Line 181-211):
+```
+@PutMapping("/posts/{id}/hide")
+public ResponseEntity<?> hidePost(@PathVariable Long id) {
+    adminService.hidePost(id);
+    return ResponseEntity.ok(Map.of("message", "Post hidden successfully"));
+}
+
+@PutMapping("/posts/{id}/unhide")
+public ResponseEntity<?> unhidePost(@PathVariable Long id) {
+    adminService.unhidePost(id);
+    return ResponseEntity.ok(Map.of("message", "Post unhidden successfully"));
+}
+```
+
+Benefits:
+- Data preservation
+- Reversible operations
+- Audit trail
+- Compliance with data retention policies
+
+
+28. BUILDER PATTERN
+================================================================================
+
+Name: Lombok Builder Pattern
+
+Explanation:
+The Builder pattern provides a flexible solution to object construction,
+especially for objects with many optional parameters. Lombok's @Builder
+annotation automatically generates builder code.
+
+Implementation Location:
+
+Entity Building (Post.java, Line 34):
+```
+@Entity
+@Table(name = "posts")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class Post {
+    // Fields...
+}
+```
+
+Usage (PostController.java, Line 98-104):
+```
+Post post = Post.builder()
+        .title(dto.getTitle())
+        .content(dto.getContent())
+        .mediaType(dto.getMediaType())
+        .mediaUrl(dto.getMediaUrl())
+        .author(currentUser)
+        .build();
+```
+
+Advantages:
+- Readable code
+- Immutability options
+- Default values with @Builder.Default
+- No need for multiple constructors
+
+
+29. LOMBOK ANNOTATIONS
+================================================================================
+
+Name: Lombok Code Generation
+
+Explanation:
+Lombok reduces boilerplate code by automatically generating getters, setters,
+constructors, toString, equals, and hashCode methods at compile time.
+
+Implementation Location:
+
+Common Lombok Annotations:
+
+@Data (Post.java, Line 31):
+- Generates getters for all fields
+- Generates setters for non-final fields
+- Generates toString()
+- Generates equals() and hashCode()
+- Generates required args constructor
+
+```
+@Data
+public class Post {
+    private Long id;
+    private String title;
+    // Getters, setters, toString, equals, hashCode auto-generated
+}
+```
+
+@Builder (Post.java, Line 34):
+- Generates builder pattern implementation
+
+@NoArgsConstructor and @AllArgsConstructor:
+- Generate constructors
+
+@RequiredArgsConstructor:
+- Generates constructor for final fields
+
+@ToString and @EqualsAndHashCode:
+- Customize toString() and equals()/hashCode()
+
+
+30. CONFIGURATION MANAGEMENT
+================================================================================
+
+Name: Externalized Configuration
+
+Explanation:
+Application configuration is externalized in property files, allowing different
+configurations for different environments without code changes.
+
+Implementation Location:
+
+Backend (application.properties):
+```
+# Server Configuration
+server.port=8080
+
+# Database Configuration
+spring.datasource.url=jdbc:mysql://localhost:3306/blogger_db
+spring.datasource.username=root
+spring.datasource.password=password
+
+# JPA/Hibernate
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true
+
+# JWT Configuration
+jwt.secret=your-secret-key
+jwt.expiration=86400000
+
+# File Upload
+file.upload-dir=uploads
+spring.servlet.multipart.max-file-size=10MB
+spring.servlet.multipart.max-request-size=10MB
+
+# Logging
+logging.level.com.blog.blogger=DEBUG
+```
+
+Environment-Specific Profiles:
+```
+# application-dev.properties
+spring.jpa.show-sql=true
+logging.level.root=DEBUG
+
+# application-prod.properties
+spring.jpa.show-sql=false
+logging.level.root=WARN
+```
+
+Property Injection (JwtUtil.java, Line 26-31):
+```
+@Value("${jwt.secret}")
+private String secretString;
+
+@Value("${jwt.expiration}")
+private long expirationTime;
+```
+
+Frontend Environment (environment.ts):
+```
+export const environment = {
+  production: false,
+  apiUrl: 'http://localhost:8080'
+};
+```
+
+
+================================================================================
+PART 4: BEST PRACTICES
+================================================================================
+
+31. SINGLE RESPONSIBILITY PRINCIPLE (SRP)
+================================================================================
+
+Explanation:
+Each class/component should have only one reason to change. It should have a
+single, well-defined responsibility.
+
+Implementation:
+- Controllers: Handle HTTP requests/responses only
+- Services: Contain business logic only
+- Repositories: Data access only
+- DTOs: Data transfer only
+
+Example:
+PostController handles HTTP, delegates to PostService for logic, which uses
+PostRepository for data access.
+
+
+32. DON'T REPEAT YOURSELF (DRY)
+================================================================================
+
+Explanation:
+Avoid code duplication by extracting common logic into reusable components,
+services, or utility functions.
+
+Implementation:
+- Shared services (AuthService, ToastService)
+- Reusable components (NotFoundComponent, UnauthorizedComponent)
+- Base classes and inheritance where appropriate
+- Utility methods (formatContent, checkUserBanned)
+
+
+33. DEPENDENCY INVERSION PRINCIPLE
+================================================================================
+
+Explanation:
+Depend on abstractions, not concrete implementations. High-level modules should
+not depend on low-level modules.
+
+Implementation:
+- Services depend on Repository interfaces, not implementations
+- Controllers depend on Service abstractions
+- Programmatic to interfaces with Spring's IoC
+
+
+34. SEPARATION OF CONCERNS
+================================================================================
+
+Explanation:
+Different aspects of the application should be kept separate and independent.
+
+Implementation:
+- Layered architecture (Controller → Service → Repository)
+- Frontend/Backend separation
+- Security configuration separate from business logic
+- DTOs separate from entities
+
+
+35. FAIL-FAST PRINCIPLE
+================================================================================
+
+Explanation:
+Detect and report errors as early as possible.
+
+Implementation:
+- Constructor injection (dependencies checked at startup)
+- Input validation on DTOs
+- Required fields in entities
+- Early null checks and validation
+
+
+36. EXPLICIT IS BETTER THAN IMPLICIT
+================================================================================
+
+Explanation:
+Code should be clear and explicit about what it does.
+
+Implementation:
+- Explicit return types
+- Clear method names (createPost, banUser, hidePost)
+- Detailed comments and documentation
+- Explicit exception handling
+
+
+37. PERFORMANCE CONSIDERATIONS
+================================================================================
+
+Implementation:
+- Lazy loading for entity relationships (@ManyToOne(fetch = LAZY))
+- Pagination for large datasets
+- Database indexing on frequently queried fields
+- Caching (can be added with @Cacheable)
+- Query optimization (only fetch needed data)
+- Connection pooling
+
+
+38. SECURITY BEST PRACTICES
+================================================================================
+
+Implementation:
+- Password hashing (BCrypt)
+- JWT for stateless authentication
+- CORS configuration
+- SQL injection prevention (JPA parameterized queries)
+- XSS protection (DomSanitizer)
+- Authorization checks (RBAC)
+- Input validation
+- HTTPS in production
+- Secure file upload validation
+
+
+39. ERROR HANDLING BEST PRACTICES
+================================================================================
+
+Implementation:
+- Global exception handler (@ControllerAdvice)
+- Specific exception handling in services
+- Meaningful error messages
+- Appropriate HTTP status codes
+- Graceful degradation
+- User-friendly error messages in frontend
+
+
+40. TESTING BEST PRACTICES
+================================================================================
+
+Implementation:
+- Unit tests for services (PostServiceTest.java)
+- E2E tests for critical flows (auth-flow.e2e.spec.ts)
+- Mock external dependencies
+- Test isolation
+- Descriptive test names
+- Arrange-Act-Assert pattern
+
+
+================================================================================
+SUMMARY
+================================================================================
+
+This application demonstrates professional full-stack development practices:
+
+BACKEND STRENGTHS:
+- Layered architecture with clear separation of concerns
+- RESTful API design following HTTP standards
+- Comprehensive security with JWT and RBAC
+- Proper data access with JPA/Hibernate
+- Transaction management for data integrity
+- Input validation and error handling
+- Soft delete implementation
+- File upload with security measures
+
+FRONTEND STRENGTHS:
+- Component-based architecture
+- Service layer for API communication
+- Route guards for access control
+- Reactive programming with RxJS
+- XSS protection with DomSanitizer
+- Responsive design
+- Clear state management
+- Type safety with TypeScript
+
+OVERALL ARCHITECTURE:
+- Clean code principles
+- SOLID principles adherence
+- DRY principle (Don't Repeat Yourself)
+- Security-first approach
+- Scalable and maintainable structure
+- Production-ready implementation
+
+This architecture supports future growth, easy maintenance, and provides a
+solid foundation for a professional blogging platform.
+
+================================================================================
+END OF DOCUMENTATION
+================================================================================
