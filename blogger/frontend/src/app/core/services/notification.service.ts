@@ -9,7 +9,6 @@ import { Notification } from '../models/notification.model';
 })
 export class NotificationService {
   private apiUrl = 'http://localhost:8080/auth/notifications';
-  
   private unreadCountSubject = new BehaviorSubject<number>(0);
   public unreadCount$ = this.unreadCountSubject.asObservable();
 

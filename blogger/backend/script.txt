@@ -6,8 +6,7 @@ docker exec -it mysql_db mysql -u root -p
 
 
 /*
-docker 
-start mysql_db
+docker start mysql_db
 docker exec -it mysql_db mysql -u root -p
 
 */

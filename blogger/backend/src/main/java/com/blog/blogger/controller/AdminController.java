@@ -175,8 +175,44 @@ public class AdminController {
     }
 
     /**
+     * PUT /auth/admin/posts/{id}/hide
+     * Hide a post (soft delete - post remains in database but hidden from users)
+     */
+    @PutMapping("/posts/{id}/hide")
+    public ResponseEntity<?> hidePost(@PathVariable Long id) {
+        try {
+            adminService.hidePost(id);
+            return ResponseEntity.ok(Map.of("message", "Post hidden successfully"));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    /**
+     * PUT /auth/admin/posts/{id}/unhide
+     * Unhide a previously hidden post
+     */
+    @PutMapping("/posts/{id}/unhide")
+    public ResponseEntity<?> unhidePost(@PathVariable Long id) {
+        try {
+            adminService.unhidePost(id);
+            return ResponseEntity.ok(Map.of("message", "Post unhidden successfully"));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    /**
      * DELETE /auth/admin/posts/{id}
-     * Delete a post (moderation)
+     * Delete a post permanently (moderation)
      */
     @DeleteMapping("/posts/{id}")
     public ResponseEntity<?> deletePost(@PathVariable Long id) {

@@ -40,6 +40,14 @@
             ↗️ New Tab
           </button>
           <button
+            *ngIf="canEditPost() && !isEditing"
+            class="action-btn edit-btn"
+            (click)="startEditing()"
+            title="Edit post"
+          >
+            ✏️ Edit
+          </button>
+          <button
             *ngIf="canDeletePost()"
             class="action-btn delete-btn"
             (click)="confirmDelete()"
@@ -50,15 +58,56 @@
         </div>
       </div>
 
-      <h1 class="post-title">{{ post.title }}</h1>
+      <h1 class="post-title" *ngIf="!isEditing">{{ post.title }}</h1>
 
-      <div class="post-tags">
+      <div class="post-tags" *ngIf="!isEditing">
         <span *ngFor="let tag of post.tags" class="tag">{{ tag }}</span>
       </div>
     </header>
 
+    <!-- Edit Form -->
+    <div *ngIf="isEditing" class="edit-form">
+      <h2>Edit Post</h2>
+      <div class="form-group">
+        <label for="edit-title">Title</label>
+        <input
+          id="edit-title"
+          type="text"
+          [(ngModel)]="editedTitle"
+          class="form-control"
+          placeholder="Post title"
+        />
+      </div>
+      <div class="form-group">
+        <label for="edit-content">Content</label>
+        <textarea
+          id="edit-content"
+          [(ngModel)]="editedContent"
+          class="form-control"
+          rows="10"
+          placeholder="Post content"
+        ></textarea>
+      </div>
+      <div class="edit-actions">
+        <button
+          (click)="saveEdit()"
+          [disabled]="submittingEdit || !editedTitle.trim() || !editedContent.trim()"
+          class="btn btn-primary"
+        >
+          {{ submittingEdit ? 'Saving...' : 'Save Changes' }}
+        </button>
+        <button
+          (click)="cancelEditing()"
+          [disabled]="submittingEdit"
+          class="btn btn-secondary"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+
     <!-- Featured Media -->
-    <div *ngIf="post.mediaUrl" class="featured-media">
+    <div *ngIf="post.mediaUrl && !isEditing" class="featured-media">
       <img
         *ngIf="post.mediaType === 'image' || post.mediaType === 'gif'"
         [src]="'http://localhost:8080' + post.mediaUrl"
@@ -74,7 +123,7 @@
     </div>
 
     <!-- Post Content -->
-    <article class="post-content">
+    <article class="post-content" *ngIf="!isEditing">
       <div [innerHTML]="formatContent(post.content)" class="content-text"></div>
     </article>
 

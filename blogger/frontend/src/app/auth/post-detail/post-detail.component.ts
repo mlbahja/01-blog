@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { AuthService } from '../../core/services/auth.service';
 import { PostService } from '../../core/services/post.service';
 import { ToastService } from '../../core/services/toast.service';
@@ -24,6 +25,12 @@ export class PostDetailComponent implements OnInit {
   newComment: string = '';
   submittingComment: boolean = false;
 
+  // For editing
+  isEditing: boolean = false;
+  editedTitle: string = '';
+  editedContent: string = '';
+  submittingEdit: boolean = false;
+
   // Related posts
   relatedPosts: any[] = [];
 
@@ -34,6 +41,7 @@ export class PostDetailComponent implements OnInit {
     private authService: AuthService,
     private toastService: ToastService,
     private http: HttpClient,
+    private sanitizer: DomSanitizer
   ) {}
 
   ngOnInit(): void {
@@ -89,10 +97,16 @@ export class PostDetailComponent implements OnInit {
   return Math.ceil(words / 200); // avg reading speed
 }
 
-formatContent(content: string): string {
-  return content
-    ? content.replace(/\n/g, '<br>')
-    : '';
+formatContent(content: string): SafeHtml {
+  if (!content) {
+    return '';
+  }
+
+  // Replace newlines with <br> tags
+  const formattedContent = content.replace(/\n/g, '<br>');
+
+  // Sanitize HTML to prevent XSS attacks
+  return this.sanitizer.sanitize(1, formattedContent) || '';
 }
 
 sharePost(): void {
@@ -126,6 +140,62 @@ copyPostLink(): void {
     const isAdmin = currentUser.role === 'ADMIN';
 
     return isOwner || isAdmin;
+  }
+
+  // Check if current user can edit this post
+  canEditPost(): boolean {
+    return this.canDeletePost(); // Same permissions as delete
+  }
+
+  // Enable edit mode
+  startEditing(): void {
+    if (!this.canEditPost()) {
+      this.toastService.show('You are not authorized to edit this post', 'error');
+      return;
+    }
+
+    this.isEditing = true;
+    this.editedTitle = this.post.title;
+    this.editedContent = this.post.content;
+  }
+
+  // Cancel editing
+  cancelEditing(): void {
+    this.isEditing = false;
+    this.editedTitle = '';
+    this.editedContent = '';
+  }
+
+  // Save edited post
+  saveEdit(): void {
+    if (!this.editedTitle.trim() || !this.editedContent.trim()) {
+      this.toastService.show('Title and content cannot be empty', 'error');
+      return;
+    }
+
+    this.submittingEdit = true;
+
+    const updatedPost = {
+      title: this.editedTitle,
+      content: this.editedContent,
+      mediaType: this.post.mediaType,
+      mediaUrl: this.post.mediaUrl
+    };
+
+    this.postService.updatePost(this.postId, updatedPost).subscribe({
+      next: (response) => {
+        this.toastService.show('Post updated successfully!', 'success');
+        this.isEditing = false;
+        this.submittingEdit = false;
+        // Reload post to show updated content
+        this.loadPost();
+      },
+      error: (error) => {
+        console.error('Error updating post:', error);
+        this.submittingEdit = false;
+        this.toastService.show(error.error?.message || 'Failed to update post', 'error');
+      }
+    });
   }
 
   // Delete post from detail view

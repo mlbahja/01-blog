@@ -38,7 +38,19 @@ public class PostService {
     @Autowired
     private com.blog.blogger.services.NotificationService notificationService;
 
+    /**
+     * Get all posts (excluding hidden posts for regular users)
+     */
     public Page<Post> getAllPosts(int page, int size) {
+         Pageable pageable = PageRequest.of(page - 1, size, Sort.by("createdAt").descending());
+        // Only return non-hidden posts for regular users
+        return postRepository.findByIsHiddenFalseOrIsHiddenIsNull(pageable);
+    }
+
+    /**
+     * Get all posts including hidden (admin only)
+     */
+    public Page<Post> getAllPostsIncludingHidden(int page, int size) {
          Pageable pageable = PageRequest.of(page - 1, size, Sort.by("createdAt").descending());
         return postRepository.findAll(pageable);
     }
@@ -54,9 +66,9 @@ public class PostService {
         if (followingIds.isEmpty()) {
             return List.of(); // Return empty list if not following anyone
         }
-        // Get posts from followed users
+        // Get non-hidden posts from followed users
         System.out.println("*********************************" + followingIds);
-        return postRepository.findByAuthorIdInOrderByCreatedAtDesc(followingIds);
+        return postRepository.findNonHiddenPostsByAuthorIds(followingIds);
     }
     /**
      * pagination of posts that can showing by just follewed or not folwed okay 
@@ -83,6 +95,24 @@ public class PostService {
 
     public void deletePost(Long id) {
         postRepository.deleteById(id);
+    }
+
+    /**
+     * Update an existing post
+     * Returns the updated post or throws exception if not found
+     */
+    @Transactional
+    public Post updatePost(Long id, Post updatedPost) {
+        Post existingPost = postRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Post not found with id: " + id));
+
+        // Update fields
+        existingPost.setTitle(updatedPost.getTitle());
+        existingPost.setContent(updatedPost.getContent());
+        existingPost.setMediaType(updatedPost.getMediaType());
+        existingPost.setMediaUrl(updatedPost.getMediaUrl());
+
+        return postRepository.save(existingPost);
     }
 
     /**
@@ -145,5 +175,27 @@ public class PostService {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new RuntimeException("Post not found"));
         return postLikeRepository.existsByUserAndPost(user, post);
+    }
+
+    /**
+     * Hide a post (admin only - soft delete)
+     */
+    @Transactional
+    public Post hidePost(Long postId) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new RuntimeException("Post not found with id: " + postId));
+        post.setIsHidden(true);
+        return postRepository.save(post);
+    }
+
+    /**
+     * Unhide a post (admin only)
+     */
+    @Transactional
+    public Post unhidePost(Long postId) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new RuntimeException("Post not found with id: " + postId));
+        post.setIsHidden(false);
+        return postRepository.save(post);
     }
 }

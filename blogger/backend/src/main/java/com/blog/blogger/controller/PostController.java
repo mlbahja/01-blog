@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import  org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -137,6 +138,55 @@ public class PostController {
         response.put("mediaType", mediaType);
 
         return ResponseEntity.ok(response);
+    }
+
+    /**
+     * PUT /auth/posts/{id}
+     * Update an existing post (only by the author or admin)
+     */
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updatePost(@PathVariable Long id,
+                                       @RequestBody CreatePostDTO dto,
+                                       @AuthenticationPrincipal User currentUser) {
+        try {
+            // Check if user is banned
+            checkUserBanned(currentUser);
+
+            // Get the post
+            Post post = postService.getPostById(id)
+                    .orElseThrow(() -> new RuntimeException("Post not found with id: " + id));
+
+            // Check if user owns the post OR is admin
+            boolean isOwner = post.getAuthor().getId().equals(currentUser.getId());
+            boolean isAdmin = currentUser.getRole().name().equals("ADMIN");
+
+            if (!isOwner && !isAdmin) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(Map.of(
+                            "error", "Forbidden",
+                            "message", "You can only edit your own posts"
+                        ));
+            }
+
+            // Update the post
+            Post updatedPost = Post.builder()
+                    .title(dto.getTitle())
+                    .content(dto.getContent())
+                    .mediaType(dto.getMediaType())
+                    .mediaUrl(dto.getMediaUrl())
+                    .build();
+
+            Post savedPost = postService.updatePost(id, updatedPost);
+
+            return ResponseEntity.ok(savedPost);
+
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Internal server error"));
+        }
     }
 
 

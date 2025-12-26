@@ -26,11 +26,13 @@ public class AdminService {
     private final UserRepository userRepository;
     private final PostRepository postRepository;
     private final UserService userService;
+    private final PostService postService;
 
-    public AdminService(UserRepository userRepository, PostRepository postRepository, UserService userService) {
+    public AdminService(UserRepository userRepository, PostRepository postRepository, UserService userService, PostService postService) {
         this.userRepository = userRepository;
         this.postRepository = postRepository;
         this.userService = userService;
+        this.postService = postService;
     }
 
     // ========== Dashboard Statistics ==========
@@ -126,9 +128,23 @@ public class AdminService {
     }
 
     /**
-     * Delete a post (admin only)
+     * Delete a post permanently (admin only)
      */
     public void deletePost(Long postId) {
         postRepository.deleteById(postId);
+    }
+
+    /**
+     * Hide a post (soft delete - admin only)
+     */
+    public void hidePost(Long postId) {
+        postService.hidePost(postId);
+    }
+
+    /**
+     * Unhide a post (admin only)
+     */
+    public void unhidePost(Long postId) {
+        postService.unhidePost(postId);
     }
 }

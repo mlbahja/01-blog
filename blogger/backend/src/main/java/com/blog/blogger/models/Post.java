@@ -61,6 +61,10 @@ public class Post {
     @Builder.Default
     private int likeCount = 0;
 
+    @Column(name = "is_hidden")
+    @Builder.Default
+    private Boolean isHidden = false;
+
     @ElementCollection
     @CollectionTable(name = "post_tags", joinColumns = @JoinColumn(name = "post_id"))
     @Column(name = "tag")
