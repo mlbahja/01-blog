@@ -1,4 +1,3 @@
-/////////////////////////////////////////////////////////////
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -8,7 +7,7 @@ import { PostService } from '../../core/services/post.service';
 import { ToastService } from '../../core/services/toast.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { ReportService } from '../../core/services/report.service';
-import { HttpClient } from '@angular/common/http'; // Add this import
+import { HttpClient } from '@angular/common/http';
 import { Route } from '@angular/router';
 import { Subscription } from 'rxjs';
 
@@ -52,8 +51,8 @@ export class HomeComponent implements OnInit, OnDestroy {
     private toastService: ToastService,
     private notificationService: NotificationService,
     private reportService: ReportService,
-    private http: HttpClient, // Add HttpClient to constructor
-    private router: Router, // Add Router if not already there
+    private http: HttpClient,
+    private router: Router,
   ) {}
 
   ngOnInit(): void {
@@ -89,13 +88,9 @@ export class HomeComponent implements OnInit, OnDestroy {
       next: (response: any) => {
         console.log('Response from backend:', response);
 
-        // Support different backend formats
         this.posts = response.posts || response.content || response;
-
-        // Very important!!
         this.totalPosts = response.total || response.totalElements || 0;
 
-        // Load liked status
         this.posts.forEach((post) => {
           this.postService.hasLikedPost(post.id).subscribe({
             next: (liked) => (post.isLiked = liked),
@@ -143,15 +138,7 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   createPost(): void {
     if (this.newPost.title && this.newPost.content) {
-      console.log('[HomeComponent] Creating post with data:', this.newPost);
-      console.log('[HomeComponent] Selected file:', this.selectedFile);
-
-      // If file is selected, upload it first
       if (this.selectedFile) {
-        console.log('[HomeComponent] Starting file upload...');
-        console.log('[HomeComponent] File size:', this.selectedFile.size, 'bytes');
-        console.log('[HomeComponent] File type:', this.selectedFile.type);
-
         this.uploading = true;
         this.postService.uploadMedia(this.selectedFile).subscribe({
           next: (uploadResponse) => {
@@ -162,9 +149,6 @@ export class HomeComponent implements OnInit, OnDestroy {
           },
           error: (error: any) => {
             console.error('[HomeComponent] Error uploading file:', error);
-            console.error('[HomeComponent] Error status:', error.status);
-            console.error('[HomeComponent] Error message:', error.message);
-            console.error('[HomeComponent] Error details:', error.error);
             this.uploading = false;
 
             let errorMsg = 'Failed to upload media file';
@@ -178,11 +162,9 @@ export class HomeComponent implements OnInit, OnDestroy {
           },
         });
       } else {
-        // No file, just create the post
         this.submitPost();
       }
     } else {
-      console.warn('[HomeComponent] Title or content is empty');
       this.toastService.show('Please fill in both title and content', 'error');
     }
   }
@@ -192,7 +174,6 @@ export class HomeComponent implements OnInit, OnDestroy {
       next: (response) => {
         console.log('[HomeComponent] Post created successfully:', response);
         this.loadPosts();
-        // Reset form
         this.newPost = { title: '', content: '', mediaType: '', mediaUrl: '' };
         this.selectedFile = null;
         this.uploading = false;
@@ -238,7 +219,6 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   toggleLike(post: any): void {
     if (post.isLiked) {
-      // Unlike the post
       this.postService.unlikePost(post.id).subscribe({
         next: (updatedPost: any) => {
           post.likeCount = updatedPost.likeCount;
@@ -250,7 +230,6 @@ export class HomeComponent implements OnInit, OnDestroy {
         },
       });
     } else {
-      // Like the post
       this.postService.likePost(post.id).subscribe({
         next: (updatedPost: any) => {
           post.likeCount = updatedPost.likeCount;
@@ -285,81 +264,25 @@ export class HomeComponent implements OnInit, OnDestroy {
     return userData && userData.role === 'ADMIN';
   }
 
-  // ========== DELETE POST METHODS ==========
-
   canDeletePost(post: any): boolean {
-    // Quick debug
-    console.log('🔍 Checking delete permission for post:', post.id);
-
-    // Get current user
     const userData = this.authService.getUserData();
 
     if (!userData) {
-      console.log('❌ No user data');
       return false;
     }
 
-    // Check if user is ADMIN
     const isAdmin = userData.role === 'ADMIN';
     if (isAdmin) {
-      console.log('✅ User is ADMIN - can delete any post');
       return true;
     }
 
-    // Check if post has author info
     if (!post.author) {
-      console.log('❌ Post has no author info');
       return false;
     }
 
-    // Check if current user is the author
     const isOwner = post.author.id === userData.id;
-
-    console.log(
-      `📊 Check: Post author ID (${post.author.id}) === User ID (${userData.id}) = ${isOwner}`,
-    );
-    console.log(`📊 Result: ${isOwner ? '✅ Can delete (owner)' : '❌ Cannot delete (not owner)'}`);
-
     return isOwner;
   }
-
-  // ========== DELETE POST METHODS ==========
-  // ========== broutforce delet Posts
-  /*
-  testDeleteAnyPost() {
-    if (this.posts.length > 1) {
-      const testPost = this.posts[1];
-      console.log('Testing delete on post:', testPost);
-
-      // First check permission
-      const canDelete = this.canDeletePost(testPost);
-      console.log('Can delete according to check:', canDelete);
-
-      if (canDelete) {
-        this.confirmDelete(testPost.id, testPost.title);
-      } else {
-        console.log('Cannot delete - showing why...');
-
-        // Check what's in the post
-        console.log('Post author structure:');
-        console.log('- Type:', typeof testPost.author);
-        console.log('- Value:', testPost.author);
-        console.log('- Keys:', testPost.author ? Object.keys(testPost.author) : 'No author');
-
-        // Check user data
-        const userData = this.authService.getUserData();
-        console.log('User data:', userData);
-
-        // Try force delete anyway for testing
-        const forceDelete = confirm(
-          'Permission check failed, but try to delete anyway? (FOR TESTING)',
-        );
-        if (forceDelete) {
-          this.deletePost(testPost.id);
-        }
-      }
-    }
-  }*/
 
   confirmDelete(postId: number, postTitle: string) {
     const confirmDelete = confirm(
@@ -372,10 +295,8 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   deletePost(postId: number) {
-    // Get auth token from localStorage or auth service
-    const token = localStorage.getItem('jwt_token'); // or 'auth_token' based on your storage
+    const token = localStorage.getItem('jwt_token');
 
-    // Check if token exists
     if (!token) {
       this.toastService.show('Please login again', 'error');
       this.router.navigate(['/login']);
@@ -391,15 +312,12 @@ export class HomeComponent implements OnInit, OnDestroy {
       next: (response: any) => {
         console.log('Post deleted:', response);
 
-        // Remove the deleted post from the posts array
         this.posts = this.posts.filter((p) => p.id !== postId);
 
-        // If posts array becomes empty, handle appropriately
         if (this.posts.length === 0) {
-          this.loadPosts(); // Reload posts or show empty state
+          this.loadPosts();
         }
 
-        // Show success message
         this.toastService.show('Post deleted successfully!', 'success');
       },
       error: (error: any) => {
@@ -412,7 +330,6 @@ export class HomeComponent implements OnInit, OnDestroy {
           errorMessage = 'Post not found';
         } else if (error.status === 401) {
           errorMessage = 'Please login again';
-          // Redirect to login
           this.router.navigate(['/login']);
         }
 
@@ -421,94 +338,16 @@ export class HomeComponent implements OnInit, OnDestroy {
     });
   }
 
-  // Optional: You can use these if you don't want to use ToastService
-  private showSuccessMessage(message: string) {
-    alert('✅ ' + message);
-  }
-
-  private showErrorMessage(message: string) {
-    alert('❌ ' + message);
-  }
-  ////////////////////////////////////////////////////////////debug test
-  // Add this method to test button clicks
   testButtonClick(postId: number, postTitle: string) {
-    // console.log('🔥 BUTTON CLICKED!', postId, postTitle);
-    // alert(`Button clicked! Post: ${postTitle} (ID: ${postId})`);
-
-    // Test if canDeletePost returns true
     const post = this.posts.find((p) => p.id === postId);
     if (post) {
-      //should remove this alert its not good practice to add alert for every transaction
-
       const canDelete = this.canDeletePost(post);
-      // alert(`canDeletePost returns: ${canDelete}`);
-
       if (canDelete) {
         this.confirmDelete(postId, postTitle);
       }
     }
   }
-  /*
-  debugLoginState() {
-    console.log('=== DEBUG LOGIN STATE ===');
 
-    // Check localStorage directly
-    console.log('localStorage contents:');
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      const value = localStorage.getItem(key!);
-      console.log(`${key}: ${value?.substring(0, 50)}...`);
-    }
-
-    // Check AuthService
-    console.log('\nAuthService:');
-    console.log('- getToken():', this.authService.getToken() ? 'Present' : 'Missing');
-    console.log('- getUserData():', this.authService.getUserData());
-    console.log('- isLoggedIn():', this.authService.isLoggedIn());
-
-    // Check if token is valid
-    const token = this.authService.getToken();
-    if (token) {
-      console.log('\nToken details:');
-      console.log('- Length:', token.length);
-      console.log('- First 50 chars:', token.substring(0, 50) + '...');
-
-      // Try to decode JWT token (if it's a JWT)
-      try {
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        console.log('- Token payload:', payload);
-        console.log('- Token expiry:', new Date(payload.exp * 1000));
-        console.log('- Token username:', payload.sub);
-      } catch (e) {
-        console.log('- Not a standard JWT token');
-      }
-    }
-  }*/
-  ///debug post
-  /*
-  debugPosts() {
-    console.log('=== DEBUG POSTS ===');
-    console.log('Total posts:', this.posts.length);
-
-    if (this.posts.length > 0) {
-      console.log('First post (index 0 - featured):', this.posts[0]);
-      console.log('Post author details:', this.posts[0].author);
-
-      if (this.posts.length > 1) {
-        console.log('Second post (index 1 - regular):', this.posts[1]);
-        console.log('Post author details:', this.posts[1].author);
-
-        // Check if can delete
-        console.log('Can delete second post?', this.canDeletePost(this.posts[1]));
-      }
-    }
-
-    //forceing delet post using brodforce
-    // Add this method for testing
-  }
-    */
-
-  // Report functionality
   isMyPost(post: any): boolean {
     const userData = this.authService.getUserData();
     return post.author?.id === userData?.id;

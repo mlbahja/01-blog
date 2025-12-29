@@ -1,7 +1,6 @@
 package com.blog.blogger.controller;
 
 import java.util.List;
-// Add this import statement
 import org.springframework.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -25,7 +24,6 @@ import com.blog.blogger.repository.UserRepository;
 import com.blog.blogger.service.CommentService;
 import com.blog.blogger.service.PostService;
 import com.blog.blogger.service.FileStorageService;
-//pagination of Posts
 import org.springframework.data.domain.Page;
 import java.util.Map;
 import java.util.HashMap;
@@ -189,17 +187,6 @@ public class PostController {
         }
     }
 
-
-    /*
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletePost(@PathVariable Long id) {
-        postService.deletePost(id);
-        return ResponseEntity.ok().build();
-    }
-    */
-
-////////////////////////////////////////////////////////////////Delet Posts
-
 @DeleteMapping("/{id}")
 public ResponseEntity<?> deletePost(@PathVariable Long id,
                                    @AuthenticationPrincipal User currentUser) {
@@ -239,9 +226,6 @@ public ResponseEntity<?> deletePost(@PathVariable Long id,
                 .body(Map.of("error", "Internal server error"));
     }
 }
-/////////////////////////////////////////////////////////////// 
-
-
 
     @PostMapping("/{postId}/comments")
     public ResponseEntity<?> addComment(@PathVariable Long postId,

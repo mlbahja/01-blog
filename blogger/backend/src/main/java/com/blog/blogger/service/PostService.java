@@ -43,7 +43,6 @@ public class PostService {
      */
     public Page<Post> getAllPosts(int page, int size) {
          Pageable pageable = PageRequest.of(page - 1, size, Sort.by("createdAt").descending());
-        // Only return non-hidden posts for regular users
         return postRepository.findByIsHiddenFalseOrIsHiddenIsNull(pageable);
     }
 
@@ -60,21 +59,12 @@ public class PostService {
      * If user doesn't follow anyone, returns empty list
      */
     public List<Post> getPostsFromFollowedUsers(String currentUsername) {
-        // Get IDs of users that current user follows
-        System.out.println("currentUsername ========> " + currentUsername);
         List<Long> followingIds = subscriptionService.getFollowingIds(currentUsername);
         if (followingIds.isEmpty()) {
-            return List.of(); // Return empty list if not following anyone
+            return List.of();
         }
-        // Get non-hidden posts from followed users
-        System.out.println("*********************************" + followingIds);
         return postRepository.findNonHiddenPostsByAuthorIds(followingIds);
     }
-    /**
-     * pagination of posts that can showing by just follewed or not folwed okay 
-     * If user doesn't follow anyone, returns empty list
-     */
-    
 
     public Optional<Post> getPostById(Long id) {
         return postRepository.findById(id);
@@ -82,11 +72,8 @@ public class PostService {
 
     @Transactional
     public Post createPost(Post post) {
-        System.out.println(post);
-
         Post savedPost = postRepository.save(post);
 
-        // Get followers and notify them about the new post
         List<User> followers = subscriptionService.getFollowers(savedPost.getAuthor());
         notificationService.notifyFollowersAboutNewPost(savedPost, followers);
 
@@ -124,23 +111,19 @@ public class PostService {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new RuntimeException("Post not found"));
 
-        // Check if user already liked this post
         if (postLikeRepository.existsByUserAndPost(user, post)) {
-            return post; // Already liked, do nothing
+            return post;
         }
 
-        // Create new like
         PostLike like = PostLike.builder()
                 .user(user)
                 .post(post)
                 .build();
         postLikeRepository.save(like);
 
-        // Increment like count
         post.setLikeCount(post.getLikeCount() + 1);
         Post savedPost = postRepository.save(post);
 
-        // Notify post author about the like
         notificationService.notifyUserAboutPostLike(savedPost, user);
 
         return savedPost;
@@ -155,15 +138,12 @@ public class PostService {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new RuntimeException("Post not found"));
 
-        // Check if user has liked this post
         Optional<PostLike> likeOpt = postLikeRepository.findByUserAndPost(user, post);
         if (likeOpt.isEmpty()) {
-            return post; // Not liked, do nothing
+            return post;
         }
 
-        // Delete the like
         postLikeRepository.delete(likeOpt.get());
-        // Decrement like count (but don't go below 0)
         post.setLikeCount(Math.max(0, post.getLikeCount() - 1));
         return postRepository.save(post);
     }

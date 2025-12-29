@@ -45,9 +45,8 @@ export class PostDetailComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    // Get post ID from route parameters
     this.route.params.subscribe((params) => {
-      this.postId = +params['id']; // Convert to number
+      this.postId = +params['id'];
       this.loadPost();
     });
   }
@@ -56,7 +55,6 @@ export class PostDetailComponent implements OnInit {
     this.loading = true;
     this.error = '';
 
-    // Using your existing PostService or direct HTTP call
     this.postService.getPostById(this.postId).subscribe({
       next: (post) => {
         this.post = post;
@@ -70,7 +68,6 @@ export class PostDetailComponent implements OnInit {
         this.loading = false;
         this.toastService.show(this.error, 'error');
 
-        // Redirect to home after 3 seconds if post not found
         setTimeout(() => {
           this.router.navigate(['/home']);
         }, 3000);
@@ -79,7 +76,6 @@ export class PostDetailComponent implements OnInit {
   }
 
   loadRelatedPosts(): void {
-    // Load posts from same author or with same tags
     if (this.post && this.post.author) {
       this.postService.getPostsFromFollowedUsers(1, 5).subscribe({
         next: (posts) => {
@@ -94,7 +90,7 @@ export class PostDetailComponent implements OnInit {
   calculateReadTime(content: string): number {
   if (!content) return 0;
   const words = content.trim().split(/\s+/).length;
-  return Math.ceil(words / 200); // avg reading speed
+  return Math.ceil(words / 200);
 }
 
 formatContent(content: string): SafeHtml {
