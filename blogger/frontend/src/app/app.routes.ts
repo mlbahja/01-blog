@@ -39,9 +39,6 @@ export const routes: Routes = [
     ],
     children: [],
   },
-
-  // ========== Public Routes ==========
-  // Only accessible when NOT logged in
   {
     path: 'login',
     component: LoginComponent,
@@ -52,9 +49,6 @@ export const routes: Routes = [
     component: RegisterComponent,
     canActivate: [guestGuard],
   },
-
-  // ========== Protected Routes ==========
-  // Only accessible when logged in
   {
     path: 'home',
     component: HomeComponent,
@@ -75,9 +69,6 @@ export const routes: Routes = [
     component: ChatComponent,
     canActivate: [authGuard],
   },*/
-
-  // ========== Profile Routes ==========
-  // User profile management
   {
     path: 'profile',
     component: ProfileComponent,
@@ -93,17 +84,11 @@ export const routes: Routes = [
     component: UserSettingsComponent,
     canActivate: [authGuard],
   },
-
-  // ========== Notifications Route ==========
-  // User notifications
   {
     path: 'notifications',
     component: NotificationsComponent,
     canActivate: [authGuard],
   },
-
-  // ========== Admin Routes ==========
-  // Only accessible for ADMIN users
   {
     path: 'admin',
     component: AdminDashboardComponent,
@@ -119,9 +104,6 @@ export const routes: Routes = [
     component: AdminReportsComponent,
     canActivate: [adminGuard],
   },
-
-  // ========== Legacy Redirects ==========
-  // Backward compatibility
   { path: 'auth/login', redirectTo: 'login', pathMatch: 'full' },
   { path: 'auth/register', redirectTo: 'register', pathMatch: 'full' },
   { path: 'auth/home', redirectTo: 'home', pathMatch: 'full' },
@@ -135,8 +117,6 @@ export const routes: Routes = [
     path: 'not-found',
     component: NotFoundComponent,
   },
-  // Wildcard route - MUST BE LAST
-  // Catches all undefined routes and shows 404 page
   {
     path: '**',
     component: NotFoundComponent,
