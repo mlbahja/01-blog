@@ -21,18 +21,7 @@ import { adminGuard } from './core/guards/admin.guard';
 import { AuthService } from './core/services/auth.service';
 import { PostDetailComponent } from './auth/post-detail/post-detail.component';
 
-/**
- * Application Routes Configuration
- *
- * Route Protection Strategy:
- * - Public routes (login, register): Protected by guestGuard
- *   → Authenticated users are redirected to /home
- * - Protected routes (home, profile): Protected by authGuard
- *   → Unauthenticated users are redirected to /login
- * - Admin routes (admin/*): Protected by adminGuard
- *   → Non-admin users are redirected to /home
- * - Root path (''): Intelligent redirect based on auth status
- */
+
 export const routes: Routes = [
   // Root path - Smart redirect based on authentication status
   {
@@ -81,11 +70,11 @@ export const routes: Routes = [
     component: UsersComponent,
     canActivate: [authGuard],
   },
-  {
+  /*{
     path: 'chat',
     component: ChatComponent,
     canActivate: [authGuard],
-  },
+  },*/
 
   // ========== Profile Routes ==========
   // User profile management
