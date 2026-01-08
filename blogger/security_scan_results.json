@@ -1,9 +1,0 @@
-{
-  "exposed_endpoints": [],
-  "xss_vulnerabilities": [],
-  "sql_injections": [],
-  "missing_headers": [
-    "Content-Security-Policy",
-    "Strict-Transport-Security"
-  ]
-}
