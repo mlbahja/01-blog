@@ -1,13 +1,10 @@
-/* ==================== */
-/* Global & Typography  */
-/* ==================== */
 
 * {
   box-sizing: border-box;
 }
 
 :host {
-  /* Emily Henderson Inspired Color Palette */
+  
   --color-primary: #000000;
   --color-secondary: #191818;
   --color-accent: #caa54d;
@@ -28,7 +25,6 @@
   --transition: all 0.3s ease;
 }
 
-/* Modal backdrop */
 .modal-backdrop {
   position: fixed;
   top: 0;
@@ -39,7 +35,7 @@
   z-index: 998;
 }
 
-/* Create post modal */
+
 .create-post-modal {
   position: fixed;
   top: 50%;
@@ -54,7 +50,7 @@
   z-index: 999;
 }
 
-/* Modal header */
+
 .modal-header {
   display: flex;
   justify-content: space-between;
@@ -69,9 +65,6 @@
   cursor: pointer;
 }
 
-/* ==================== */
-/* Site Header          */
-/* ==================== */
 
 .site-header {
   background-color: var(--color-background);
@@ -154,7 +147,7 @@
   gap: var(--spacing-md);
 }
 
-/* Notification Bell */
+
 .notification-bell {
   position: relative;
   cursor: pointer;
@@ -217,9 +210,7 @@
   box-shadow: 0 4px 12px rgba(202, 165, 77, 0.3);
 }
 
-/* ==================== */
-/* Responsive Design    */
-/* ==================== */
+
 
 @media (max-width: 992px) {
   .header-container {
@@ -275,9 +266,7 @@
   }
 }
 
-/* ==================== */
-/* Main Content         */
-/* ==================== */
+
 
 .main-content {
   min-height: calc(100vh - 200px);
@@ -301,9 +290,7 @@
   text-align: center;
 }
 
-/* ==================== */
-/* Create Post Section  */
-/* ==================== */
+
 
 .create-post-section {
   background-color: var(--color-background);
@@ -430,7 +417,7 @@
   border-color: var(--color-text);
 }
 
-/* Floating Create Button */
+
 .floating-create-btn {
   position: fixed;
   bottom: 2rem;
@@ -441,7 +428,7 @@
   font-size: 0.875rem;
   font-weight: 400;
   padding: 1rem 1.5rem;
-  /* border: none;*/
+
   border-radius: 15px;
   cursor: pointer;
   box-shadow: 0 2px 8px rgba(202, 165, 77, 0.3);
@@ -465,9 +452,7 @@
   font-weight: 300;
 }
 
-/* ==================== */
-/* Featured Section     */
-/* ==================== */
+
 
 .featured-section {
   margin-bottom: var(--spacing-xl);
@@ -547,9 +532,6 @@
   color: var(--color-text);
 }
 
-/* ==================== */
-/* Posts Grid           */
-/* ==================== */
 
 .posts-section {
   margin-bottom: var(--spacing-xl);
@@ -663,9 +645,6 @@
   text-decoration: none;
 }
 
-/* ==================== */
-/* Expanded Post        */
-/* ==================== */
 
 .post-expanded {
   padding: 0 var(--spacing-lg) var(--spacing-lg);
@@ -697,9 +676,6 @@
   margin: 0;
 }
 
-/* ==================== */
-/* Comments Section     */
-/* ==================== */
 
 .comments-section {
   margin-top: var(--spacing-lg);
@@ -814,9 +790,7 @@
   transform: translateY(-1px);
 }
 
-/* ==================== */
-/* Empty State          */
-/* ==================== */
+
 
 .empty-state {
   padding: var(--spacing-xl) 0;
@@ -842,9 +816,6 @@
   margin: 0 0 var(--spacing-lg);
 }
 
-/* ==================== */
-/* Footer               */
-/* ==================== */
 
 .site-footer {
   background-color: var(--color-background-light);
@@ -866,9 +837,7 @@
   color: var(--color-text-lighter);
 }
 
-/* ==================== */
-/* Responsive Design    */
-/* ==================== */
+
 
 @media (max-width: 768px) {
   .header-container {
@@ -934,9 +903,7 @@
   }
 }
 
-/* ==================== */
-/* Like Button          */
-/* ==================== */
+
 
 .like-btn {
   display: inline-flex;
@@ -970,8 +937,7 @@
   font-weight: 500;
   font-size: 0.875rem;
 }
-/* css of the button */
-/* Add to your component's CSS */
+
 
 .post-header {
   display: flex;
@@ -1011,7 +977,7 @@
   transform: scale(1.1);
 }
 
-/* Report Button */
+
 .report-post-btn {
   background: none;
   border: none;
@@ -1034,7 +1000,7 @@
   transform: scale(1.1);
 }
 
-/* Report Modal */
+
 .report-modal {
   position: fixed;
   top: 50%;

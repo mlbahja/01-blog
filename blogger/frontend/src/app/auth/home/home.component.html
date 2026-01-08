@@ -1,4 +1,3 @@
-<!-- Navigation Header -->
 <header class="site-header">
   <div class="header-container">
     <div class="logo">
@@ -14,7 +13,7 @@
       >
     </nav>
     <div class="header-actions">
-      <!-- Notifications Bell -->
+   
       <div class="notification-bell" routerLink="/notifications" title="Notifications">
         <span class="bell-icon">🔔</span>
         <span class="notification-badge" *ngIf="unreadNotificationCount > 0">
@@ -27,10 +26,8 @@
   </div>
 </header>
 
-<!-- Main Content -->
 <main class="main-content">
   <div class="container">
-    <!-- Featured Post (if available) -->
     <section class="featured-section" *ngIf="posts.length > 0">
       <article class="featured-post">
         <div class="featured-content">
@@ -75,7 +72,6 @@
       </article>
     </section>
 
-    <!-- Blog Posts Grid -->
     <section class="posts-section">
       <div class="posts-header">
         <h2 class="section-title">Recent Stories</h2>
@@ -145,13 +141,11 @@
             </button>
           </div>
 
-          <!-- Expanded Post Content -->
           <div class="post-expanded" *ngIf="expandedPosts.has(i + 1)">
             <div class="post-full-content">
               <p>{{ post.content }}</p>
             </div>
 
-            <!-- Comments Section -->
             <div class="comments-section">
               <h4 class="comments-title">Comments ({{ post.comments?.length || 0 }})</h4>
               <div class="comments-list" *ngIf="post.comments && post.comments.length > 0">
@@ -169,7 +163,6 @@
                 <p>Be the first to comment on this post.</p>
               </div>
 
-              <!-- Add Comment Form -->
               <form
                 class="comment-form"
                 (ngSubmit)="addComment(post.id, commentText.value); commentText.value = ''"
@@ -190,7 +183,6 @@
         </article>
       </div>
 
-      <!-- Empty State -->
       <div class="empty-state" *ngIf="posts.length === 0">
         <div class="empty-state-content">
           <h3>No posts yet</h3>
@@ -201,7 +193,6 @@
         </div>
       </div>
 
-      <!-- Pagination -->
       <div class="pagination">
         <button (click)="prevPage()" [disabled]="currentPage === 1">Previous</button>
         <span>Page {{ currentPage }}</span>
@@ -210,7 +201,6 @@
     </section>
   </div>
 
-  <!-- Create Post Modal (popup) -->
   <div class="modal-backdrop" *ngIf="showCreateForm" (click)="showCreateForm = false"></div>
   <section class="create-post-modal" *ngIf="showCreateForm">
     <div class="section-header">
@@ -265,13 +255,11 @@
     </form>
   </section>
 
-  <!-- Floating Create Button -->
   <button class="floating-create-btn" *ngIf="!showCreateForm" (click)="showCreateForm = true">
     <span class="plus-icon">+</span> New Post
   </button>
 </main>
 
-<!-- Report Post Modal -->
 <div class="modal-backdrop" *ngIf="showReportDialog" (click)="closeReportDialog()"></div>
 <div class="report-modal" *ngIf="showReportDialog">
   <div class="modal-header">
@@ -297,7 +285,6 @@
   </div>
 </div>
 
-<!-- Footer -->
 <footer class="site-footer">
   <div class="container">
     <p>&copy; 2025 My Blog. All rights reserved.</p>

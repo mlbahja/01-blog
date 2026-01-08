@@ -34,7 +34,7 @@ export class AuthService {
       })
       .pipe(
         tap((response: AuthResponse) => {
-          // Store JWT token and user info in localStorage
+          
           this.setToken(response.accessToken);
           this.setUserData({
             id: response.id,
@@ -42,7 +42,7 @@ export class AuthService {
             email: response.email,
             role: response.role,
           });
-          // Route to home page after successful login
+          
           this.router.navigate(['/auth/home']);
         }),
       );
@@ -51,7 +51,7 @@ export class AuthService {
   register(user: { username: string; email: string; password: string }): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.apiUrl}/register`, user).pipe(
       tap((response: AuthResponse) => {
-        // Auto-login: Store JWT token and user info after registration
+        
         this.setToken(response.accessToken);
         this.setUserData({
           id: response.id,
@@ -59,23 +59,23 @@ export class AuthService {
           email: response.email,
           role: response.role,
         });
-        // Route to home page after successful registration
+        
         this.router.navigate(['/auth/home']);
       }),
     );
   }
 
   logout(navigate: boolean = true): void {
-    // Clear JWT token and user data from localStorage
+   
     this.removeToken();
     this.removeUserData();
-    // Route to login page (if navigate is true)
+    
     if (navigate) {
       this.router.navigate(['/auth/login']);
     }
   }
 
-  // JWT Token Management
+
   getToken(): string | null {
     return localStorage.getItem(this.TOKEN_KEY);
   }
@@ -88,7 +88,7 @@ export class AuthService {
     localStorage.removeItem(this.TOKEN_KEY);
   }
 
-  // User Data Management
+ 
   getUserData(): any {
     const userData = localStorage.getItem(this.USER_KEY);
     return userData ? JSON.parse(userData) : null;
@@ -102,33 +102,33 @@ export class AuthService {
     localStorage.removeItem(this.USER_KEY);
   }
 
-  // Check if user is logged in (has valid token)
+ 
   isLoggedIn(): boolean {
     const token = this.getToken();
     if (!token) {
       return false;
     }
 
-    // Decode JWT and check expiration
+  
     try {
       const payload = this.decodeToken(token);
       const isExpired = this.isTokenExpired(payload);
 
       if (isExpired) {
-        // Token expired, clean up (don't navigate to avoid loops)
+       
         this.logout(false);
         return false;
       }
 
       return true;
     } catch (error) {
-      // Invalid token, clean up (don't navigate to avoid loops)
+      
       this.logout(false);
       return false;
     }
   }
 
-  // Decode JWT token (extract payload)
+
   private decodeToken(token: string): any {
     try {
       const payload = token.split('.')[1];
@@ -138,12 +138,12 @@ export class AuthService {
     }
   }
 
-  // Check if token is expired
+
   private isTokenExpired(payload: any): boolean {
     if (!payload.exp) {
       return true;
     }
-    // JWT exp is in seconds, Date.now() is in milliseconds
+   
     const expirationDate = payload.exp * 1000;
     return Date.now() >= expirationDate;
   }

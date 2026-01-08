@@ -13,17 +13,15 @@ export class NotificationService {
   public unreadCount$ = this.unreadCountSubject.asObservable();
 
   constructor(private http: HttpClient) {
-    // Poll for unread count every 30 seconds
+  
     this.startPolling();
   }
 
-  /**
-   * Start polling for unread notifications count
-   */
+ 
   private startPolling(): void {
-    interval(30000) // Poll every 30 seconds
+    interval(30000) 
       .pipe(
-        startWith(0), // Start immediately
+        startWith(0), 
         switchMap(() => this.getUnreadCount())
       )
       .subscribe({
@@ -36,39 +34,27 @@ export class NotificationService {
       });
   }
 
-  /**
-   * Get all notifications
-   */
+
   getNotifications(): Observable<Notification[]> {
     return this.http.get<Notification[]>(this.apiUrl);
   }
 
-  /**
-   * Get paginated notifications
-   */
+  
   getPaginatedNotifications(page: number = 0, size: number = 20): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/paginated?page=${page}&size=${size}`);
   }
 
-  /**
-   * Get unread notifications only
-   */
   getUnreadNotifications(): Observable<Notification[]> {
     return this.http.get<Notification[]>(`${this.apiUrl}/unread`);
   }
 
-  /**
-   * Get unread notifications count
-   */
+ 
   getUnreadCount(): Observable<{ count: number }> {
     return this.http.get<{ count: number }>(`${this.apiUrl}/unread/count`).pipe(
       tap(response => this.unreadCountSubject.next(response.count))
     );
   }
 
-  /**
-   * Mark a specific notification as read
-   */
   markAsRead(id: number): Observable<{ message: string }> {
     return this.http.put<{ message: string }>(`${this.apiUrl}/${id}/read`, {}).pipe(
       tap(() => {
@@ -79,32 +65,23 @@ export class NotificationService {
     );
   }
 
-  /**
-   * Mark all notifications as read
-   */
+ 
   markAllAsRead(): Observable<{ message: string }> {
     return this.http.put<{ message: string }>(`${this.apiUrl}/read-all`, {}).pipe(
       tap(() => this.unreadCountSubject.next(0))
     );
   }
 
-  /**
-   * Delete a specific notification
-   */
   deleteNotification(id: number): Observable<{ message: string }> {
     return this.http.delete<{ message: string }>(`${this.apiUrl}/${id}`);
   }
 
-  /**
-   * Delete all read notifications
-   */
+
   deleteReadNotifications(): Observable<{ message: string }> {
     return this.http.delete<{ message: string }>(`${this.apiUrl}/read`);
   }
 
-  /**
-   * Refresh unread count manually
-   */
+ 
   refreshUnreadCount(): void {
     this.getUnreadCount().subscribe();
   }

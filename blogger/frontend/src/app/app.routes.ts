@@ -23,7 +23,7 @@ import { PostDetailComponent } from './auth/post-detail/post-detail.component';
 
 
 export const routes: Routes = [
-  // Root path - Smart redirect based on authentication status
+  
   {
     path: '',
     canActivate: [
@@ -31,7 +31,7 @@ export const routes: Routes = [
         const authService = inject(AuthService);
         const router = inject(Router);
 
-        // Redirect authenticated users to home, guests to login
+        
         return authService.isLoggedIn()
           ? router.createUrlTree(['/home'])
           : router.createUrlTree(['/login']);
@@ -64,11 +64,7 @@ export const routes: Routes = [
     component: UsersComponent,
     canActivate: [authGuard],
   },
-  /*{
-    path: 'chat',
-    component: ChatComponent,
-    canActivate: [authGuard],
-  },*/
+  
   {
     path: 'profile',
     component: ProfileComponent,
@@ -108,7 +104,7 @@ export const routes: Routes = [
   { path: 'auth/register', redirectTo: 'register', pathMatch: 'full' },
   { path: 'auth/home', redirectTo: 'home', pathMatch: 'full' },
 
-  // ========== Error Pages ==========
+  
   {
     path: 'unauthorized',
     component: UnauthorizedComponent,

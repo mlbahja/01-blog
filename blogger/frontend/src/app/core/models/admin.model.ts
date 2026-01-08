@@ -1,6 +1,4 @@
-/**
- * Admin Models - Type-safe interfaces for admin operations
- */
+
 
 export interface AdminStats {
   totalUsers: number;

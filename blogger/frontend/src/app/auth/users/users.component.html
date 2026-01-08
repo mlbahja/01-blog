@@ -1,4 +1,4 @@
-<!-- Navigation Header -->
+
 <header class="site-header">
   <div class="header-container">
     <div class="logo">
@@ -7,26 +7,26 @@
     <nav class="main-nav">
       <a routerLink="/home" routerLinkActive="active" class="nav-link">Home</a>
       <a routerLink="/users" routerLinkActive="active" class="nav-link">Users</a>
-      <a routerLink="/chat" routerLinkActive="active" class="nav-link">Chat</a>
+      <!-- <a routerLink="/chat" routerLinkActive="active" class="nav-link">Chat</a> -->
       <a routerLink="/profile" routerLinkActive="active" class="nav-link">Profile</a>
-      <a routerLink="/admin" routerLinkActive="active" class="nav-link">Admin Panel</a>
+      <!-- <a routerLink="/admin" routerLinkActive="active" class="nav-link">Admin Panel</a> -->
     </nav>
   </div>
 </header>
 
-<!-- Main Content -->
+
 <main class="main-content">
   <div class="container">
     <section class="users-section">
       <h2 class="section-title">Discover Users</h2>
       <p class="section-subtitle">Connect with other bloggers and follow their stories</p>
 
-      <!-- Loading State -->
+      
       <div class="loading-state" *ngIf="loading">
         <p>Loading users...</p>
       </div>
 
-      <!-- Users Grid -->
+      
       <div class="users-grid" *ngIf="!loading">
         <div class="user-card" *ngFor="let user of users">
           <div class="user-card-header">
@@ -71,7 +71,7 @@
         </div>
       </div>
 
-      <!-- Empty State -->
+      
       <div class="empty-state" *ngIf="!loading && users.length === 0">
         <p>No users found</p>
       </div>
@@ -79,7 +79,6 @@
   </div>
 </main>
 
-<!-- Footer -->
 <footer class="site-footer">
   <div class="container">
     <p>&copy; 2025 My Blog. All rights reserved.</p>

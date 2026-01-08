@@ -1,10 +1,10 @@
-/* Font imports */
+
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&family=Lora:ital,wght@0,400;0,700;1,400&display=swap');
 
 
 
 
-/* Base styles */
+
 .register-container {
   min-height: 100vh;
   background: #f6f4ed;
@@ -17,7 +17,7 @@
   padding: 40px 20px;
 }
 
-/* Decorative elements */
+
 .register-container::before {
   content: '';
   position: absolute;
@@ -44,7 +44,7 @@
   opacity: 0.1;
 }
 
-/* Form container */
+
 .register-container  {
   font-family: 'Lora', serif;
   font-size: 32px;
@@ -66,7 +66,7 @@
   z-index: 2;
 }
 
-/* Form groups */
+
 .register-container form > div {
   margin-bottom: 24px;
   position: relative;
@@ -100,7 +100,7 @@
   box-shadow: 0 0 0 2px rgba(202, 165, 77, 0.1);
 }
 
-/* Button styles */
+
 .register-container button {
   width: 100%;
   padding: 16px 24px;
@@ -128,7 +128,7 @@
   transform: none;
 }
 
-/* Password strength indicator */
+
 .password-strength {
   margin-top: 8px;
   height: 4px;
@@ -157,7 +157,7 @@
   width: 100%;
 }
 
-/* Error messages */
+
 .error-message {
   background: #fff5f5;
   border: 1px solid #fed7d7;
@@ -170,7 +170,7 @@
   text-align: center;
 }
 
-/* Success messages */
+
 .success-message {
   background: #f0fff4;
   border: 1px solid #9ae6b4;
@@ -183,7 +183,7 @@
   text-align: center;
 }
 
-/* Loading state */
+
 .register-container button.loading {
   position: relative;
   color: transparent;
@@ -210,7 +210,7 @@
   }
 }
 
-/* Login options link */
+
 .login-options {
   text-align: center;
   margin-top: 24px;
@@ -232,7 +232,7 @@
   text-decoration: underline;
 }
 
-/* Responsive design */
+
 @media (max-width: 768px) {
   .register-container {
     padding: 20px 15px;

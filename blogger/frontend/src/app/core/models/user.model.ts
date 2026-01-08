@@ -1,6 +1,3 @@
-/**
- * User Models - Type-safe interfaces for user data
- */
 
 export enum Role {
   USER = 'USER',

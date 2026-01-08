@@ -14,7 +14,7 @@
   <div *ngIf="loading" class="loading">Loading profile...</div>
 
   <div *ngIf="!loading && userProfile" class="profile-content">
-    <!-- Avatar Section -->
+ 
     <div class="avatar-section">
       <img
         [src]="getProfilePictureUrl()"
@@ -23,7 +23,7 @@
       />
     </div>
 
-    <!-- User Info -->
+
     <div class="info-section">
       <div class="info-row">
         <label>Username:</label>
@@ -63,7 +63,7 @@
       </div>
     </div>
 
-    <!-- Danger Zone -->
+
     <div class="danger-zone">
       <h3>Danger Zone</h3>
       <button (click)="deleteAccount()" class="btn btn-danger">
@@ -75,7 +75,6 @@
     </div>
   </div>
 
-  <!-- Back to Home -->
   <div class="back-link">
     <a routerLink="/home">Back to Home</a>
   </div>

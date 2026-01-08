@@ -1,8 +1,4 @@
-/* Global Styles for Blog Application - Emily Henderson Inspired */
 
-/* ==================== */
-/* CSS Reset            */
-/* ==================== */
 
 * {
   margin: 0;
@@ -23,9 +19,7 @@ body {
   line-height: 1.6;
 }
 
-/* ==================== */
-/* Scrollbar Styling    */
-/* ==================== */
+
 
 ::-webkit-scrollbar {
   width: 10px;
@@ -44,9 +38,6 @@ body {
   background: #555;
 }
 
-/* ==================== */
-/* Typography           */
-/* ==================== */
 
 h1,
 h2,
@@ -78,9 +69,7 @@ a:hover {
   color: #000000;
 }
 
-/* ==================== */
-/* Utility Classes      */
-/* ==================== */
+
 
 .text-center {
   text-align: center;
@@ -106,9 +95,7 @@ a:hover {
   margin-bottom: 1.5rem;
 }
 
-/* ==================== */
-/* Animation Classes    */
-/* ==================== */
+
 
 @keyframes fadeIn {
   from {
@@ -125,9 +112,7 @@ a:hover {
   animation: fadeIn 0.3s ease-in-out;
 }
 
-/* ==================== */
-/* Loading State        */
-/* ==================== */
+
 
 .loading {
   display: flex;
@@ -154,9 +139,6 @@ a:hover {
   }
 }
 
-/* ==================== */
-/* Material Snackbar    */
-/* ==================== */
 
 .success-snackbar {
   background-color: #4caf50 !important;

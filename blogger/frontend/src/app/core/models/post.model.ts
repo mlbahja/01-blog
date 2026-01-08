@@ -1,6 +1,3 @@
-/**
- * Post Models - Type-safe interfaces for blog posts
- */
 
 export interface Post {
   id: number;
@@ -8,7 +5,7 @@ export interface Post {
   content: string;
   author: PostAuthor;
   likeCount: number;
-  isLiked?: boolean; // Whether the current user has liked this post
+  isLiked?: boolean; 
   tags: string[];
   commentCount?: number;
   createdAt: string;

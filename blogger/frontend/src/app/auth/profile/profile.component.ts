@@ -77,7 +77,8 @@ export class ProfileComponent implements OnInit {
 
     // Prioritize profilePictureUrl (uploaded image) over avatar (URL)
     const imageUrl = this.userProfile.profilePictureUrl || this.userProfile.avatar;
-
+    console.log("=====>" + imageUrl);
+    
     if (imageUrl && imageUrl.startsWith('/uploads/')) {
       return 'http://localhost:8080' + imageUrl;
     }
