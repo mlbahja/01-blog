@@ -16,21 +16,13 @@ import com.blog.blogger.models.Role;
 import com.blog.blogger.models.User;
 import com.blog.blogger.repository.CommentLikeRepository;
 import com.blog.blogger.repository.CommentRepository;
-import com.blog.blogger.repository.MessageRepository;
+// import com.blog.blogger.repository.MessageRepository;
 import com.blog.blogger.repository.PostLikeRepository;
 import com.blog.blogger.repository.PostRepository;
 import com.blog.blogger.repository.SubscriptionRepository;
 import com.blog.blogger.repository.UserRepository;
 
-/**
- * UserService - Handles user-related business logic
- *
- * Features:
- * - User registration and authentication
- * - Profile management (view, update, delete)
- * - Password management
- * - User data retrieval
- */
+
 @Service
 public class UserService {
 
@@ -38,7 +30,7 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final PostRepository postRepository;
     private final CommentRepository commentRepository;
-    private final MessageRepository messageRepository;
+    // private final MessageRepository messageRepository;
     private final PostLikeRepository postLikeRepository;
     private final CommentLikeRepository commentLikeRepository;
     private final SubscriptionRepository subscriptionRepository;
@@ -48,7 +40,7 @@ public class UserService {
             PasswordEncoder passwordEncoder,
             PostRepository postRepository,
             CommentRepository commentRepository,
-            MessageRepository messageRepository,
+            // MessageRepository messageRepository,
             PostLikeRepository postLikeRepository,
             CommentLikeRepository commentLikeRepository,
             SubscriptionRepository subscriptionRepository) {
@@ -56,13 +48,13 @@ public class UserService {
         this.passwordEncoder = passwordEncoder;
         this.postRepository = postRepository;
         this.commentRepository = commentRepository;
-        this.messageRepository = messageRepository;
+        //this.messageRepository = messageRepository;
         this.postLikeRepository = postLikeRepository;
         this.commentLikeRepository = commentLikeRepository;
         this.subscriptionRepository = subscriptionRepository;
     }
 
-    // ========== Authentication Methods ==========
+  
 
     public User register(User user) {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
@@ -70,20 +62,16 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    /**
-     * Try to login using either email or username as identifier. If the
-     * identifier matches an email or username and the password matches, returns
-     * the user.
-     */
+  
     public Optional<User> login(String identifier, String password) {
         if (identifier == null) {
             return Optional.empty();
         }
 
-        // Try email first
+     
         Optional<User> existingUser = userRepository.findByEmail(identifier);
         if (existingUser.isEmpty()) {
-            // Try username
+           
             existingUser = userRepository.findByUsername(identifier);
         }
 
@@ -94,7 +82,7 @@ public class UserService {
         return Optional.empty();
     }
 
-    // ========== User Retrieval Methods ==========
+  
 
     public Optional<User> getUserById(Long id) {
         return userRepository.findById(id);
@@ -118,7 +106,7 @@ public class UserService {
                 .collect(Collectors.toList());
     }
 
-    // ========== Profile Management Methods ==========
+  
 
     public UserProfileDTO getUserProfile(Long id) {
         User user = userRepository.findById(id)
@@ -130,8 +118,7 @@ public class UserService {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
 
-        // Update only non-null fields
-        // Empty strings are treated as clearing the field
+        
         if (dto.getFullName() != null) {
             user.setFullName(dto.getFullName().isEmpty() ? null : dto.getFullName());
         }
@@ -151,88 +138,77 @@ public class UserService {
         return convertToProfileDTO(updatedUser);
     }
 
-    // ========== Password Management ==========
+   
 
     public void changePassword(Long id, ChangePasswordDTO dto) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
 
-        // Verify current password
+      
         if (!passwordEncoder.matches(dto.getCurrentPassword(), user.getPassword())) {
             throw new RuntimeException("Current password is incorrect");
         }
 
-        // Verify new passwords match
+        
         if (!dto.getNewPassword().equals(dto.getConfirmPassword())) {
             throw new RuntimeException("New passwords do not match");
         }
 
-        // Validate new password
+      
         if (dto.getNewPassword().length() < 6) {
             throw new RuntimeException("New password must be at least 6 characters");
         }
 
-        // Update password
+       
         user.setPassword(passwordEncoder.encode(dto.getNewPassword()));
         userRepository.save(user);
     }
 
-    // ========== User Management Methods ==========
-
-    /**
-     * Delete a user and all their related data
-     * This method deletes:
-     * - All subscriptions (following/followers)
-     * - All post likes by the user
-     * - All comment likes by the user
-     * - All messages sent/received by the user
-     * - All posts by the user (which cascades to delete their comments)
-     * - Finally the user account itself
-     */
+    
     @Transactional
     public void deleteUser(Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
 
-        // 1. Delete all subscriptions where user is follower
+      
         List<com.blog.blogger.models.Subscription> asFollower = subscriptionRepository.findByFollower(user);
         subscriptionRepository.deleteAll(asFollower);
 
-        // 2. Delete all subscriptions where user is being followed
+        
         List<com.blog.blogger.models.Subscription> asFollowing = subscriptionRepository.findByFollowing(user);
         subscriptionRepository.deleteAll(asFollowing);
 
-        // 3. Delete all post likes by the user
+      
         List<com.blog.blogger.models.PostLike> postLikes = postLikeRepository.findAll().stream()
                 .filter(like -> like.getUser().getId().equals(id))
                 .collect(Collectors.toList());
         postLikeRepository.deleteAll(postLikes);
 
-        // 4. Delete all comment likes by the user
+        
         List<com.blog.blogger.models.CommentLike> commentLikes = commentLikeRepository.findAll().stream()
                 .filter(like -> like.getUser().getId().equals(id))
                 .collect(Collectors.toList());
         commentLikeRepository.deleteAll(commentLikes);
 
-        // 5. Delete all messages sent by the user
-        List<com.blog.blogger.models.Message> sentMessages = messageRepository.findBySenderOrderByCreatedAtDesc(user);
-        messageRepository.deleteAll(sentMessages);
+        
+        // List<com.blog.blogger.models.Message> sentMessages = messageRepository.findBySenderOrderByCreatedAtDesc(user);
+        // messageRepository.deleteAll(sentMessages);
 
-        // 6. Delete all messages received by the user
-        List<com.blog.blogger.models.Message> receivedMessages = messageRepository.findByReceiverOrderByCreatedAtDesc(user);
-        messageRepository.deleteAll(receivedMessages);
+  
+        // List<com.blog.blogger.models.Message> receivedMessages = messageRepository.findByReceiverOrderByCreatedAtDesc(user);
+        // messageRepository.deleteAll(receivedMessages);
 
-        // 7. Delete all comments by the user (need to do this before deleting posts)
+        
         List<com.blog.blogger.models.Comment> comments = commentRepository.findAll().stream()
                 .filter(comment -> comment.getAuthor().getId().equals(id))
                 .collect(Collectors.toList());
         commentRepository.deleteAll(comments);
 
-        // 8. Delete all posts by the user (this will cascade delete remaining related data)
+      
         List<com.blog.blogger.models.Post> posts = postRepository.findByAuthor(user);
         postRepository.deleteAll(posts);
 
-        // 9. Finally, delete the user
+        
         userRepository.delete(user);
     }
 
@@ -259,7 +235,7 @@ public class UserService {
         userRepository.save(user);
     }
 
-    // ========== Validation Methods ==========
+   
 
     public boolean existsByEmail(String email) {
         return userRepository.findByEmail(email).isPresent();
@@ -275,7 +251,7 @@ public class UserService {
                 .orElse(false);
     }
 
-    // ========== Helper Methods ==========
+ 
 
     public UserProfileDTO convertToProfileDTO(User user) {
         return UserProfileDTO.builder()

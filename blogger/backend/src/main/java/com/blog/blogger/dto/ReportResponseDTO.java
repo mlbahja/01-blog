@@ -14,7 +14,6 @@ public class ReportResponseDTO {
     private LocalDateTime createdAt;
     private String adminNotes;
     
-    // Constructor from Report entity
     public ReportResponseDTO(Report report) {
         this.id = report.getId();
         this.postId = report.getPost().getId();
@@ -27,7 +26,6 @@ public class ReportResponseDTO {
         this.adminNotes = report.getAdminNotes();
     }
     
-    // Getters only (read-only DTO)
     public Long getId() { return id; }
     public Long getPostId() { return postId; }
     public String getPostTitle() { return postTitle; }

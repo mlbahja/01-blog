@@ -17,12 +17,7 @@ import com.blog.blogger.models.User;
 import com.blog.blogger.repository.PostLikeRepository;
 import com.blog.blogger.repository.PostRepository;
 
-/**
- * PostService - Handles post-related business logic
- *
- * Note: Sample data initialization has been removed because Post/Comment/Response
- * now require User relationships. Create posts through the API after registering users.
- */
+
 @Service
 public class PostService {
 
@@ -38,26 +33,18 @@ public class PostService {
     @Autowired
     private com.blog.blogger.services.NotificationService notificationService;
 
-    /**
-     * Get all posts (excluding hidden posts for regular users)
-     */
     public Page<Post> getAllPosts(int page, int size) {
          Pageable pageable = PageRequest.of(page - 1, size, Sort.by("createdAt").descending());
         return postRepository.findByIsHiddenFalseOrIsHiddenIsNull(pageable);
     }
 
-    /**
-     * Get all posts including hidden (admin only)
-     */
+    
     public Page<Post> getAllPostsIncludingHidden(int page, int size) {
          Pageable pageable = PageRequest.of(page - 1, size, Sort.by("createdAt").descending());
         return postRepository.findAll(pageable);
     }
 
-    /**
-     * Get posts only from users that the current user follows
-     * If user doesn't follow anyone, returns empty list
-     */
+    
     public List<Post> getPostsFromFollowedUsers(String currentUsername) {
         List<Long> followingIds = subscriptionService.getFollowingIds(currentUsername);
         if (followingIds.isEmpty()) {
@@ -84,16 +71,13 @@ public class PostService {
         postRepository.deleteById(id);
     }
 
-    /**
-     * Update an existing post
-     * Returns the updated post or throws exception if not found
-     */
+    
     @Transactional
     public Post updatePost(Long id, Post updatedPost) {
         Post existingPost = postRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Post not found with id: " + id));
 
-        // Update fields
+        
         existingPost.setTitle(updatedPost.getTitle());
         existingPost.setContent(updatedPost.getContent());
         existingPost.setMediaType(updatedPost.getMediaType());
@@ -102,10 +86,7 @@ public class PostService {
         return postRepository.save(existingPost);
     }
 
-    /**
-     * Like a post
-     * If the user already liked the post, this does nothing
-     */
+    
     @Transactional
     public Post likePost(Long postId, User user) {
         Post post = postRepository.findById(postId)
@@ -129,10 +110,7 @@ public class PostService {
         return savedPost;
     }
 
-    /**
-     * Unlike a post
-     * If the user hasn't liked the post, this does nothing
-     */
+    
     @Transactional
     public Post unlikePost(Long postId, User user) {
         Post post = postRepository.findById(postId)
@@ -148,18 +126,14 @@ public class PostService {
         return postRepository.save(post);
     }
 
-    /**
-     * Check if a user has liked a specific post
-     */
+    
     public boolean hasUserLikedPost(Long postId, User user) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new RuntimeException("Post not found"));
         return postLikeRepository.existsByUserAndPost(user, post);
     }
 
-    /**
-     * Hide a post (admin only - soft delete)
-     */
+    
     @Transactional
     public Post hidePost(Long postId) {
         Post post = postRepository.findById(postId)
@@ -168,9 +142,7 @@ public class PostService {
         return postRepository.save(post);
     }
 
-    /**
-     * Unhide a post (admin only)
-     */
+    
     @Transactional
     public Post unhidePost(Long postId) {
         Post post = postRepository.findById(postId)

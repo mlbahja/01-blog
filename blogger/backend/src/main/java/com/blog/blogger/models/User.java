@@ -18,16 +18,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * User Entity - Represents a user in the blogging system
- *
- * Features:
- * - Authentication (username, email, password)
- * - Profile information (fullName, bio, avatar)
- * - Role-based access (USER, ADMIN)
- * - Account status (active/banned)
- * - Timestamps (createdAt, updatedAt)
- */
+
 @Entity
 @Table(name = "users")
 @Data

@@ -8,11 +8,6 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 import java.util.List;
 
-/**
- * PostDTO - Data Transfer Object for blog posts
- *
- * Used for returning post information with author details
- */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -28,9 +23,7 @@ public class PostDTO {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    /**
-     * Nested DTO for author information
-     */
+    
     @Data
     @NoArgsConstructor
     @AllArgsConstructor

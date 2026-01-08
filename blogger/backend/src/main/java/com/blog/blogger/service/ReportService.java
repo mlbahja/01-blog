@@ -26,57 +26,43 @@ public class ReportService {
     @Autowired
     private UserRepository userRepository;
     
-    /**
-     * Create a simple report
-     */
+    
     @Transactional
     public ReportResponseDTO createReport(CreateReportDTO dto, User reporter) {
-        // Find the post
+       
         Post post = postRepository.findById(dto.getPostId())
                 .orElseThrow(() -> new RuntimeException("Post not found"));
         
-        // Optional: Prevent duplicate reports from same user
-        // if (reportRepository.existsByReporterAndPost(reporter, post)) {
-        //     throw new RuntimeException("You already reported this post");
-        // }
+      
         
-        // Create report
+        
         Report report = new Report(reporter, post, dto.getMessage());
         report = reportRepository.save(report);
         
         return new ReportResponseDTO(report);
     }
     
-    /**
-     * Get all reports (admin)
-     */
+    
     public List<ReportResponseDTO> getAllReports() {
         return reportRepository.findAll().stream()
                 .map(ReportResponseDTO::new)
                 .collect(Collectors.toList());
     }
-    
-    /**
-     * Get unresolved reports (admin dashboard)
-     */
+   
     public List<ReportResponseDTO> getUnresolvedReports() {
         return reportRepository.findByResolvedFalse().stream()
                 .map(ReportResponseDTO::new)
                 .collect(Collectors.toList());
     }
     
-    /**
-     * Get user's own reports
-     */
+    
     public List<ReportResponseDTO> getUserReports(User user) {
         return reportRepository.findByReporter(user).stream()
                 .map(ReportResponseDTO::new)
                 .collect(Collectors.toList());
     }
     
-    /**
-     * Update report (mark as resolved)
-     */
+    
     @Transactional
     public ReportResponseDTO updateReport(Long reportId, UpdateReportDTO dto) {
         Report report = reportRepository.findById(reportId)
@@ -89,17 +75,13 @@ public class ReportService {
         return new ReportResponseDTO(report);
     }
     
-    /**
-     * Delete report
-     */
+    
     @Transactional
     public void deleteReport(Long id) {
         reportRepository.deleteById(id);
     }
     
-    /**
-     * Count unresolved (for admin badge)
-     */
+    
     public long countUnresolvedReports() {
         return reportRepository.countByResolvedFalse();
     }

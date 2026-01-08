@@ -17,17 +17,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Comment Entity - Represents a comment on a blog post
- *
- * Features:
- * - Comment content
- * - Author relationship (ManyToOne with User)
- * - Post relationship (ManyToOne with Post)
- * - Responses/Replies (OneToMany relationship)
- * - Engagement metrics (like count)
- * - Timestamps (createdAt, updatedAt)
- */
+
 @Entity
 @Table(name = "comments")
 @Data

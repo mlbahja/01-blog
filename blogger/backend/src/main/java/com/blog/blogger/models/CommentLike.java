@@ -11,11 +11,7 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 
-/**
- * CommentLike Entity - Tracks which users liked which comments
- *
- * Prevents duplicate likes (unique constraint on user + comment)
- */
+
 @Entity
 @Table(name = "comment_likes", uniqueConstraints = {
     @UniqueConstraint(columnNames = {"user_id", "comment_id"})

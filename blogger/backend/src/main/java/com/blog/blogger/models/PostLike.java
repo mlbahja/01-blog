@@ -9,12 +9,7 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 
-/**
- * PostLike Entity - Represents a user's like on a post
- *
- * This is a junction table that tracks the many-to-many relationship
- * between Users and Posts (which users liked which posts)
- */
+
 @Entity
 @Table(name = "post_likes", uniqueConstraints = {
     @UniqueConstraint(columnNames = {"user_id", "post_id"})

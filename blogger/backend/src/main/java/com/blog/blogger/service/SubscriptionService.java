@@ -25,9 +25,6 @@ public class SubscriptionService {
     @Autowired
     private com.blog.blogger.services.NotificationService notificationService;
 
-    /**
-     * Follow a user
-     */
     @Transactional
     public Subscription followUser(String currentUsername, Long userIdToFollow) {
         User follower = userRepository.findByUsername(currentUsername)
@@ -36,12 +33,12 @@ public class SubscriptionService {
         User following = userRepository.findById(userIdToFollow)
                 .orElseThrow(() -> new RuntimeException("User to follow not found"));
 
-        // Check if user is trying to follow themselves
+       
         if (follower.getId().equals(following.getId())) {
             throw new RuntimeException("Cannot follow yourself");
         }
 
-        // Check if already following
+       
         if (subscriptionRepository.existsByFollowerAndFollowing(follower, following)) {
             throw new RuntimeException("Already following this user");
         }
@@ -53,15 +50,13 @@ public class SubscriptionService {
 
         Subscription savedSubscription = subscriptionRepository.save(subscription);
 
-        // Notify the followed user about the new follower
+        
         notificationService.notifyUserAboutNewFollower(following, follower);
 
         return savedSubscription;
     }
 
-    /**
-     * Unfollow a user
-     */
+    
     @Transactional
     public void unfollowUser(String currentUsername, Long userIdToUnfollow) {
         User follower = userRepository.findByUsername(currentUsername)
@@ -73,9 +68,6 @@ public class SubscriptionService {
         subscriptionRepository.deleteByFollowerAndFollowing(follower, following);
     }
 
-    /**
-     * Check if current user is following another user
-     */
     public boolean isFollowing(String currentUsername, Long userId) {
         User follower = userRepository.findByUsername(currentUsername)
                 .orElseThrow(() -> new RuntimeException("Current user not found"));
@@ -86,9 +78,7 @@ public class SubscriptionService {
         return subscriptionRepository.existsByFollowerAndFollowing(follower, following);
     }
 
-    /**
-     * Get all users that current user follows
-     */
+   
     public List<Map<String, Object>> getFollowing(String currentUsername) {
         User user = userRepository.findByUsername(currentUsername)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -108,9 +98,7 @@ public class SubscriptionService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Get all followers of current user
-     */
+    
     public List<Map<String, Object>> getFollowers(String currentUsername) {
         User user = userRepository.findByUsername(currentUsername)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -130,9 +118,7 @@ public class SubscriptionService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Get follow statistics for a user
-     */
+    
     public Map<String, Object> getFollowStats(String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -144,9 +130,7 @@ public class SubscriptionService {
         return stats;
     }
 
-    /**
-     * Get IDs of all users that current user follows (for filtering posts)
-     */
+    
     public List<Long> getFollowingIds(String currentUsername) {
         User user = userRepository.findByUsername(currentUsername)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -158,10 +142,7 @@ public class SubscriptionService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Get all followers of a user (returns User objects)
-     * Used by NotificationService to notify followers
-     */
+   
     public List<User> getFollowers(User user) {
         List<Subscription> subscriptions = subscriptionRepository.findByFollowing(user);
         return subscriptions.stream()

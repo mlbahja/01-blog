@@ -6,11 +6,7 @@ import lombok.NoArgsConstructor;
 
 import java.util.List;
 
-/**
- * CreatePostDTO - Data Transfer Object for creating new posts
- *
- * Contains only the fields needed to create a post
- */
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

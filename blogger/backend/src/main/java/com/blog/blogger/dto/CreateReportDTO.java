@@ -5,7 +5,7 @@ public class CreateReportDTO {
     private Long postId;      // Which post to report
     private String message;   // What's wrong with it
     
-    // Getters and setters
+  
     public Long getPostId() { return postId; }
     public void setPostId(Long postId) { this.postId = postId; }
     

@@ -12,9 +12,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.UUID;
 
-/**
- * Service for handling file uploads and storage
- */
+
 @Service
 public class FileStorageService {
 
@@ -30,20 +28,17 @@ public class FileStorageService {
         }
     }
 
-    /**
-     * Store a file and return its filename
-     */
+   
     public String storeFile(MultipartFile file) {
-        // Normalize file name
+      
         String originalFilename = StringUtils.cleanPath(file.getOriginalFilename());
 
         try {
-            // Check if file contains invalid characters
             if (originalFilename.contains("..")) {
                 throw new RuntimeException("Invalid file path: " + originalFilename);
             }
 
-            // Generate unique filename
+           
             String fileExtension = "";
             int dotIndex = originalFilename.lastIndexOf('.');
             if (dotIndex > 0) {
@@ -51,7 +46,7 @@ public class FileStorageService {
             }
             String uniqueFilename = UUID.randomUUID().toString() + fileExtension;
 
-            // Copy file to the target location
+           
             Path targetLocation = this.fileStorageLocation.resolve(uniqueFilename);
             Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
 
@@ -61,16 +56,12 @@ public class FileStorageService {
         }
     }
 
-    /**
-     * Get the file storage path
-     */
+    
     public Path getFileStorageLocation() {
         return fileStorageLocation;
     }
 
-    /**
-     * Delete a file
-     */
+    
     public void deleteFile(String filename) {
         try {
             Path filePath = this.fileStorageLocation.resolve(filename).normalize();
@@ -80,9 +71,7 @@ public class FileStorageService {
         }
     }
 
-    /**
-     * Determine media type from file
-     */
+   
     public String determineMediaType(MultipartFile file) {
         String contentType = file.getContentType();
 

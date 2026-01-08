@@ -11,16 +11,7 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 
-/**
- * Subscription Entity - Represents a follow relationship between users
- *
- * follower: The user who is following
- * following: The user being followed
- *
- * Example: If User A follows User B:
- *   - follower = User A
- *   - following = User B
- */
+
 @Entity
 @Table(name = "subscriptions", uniqueConstraints = {
     @UniqueConstraint(columnNames = {"follower_id", "following_id"})

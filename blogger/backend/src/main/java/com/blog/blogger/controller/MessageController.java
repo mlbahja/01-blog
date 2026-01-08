@@ -1,144 +1,134 @@
 
-package com.blog.blogger.controller;
+// package com.blog.blogger.controller;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+// import java.util.HashMap;
+// import java.util.List;
+// import java.util.Map;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+// import org.springframework.beans.factory.annotation.Autowired;
+// import org.springframework.http.ResponseEntity;
+// import org.springframework.security.core.annotation.AuthenticationPrincipal;
+// import org.springframework.web.bind.annotation.CrossOrigin;
+// import org.springframework.web.bind.annotation.DeleteMapping;
+// import org.springframework.web.bind.annotation.GetMapping;
+// import org.springframework.web.bind.annotation.PathVariable;
+// import org.springframework.web.bind.annotation.PostMapping;
+// import org.springframework.web.bind.annotation.PutMapping;
+// import org.springframework.web.bind.annotation.RequestBody;
+// import org.springframework.web.bind.annotation.RequestMapping;
+// import org.springframework.web.bind.annotation.RestController;
 
-import com.blog.blogger.models.Message;
-import com.blog.blogger.models.User;
-import com.blog.blogger.repository.UserRepository;
-import com.blog.blogger.service.MessageService;
+// import com.blog.blogger.models.Message;
+// import com.blog.blogger.models.User;
+// import com.blog.blogger.repository.UserRepository;
+// import com.blog.blogger.service.MessageService;
 
-@RestController
-@RequestMapping("/auth/messages")
-@CrossOrigin(origins = "http://localhost:4200")
-public class MessageController {
+// @RestController
+// @RequestMapping("/auth/messages")
+// @CrossOrigin(origins = "http://localhost:4200")
+// public class MessageController {
+//     @Autowired
+//     private MessageService messageService;
+//     @Autowired
+//     private UserRepository userRepository;
+//     /**
+//      * Check if user is banned and throw exception if so
+//      */
+//     private void checkUserBanned(User user) {
+//         if (user.getIsBanned() != null && user.getIsBanned()) {
+//             throw new RuntimeException("User account is banned and cannot perform this action");
+//         }
+//     }
+//     /**
+//      * Send a message to another user
+//      * POST /auth/messages
+//      * Body: { "receiverId": 123, "content": "Hello!" }
+//      */
+//     @PostMapping
+//     public ResponseEntity<?> sendMessage(@RequestBody Map<String, Object> payload, @AuthenticationPrincipal User currentUser) {
+//         try {
+//             // Check if user is banned
+//             checkUserBanned(currentUser);
 
-    @Autowired
-    private MessageService messageService;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    /**
-     * Check if user is banned and throw exception if so
-     */
-    private void checkUserBanned(User user) {
-        if (user.getIsBanned() != null && user.getIsBanned()) {
-            throw new RuntimeException("User account is banned and cannot perform this action");
-        }
-    }
-
-    /**
-     * Send a message to another user
-     * POST /auth/messages
-     * Body: { "receiverId": 123, "content": "Hello!" }
-     */
-    @PostMapping
-    public ResponseEntity<?> sendMessage(@RequestBody Map<String, Object> payload, @AuthenticationPrincipal User currentUser) {
-        try {
-            // Check if user is banned
-            checkUserBanned(currentUser);
-
-            Long receiverId = Long.valueOf(payload.get("receiverId").toString());
-            String content = payload.get("content").toString();
-
-            Message message = messageService.sendMessage(currentUser.getUsername(), receiverId, content);
-
-            Map<String, Object> response = new HashMap<>();
-            response.put("id", message.getId());
-            response.put("content", message.getContent());
-            response.put("createdAt", message.getCreatedAt());
-            response.put("message", "Message sent successfully");
-
-            return ResponseEntity.ok(response);
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
-        }
-    }
-
-    /**
-     * Get conversation with another user
-     * GET /auth/messages/conversation/{userId}
-     */
-    @GetMapping("/conversation/{userId}")
-    public ResponseEntity<?> getConversation(@PathVariable Long userId, @AuthenticationPrincipal User currentUser) {
-        try {
-            List<Map<String, Object>> messages = messageService.getConversation(currentUser.getUsername(), userId);
-            return ResponseEntity.ok(messages);
+//             Long receiverId = Long.valueOf(payload.get("receiverId").toString());
+//             String content = payload.get("content").toString();
+//             Message message = messageService.sendMessage(currentUser.getUsername(), receiverId, content);
+//             Map<String, Object> response = new HashMap<>();
+//             response.put("id", message.getId());
+//             response.put("content", message.getContent());
+//             response.put("createdAt", message.getCreatedAt());
+//             response.put("message", "Message sent successfully");
+//             return ResponseEntity.ok(response);
+//         } catch (RuntimeException e) {
+//             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+//         }
+//     }
+//     /**
+//      * Get conversation with another user
+//      * GET /auth/messages/conversation/{userId}
+//      */
+//     @GetMapping("/conversation/{userId}")
+//     public ResponseEntity<?> getConversation(@PathVariable Long userId, @AuthenticationPrincipal User currentUser) {
+//         try {
+//             List<Map<String, Object>> messages = messageService.getConversation(currentUser.getUsername(), userId);
+//             return ResponseEntity.ok(messages);
             
-        } catch (RuntimeException e) {
-            System.out.println("=====>" + e);
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
-        }
-    }
+//         } catch (RuntimeException e) {
+//             System.out.println("=====>" + e);
+//             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+//         }
+//     }
+//     /**
+//      * Get all conversations for current user
+//      * GET /auth/messages/conversations
+//      */
+//     @GetMapping("/conversations")
+//     public ResponseEntity<?> getConversations(@AuthenticationPrincipal User currentUser) {
+//         try {
+//             List<Map<String, Object>> conversations = messageService.getConversations(currentUser.getUsername());
+//             return ResponseEntity.ok(conversations);
+//         } catch (RuntimeException e) {
+//             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+//         }
+//     }
+//     /**
+//      * Mark messages as read
+//      * PUT /auth/messages/read/{userId}
+//      */
+//     @PutMapping("/read/{userId}")
+//     public ResponseEntity<?> markAsRead(@PathVariable Long userId, @AuthenticationPrincipal User currentUser) {
+//         try {
+//             messageService.markMessagesAsRead(currentUser.getUsername(), userId);
+//             return ResponseEntity.ok(Map.of("message", "Messages marked as read"));
+//         } catch (RuntimeException e) {
+//             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+//         }
+//     }
 
-    /**
-     * Get all conversations for current user
-     * GET /auth/messages/conversations
-     */
-    @GetMapping("/conversations")
-    public ResponseEntity<?> getConversations(@AuthenticationPrincipal User currentUser) {
-        try {
-            List<Map<String, Object>> conversations = messageService.getConversations(currentUser.getUsername());
-            return ResponseEntity.ok(conversations);
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
-        }
-    }
+//     /**
+//      * Get unread message count
+//      * GET /auth/messages/unread-count
+//      */
+//     @GetMapping("/unread-count")
+//     public ResponseEntity<Long> getUnreadCount(@AuthenticationPrincipal User currentUser) {
+//         long count = messageService.getUnreadCount(currentUser.getUsername());
+//         return ResponseEntity.ok(count);
+//     }
 
-    /**
-     * Mark messages as read
-     * PUT /auth/messages/read/{userId}
-     */
-    @PutMapping("/read/{userId}")
-    public ResponseEntity<?> markAsRead(@PathVariable Long userId, @AuthenticationPrincipal User currentUser) {
-        try {
-            messageService.markMessagesAsRead(currentUser.getUsername(), userId);
-            return ResponseEntity.ok(Map.of("message", "Messages marked as read"));
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
-        }
-    }
+//     /**
+//      * Delete a message
+//      * DELETE /auth/messages/{messageId}
+//      */
+//     @DeleteMapping("/{messageId}")
+//     public ResponseEntity<?> deleteMessage(@PathVariable Long messageId, @AuthenticationPrincipal User currentUser) {
+//         try {
+//             // Check if user is banned
+//             checkUserBanned(currentUser);
 
-    /**
-     * Get unread message count
-     * GET /auth/messages/unread-count
-     */
-    @GetMapping("/unread-count")
-    public ResponseEntity<Long> getUnreadCount(@AuthenticationPrincipal User currentUser) {
-        long count = messageService.getUnreadCount(currentUser.getUsername());
-        return ResponseEntity.ok(count);
-    }
-
-    /**
-     * Delete a message
-     * DELETE /auth/messages/{messageId}
-     */
-    @DeleteMapping("/{messageId}")
-    public ResponseEntity<?> deleteMessage(@PathVariable Long messageId, @AuthenticationPrincipal User currentUser) {
-        try {
-            // Check if user is banned
-            checkUserBanned(currentUser);
-
-            messageService.deleteMessage(currentUser.getUsername(), messageId);
-            return ResponseEntity.ok(Map.of("message", "Message deleted successfully"));
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
-        }
-    }
-}
+//             messageService.deleteMessage(currentUser.getUsername(), messageId);
+//             return ResponseEntity.ok(Map.of("message", "Message deleted successfully"));
+//         } catch (RuntimeException e) {
+//             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+//         }
+//     }
+// }

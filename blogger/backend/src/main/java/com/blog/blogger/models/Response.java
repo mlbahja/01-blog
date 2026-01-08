@@ -14,15 +14,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 
-/**
- * Response Entity - Represents a reply to a comment
- *
- * Features:
- * - Response content
- * - Author relationship (ManyToOne with User)
- * - Comment relationship (ManyToOne with Comment)
- * - Timestamps (createdAt, updatedAt)
- */
+
 @Entity
 @Table(name = "responses")
 @Data

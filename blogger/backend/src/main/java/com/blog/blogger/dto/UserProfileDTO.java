@@ -8,12 +8,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
-/**
- * UserProfileDTO - Data Transfer Object for user profile
- *
- * Used for returning user profile information without exposing sensitive data
- * (password is excluded)
- */
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

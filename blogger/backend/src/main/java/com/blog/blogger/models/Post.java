@@ -16,16 +16,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Post Entity - Represents a blog post
- *
- * Features:
- * - Post content (title, content, tags)
- * - Author relationship (ManyToOne with User)
- * - Comments (OneToMany relationship)
- * - Engagement metrics (like count)
- * - Timestamps (createdAt, updatedAt)
- */
+
 @Entity
 @Table(name = "posts")
 @Data
