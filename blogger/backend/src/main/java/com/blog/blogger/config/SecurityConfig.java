@@ -1,5 +1,7 @@
 package com.blog.blogger.config;
 
+import java.util.Arrays;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -21,8 +23,6 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.blog.blogger.security.CustomUserDetailsService;
 import com.blog.blogger.security.JwtAuthenticationFilter;
-
-import java.util.Arrays;
 
 @Configuration
 @EnableWebSecurity
@@ -56,16 +56,12 @@ public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Excepti
             // In your security/SecurityConfig.java
 
 
-
-
-
-
-
-
             .requestMatchers(HttpMethod.POST, "/auth/reports").authenticated()
             .requestMatchers(HttpMethod.GET, "/auth/reports/my").authenticated()
             .requestMatchers("/auth/reports/admin/**").hasRole("ADMIN")
             // Notification endpoints - require authentication
+            .requestMatchers("/auth/admin/**").hasRole("ADMIN")
+
             .requestMatchers("/auth/notifications/**").authenticated()
             // All other requests require authentication
             .anyRequest().authenticated()

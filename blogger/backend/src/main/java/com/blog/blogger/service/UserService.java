@@ -14,14 +14,14 @@ import com.blog.blogger.dto.UpdateProfileDTO;
 import com.blog.blogger.dto.UserProfileDTO;
 import com.blog.blogger.models.Role;
 import com.blog.blogger.models.User;
+import com.blog.blogger.repositories.NotificationRepository;
 import com.blog.blogger.repository.CommentLikeRepository;
 import com.blog.blogger.repository.CommentRepository;
-// import com.blog.blogger.repository.MessageRepository;
 import com.blog.blogger.repository.PostLikeRepository;
 import com.blog.blogger.repository.PostRepository;
+import com.blog.blogger.repository.ReportRepository;
 import com.blog.blogger.repository.SubscriptionRepository;
 import com.blog.blogger.repository.UserRepository;
-
 
 @Service
 public class UserService {
@@ -30,30 +30,32 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final PostRepository postRepository;
     private final CommentRepository commentRepository;
-    // private final MessageRepository messageRepository;
     private final PostLikeRepository postLikeRepository;
     private final CommentLikeRepository commentLikeRepository;
     private final SubscriptionRepository subscriptionRepository;
+    private final NotificationRepository notificationRepository;
+    private final ReportRepository reportRepository;
 
     public UserService(
             UserRepository userRepository,
             PasswordEncoder passwordEncoder,
             PostRepository postRepository,
             CommentRepository commentRepository,
-            // MessageRepository messageRepository,
             PostLikeRepository postLikeRepository,
             CommentLikeRepository commentLikeRepository,
-            SubscriptionRepository subscriptionRepository) {
+            SubscriptionRepository subscriptionRepository,
+            NotificationRepository notificationRepository,
+            ReportRepository reportRepository) { // Fixed - only once!
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.postRepository = postRepository;
         this.commentRepository = commentRepository;
-        //this.messageRepository = messageRepository;
         this.postLikeRepository = postLikeRepository;
         this.commentLikeRepository = commentLikeRepository;
         this.subscriptionRepository = subscriptionRepository;
+        this.notificationRepository = notificationRepository;
+        this.reportRepository = reportRepository;
     }
-
   
 
     public User register(User user) {
@@ -130,6 +132,7 @@ public class UserService {
             user.setAvatar(avatar.isEmpty() ? null : avatar);
         }
         if (dto.getProfilePictureUrl() != null) {
+            
             String profilePicUrl = dto.getProfilePictureUrl().trim();
             user.setProfilePictureUrl(profilePicUrl.isEmpty() ? null : profilePicUrl);
         }
@@ -170,7 +173,8 @@ public class UserService {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
 
-      
+        notificationRepository.deleteByUser(user);
+
         List<com.blog.blogger.models.Subscription> asFollower = subscriptionRepository.findByFollower(user);
         subscriptionRepository.deleteAll(asFollower);
 
@@ -198,15 +202,27 @@ public class UserService {
         // List<com.blog.blogger.models.Message> receivedMessages = messageRepository.findByReceiverOrderByCreatedAtDesc(user);
         // messageRepository.deleteAll(receivedMessages);
 
-        
+        notificationRepository.deleteByUser(user);
+
+        List<com.blog.blogger.models.Post> posts = postRepository.findByAuthor(user);
+        for (com.blog.blogger.models.Post post : posts) {
+            postLikeRepository.deleteByPost(post);
+
+            List<com.blog.blogger.models.Comment> postComments = commentRepository.findByPost(post);
+            for (com.blog.blogger.models.Comment comment : postComments) {
+                commentLikeRepository.deleteByComment(comment);
+            }
+            commentRepository.deleteAll(postComments);
+            reportRepository.deleteByPost(post);
+        }
+        postRepository.deleteAll(posts);
+
+        reportRepository.deleteByReporter(user);
+
         List<com.blog.blogger.models.Comment> comments = commentRepository.findAll().stream()
                 .filter(comment -> comment.getAuthor().getId().equals(id))
                 .collect(Collectors.toList());
         commentRepository.deleteAll(comments);
-
-      
-        List<com.blog.blogger.models.Post> posts = postRepository.findByAuthor(user);
-        postRepository.deleteAll(posts);
 
         
         userRepository.delete(user);
@@ -268,4 +284,6 @@ public class UserService {
                 .updatedAt(user.getUpdatedAt())
                 .build();
     }
+
+    
 }

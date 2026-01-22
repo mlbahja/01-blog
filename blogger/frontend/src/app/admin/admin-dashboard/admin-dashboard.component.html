@@ -2,12 +2,22 @@
   <div class="dashboard-header">
     <h1>Admin Dashboard</h1>
     <div class="header-actions">
+
       <button (click)="refreshStats()" class="btn btn-outline" [disabled]="loading">
         Refresh
       </button>
+
       <button routerLink="/admin/users" class="btn btn-primary">
         Manage Users
       </button>
+
+      <button routerLink="/admin/reports">
+        Reports
+      </button>
+      <button routerLink="/admin/posts" class="btn btn-primary">
+        Manage Posts
+      </button>
+
       <button routerLink="/home" class="btn btn-secondary">
         Back to Home
       </button>

@@ -255,7 +255,7 @@
   color: white;
 }
 
-/* Comments Section */
+/* Comments Section
 .comments-section {
   margin: 60px 0;
 }
@@ -354,7 +354,350 @@
   color: #7f8c8d;
   background: #f8f9fa;
   border-radius: 8px;
+} */
+
+/* comments  */
+
+/* Comments Section - Updated Version */
+.comments-section {
+  margin: 60px 0;
+  padding-top: 40px;
+  border-top: 1px solid #eee;
 }
+
+.comments-section h3 {
+  margin-bottom: 30px;
+  font-size: 24px;
+  color: #2c3e50;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.comments-section h3::before {
+  content: "";
+  display: block;
+  width: 4px;
+  height: 24px;
+  background-color: #CAA54D;
+  border-radius: 2px;
+}
+
+/* Add Comment Form */
+.add-comment {
+  margin: 30px 0;
+  padding: 25px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #fff 100%);
+  border-radius: 12px;
+  border: 1px solid #e9ecef;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.comment-input {
+  width: 100%;
+  padding: 16px;
+  border: 2px solid #e9ecef;
+  border-radius: 10px;
+  font-size: 16px;
+  font-family: inherit;
+  resize: vertical;
+  margin-bottom: 15px;
+  min-height: 120px;
+  line-height: 1.6;
+  transition: all 0.3s ease;
+  background-color: white;
+}
+
+.comment-input:focus {
+  outline: none;
+  border-color: #CAA54D;
+  box-shadow: 0 0 0 4px rgba(202, 165, 77, 0.15);
+  transform: translateY(-2px);
+}
+
+.comment-input::placeholder {
+  color: #adb5bd;
+  font-size: 15px;
+}
+
+.submit-comment-btn {
+  background: linear-gradient(135deg, #CAA54D 0%, #b89440 100%);
+  color: white;
+  border: none;
+  padding: 14px 32px;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(202, 165, 77, 0.25);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.submit-comment-btn:hover:not(:disabled) {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 16px rgba(202, 165, 77, 0.35);
+  background: linear-gradient(135deg, #b89440 0%, #a68436 100%);
+}
+
+.submit-comment-btn:active:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.submit-comment-btn:disabled {
+  background: #ced4da;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
+/* Comments List */
+.comments-list {
+  margin-top: 40px;
+}
+
+/* Individual Comment */
+.comment {
+  background: white;
+  padding: 24px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  border-left: 4px solid #CAA54D;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.comment:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+  border-left-width: 6px;
+}
+
+.comment::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #CAA54D, transparent);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.comment:hover::before {
+  opacity: 1;
+}
+
+/* Comment Header */
+.comment-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.comment-author {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.comment-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #CAA54D;
+  background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+  padding: 2px;
+  transition: transform 0.3s ease;
+}
+
+.comment:hover .comment-avatar {
+  transform: scale(1.05);
+}
+
+.comment-author-name {
+  font-weight: 700;
+  color: #2c3e50;
+  font-size: 17px;
+}
+
+.comment-date {
+  color: #7f8c8d;
+  font-size: 14px;
+  background: #f8f9fa;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-weight: 500;
+  border: 1px solid #e9ecef;
+}
+
+/* Comment Text - FIXED FOR LONG TEXT */
+.comment-text {
+  margin: 0;
+  line-height: 1.7;
+  color: #495057;
+  font-size: 16px;
+  padding: 12px 0;
+  position: relative;
+  
+  /* Fix for long unbroken text */
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  hyphens: auto;
+  
+  /* Ensure proper text flow */
+  white-space: pre-wrap;
+  overflow: visible;
+  max-width: 100%;
+}
+
+/* Add subtle border between comments */
+.comment + .comment {
+  border-top: 1px solid #f1f3f5;
+  padding-top: 28px;
+  margin-top: 28px;
+}
+
+/* No Comments */
+.no-comments {
+  text-align: center;
+  padding: 60px 40px;
+  color: #7f8c8d;
+  background: linear-gradient(135deg, #f8f9fa, #fff);
+  border-radius: 12px;
+  border: 2px dashed #dee2e6;
+  margin: 40px 0;
+}
+
+.load-more-comments {
+  margin-top: 16px;
+  background: none;
+  border: 1px solid #e1e4e8;
+  color: #2c3e50;
+  padding: 8px 18px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.load-more-comments:hover {
+  border-color: #00796b;
+  color: #00796b;
+}
+
+.no-comments p {
+  font-size: 18px;
+  margin: 0;
+  color: #6c757d;
+  font-style: normal;
+  font-weight: 500;
+}
+
+.no-comments::before {
+  content: "💬";
+  font-size: 48px;
+  display: block;
+  margin-bottom: 20px;
+  opacity: 0.6;
+}
+
+/* Responsive Design for Comments */
+@media (max-width: 768px) {
+  .comments-section {
+    margin: 40px 0;
+    padding-top: 30px;
+  }
+  
+  .add-comment {
+    padding: 20px;
+    margin: 25px 0;
+  }
+  
+  .comment {
+    padding: 20px;
+  }
+  
+  .comment-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  
+  .comment-date {
+    margin-left: 62px; /* Align with text below avatar */
+    align-self: flex-start;
+  }
+  
+  .comment-author {
+    width: 100%;
+  }
+  
+  .submit-comment-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 16px;
+  }
+}
+
+/* Animation for new comments */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.comment {
+  animation: slideIn 0.4s ease-out;
+}
+
+/* Optional: Add scrollbar styling for very long comments */
+.comment-text {
+  max-height: none; /* Remove if you want to limit height */
+}
+
+/* If you want to add a max height with scrollbar */
+.comment-text.scrollable {
+  max-height: 200px;
+  overflow-y: auto;
+  padding-right: 10px;
+}
+
+.comment-text.scrollable::-webkit-scrollbar {
+  width: 6px;
+}
+
+.comment-text.scrollable::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.comment-text.scrollable::-webkit-scrollbar-thumb {
+  background: #CAA54D;
+  border-radius: 3px;
+}
+
+.comment-text.scrollable::-webkit-scrollbar-thumb:hover {
+  background: #b89440;
+}
+
+/* comments  */
+
 
 /* Related Posts */
 .related-posts {

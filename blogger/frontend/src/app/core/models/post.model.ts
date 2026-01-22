@@ -5,6 +5,7 @@ export interface Post {
   content: string;
   author: PostAuthor;
   likeCount: number;
+  isHidden: boolean; // important
   isLiked?: boolean; 
   tags: string[];
   commentCount?: number;

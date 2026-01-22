@@ -7,6 +7,9 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { AuthService } from '../../core/services/auth.service';
 import { PostService } from '../../core/services/post.service';
 import { ToastService } from '../../core/services/toast.service';
+import { UserProfile } from '../../core/models/user.model';
+
+
 
 @Component({
   selector: 'app-post-detail',
@@ -21,9 +24,15 @@ export class PostDetailComponent implements OnInit {
   loading: boolean = true;
   error: string = '';
 
+
   // For comments
   newComment: string = '';
   submittingComment: boolean = false;
+  comments: any[] = [];
+  commentsTotal: number = 0;
+  commentsTotalPages: number = 0;
+  commentsCurrentPage: number = 0;
+  commentPageSize: number = 5;
 
   // For editing
   isEditing: boolean = false;
@@ -42,11 +51,11 @@ export class PostDetailComponent implements OnInit {
     private toastService: ToastService,
     private http: HttpClient,
     private sanitizer: DomSanitizer
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.route.params.subscribe((params) => {
-      this.postId = +params['id'];
+      this.postId = + params['id'];
       this.loadPost();
     });
   }
@@ -54,12 +63,15 @@ export class PostDetailComponent implements OnInit {
   loadPost(): void {
     this.loading = true;
     this.error = '';
-
+    console.log("====>  ", this.post);
     this.postService.getPostById(this.postId).subscribe({
       next: (post) => {
         this.post = post;
+        this.comments = post.comments || [];
+        this.commentsTotal = post.comments?.length || 0;
         this.loading = false;
         this.loadRelatedPosts();
+        this.loadComments(0, false);
         console.log('Post loaded:', post);
       },
       error: (error) => {
@@ -75,8 +87,117 @@ export class PostDetailComponent implements OnInit {
     });
   }
 
+  //  canDeletComment(post:any): boolean {
+  //     const userData = this.authService.getUserData();
+
+  //     if (!userData) {
+  //       return false;
+  //     }
+
+  //     const isAdmin = userData.role === 'ADMIN';
+  //     if (isAdmin) {
+  //       return true;
+  //     }
+
+  //     if (!post.author) {
+  //       return false;
+  //     }
+
+  //     const isOwner = post.author.id === userData.id;
+  //     return isOwner;
+  //   }
+  //   confirmDeleteComment(postId: number, postTitle: string) {
+  //     const confirmDelete = confirm(
+  //       `Are you sure you want to delete "${postTitle}"?\n\nThis action cannot be undone.`,
+  //     );
+
+  //     if (confirmDelete) {
+  //       this.deletePost(postId);
+  //     }
+  //   }
+
+  // Add this method to check if user can delete a comment
+  canDeleteComment(comment: any): boolean {
+    const userData = this.authService.getUserData();
+
+    if (!userData) {
+      return false;
+    }
+
+    const isAdmin = userData.role === 'ADMIN';
+    if (isAdmin) {
+      return true;
+    }
+
+    if (!comment.author) {
+      return false;
+    }
+
+    const isOwner = comment.author.id === userData.id;
+    return isOwner;
+  }
+
+  /////////////////////////////////////
+
+  // Add method to delete a comment
+  // In PostDetailComponent
+  deleteComment(commentId: number): void {
+    const confirmDelete = confirm('Are you sure you want to delete this comment?');
+
+    if (!confirmDelete) {
+      return;
+    }
+
+    this.postService.deleteComment(this.postId, commentId).subscribe({
+      next: () => {
+        this.toastService.show('Comment deleted successfully!', 'success');
+        this.loadComments(0, false);
+      },
+      error: (error: any) => {
+        console.error('Error deleting comment:', error);
+        this.toastService.show('Failed to delete comment', 'error');
+      },
+    });
+  }
+
+  loadComments(page: number = 0, append: boolean = false): void {
+    this.postService.getComments(this.postId, page, this.commentPageSize).subscribe({
+      next: (response: any) => {
+        const comments = response.comments || [];
+        if (!append) {
+          this.comments = comments;
+        } else {
+          this.comments = this.comments.concat(comments);
+        }
+        this.commentsTotal = response.total || 0;
+        this.commentsTotalPages = response.totalPages || 0;
+        this.commentsCurrentPage = response.currentPage || page;
+      },
+      error: () => {
+        this.toastService.show('Failed to load comments', 'error');
+      },
+    });
+  }
+
+  loadMoreComments(): void {
+    const nextPage = this.commentsCurrentPage + 1;
+    if (nextPage >= this.commentsTotalPages) {
+      return;
+    }
+    this.loadComments(nextPage, true);
+  }
+
+  // Also add this method to check if it's your own comment
+  isMyComment(comment: any): boolean {
+    const userData = this.authService.getUserData();
+    return comment.author?.id === userData?.id;
+  }
+
   loadRelatedPosts(): void {
     if (this.post && this.post.author) {
+      console.log(" dkhola lhna=============+> " + this.post);
+
+
       this.postService.getPostsFromFollowedUsers(1, 5).subscribe({
         next: (posts) => {
           this.relatedPosts = posts.filter((p: any) => p.id !== this.postId).slice(0, 3);
@@ -88,43 +209,65 @@ export class PostDetailComponent implements OnInit {
     }
   }
   calculateReadTime(content: string): number {
-  if (!content) return 0;
-  const words = content.trim().split(/\s+/).length;
-  return Math.ceil(words / 200);
-}
-
-formatContent(content: string): SafeHtml {
-  if (!content) {
-    return '';
+    if (!content) return 0;
+    const words = content.trim().split(/\s+/).length;
+    return Math.ceil(words / 200);
   }
 
-  // Replace newlines with <br> tags
-  const formattedContent = content.replace(/\n/g, '<br>');
+  formatContent(content: string): SafeHtml {
+    if (!content) {
+      return '';
+    }
 
-  // Sanitize HTML to prevent XSS attacks
-  return this.sanitizer.sanitize(1, formattedContent) || '';
-}
+    // Replace newlines with <br> tags
+    const formattedContent = content.replace(/\n/g, '<br>');
 
-sharePost(): void {
-  this.copyPostLink();
-}
+    // Sanitize HTML to prevent XSS attacks
+    return this.sanitizer.sanitize(1, formattedContent) || '';
+  }
 
-shareOnTwitter(): void {
-  const url = encodeURIComponent(window.location.href);
-  window.open(`https://twitter.com/intent/tweet?url=${url}`, '_blank');
-}
+  sharePost(): void {
+    this.copyPostLink();
+  }
 
-shareOnFacebook(): void {
-  const url = encodeURIComponent(window.location.href);
-  window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank');
-}
+  shareOnTwitter(): void {
+    const url = encodeURIComponent(window.location.href);
+    window.open(`https://twitter.com/intent/tweet?url=${url}`, '_blank');
+  }
 
-copyPostLink(): void {
-  navigator.clipboard.writeText(window.location.href);
-  this.toastService.show('Post link copied!', 'success');
-}
+  shareOnFacebook(): void {
+    const url = encodeURIComponent(window.location.href);
+    window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank');
+  }
+
+  copyPostLink(): void {
+    navigator.clipboard.writeText(window.location.href);
+    this.toastService.show('Post link copied!', 'success');
+  }
+
+  getProfilePictureUrl(): string {
+    const author = this.post?.author;
+
+    if (!author) {
+      return this.getDefaultAvatar();
+    }
+
+    const imageUrl = author.profilePictureUrl || author.avatar;
+
+    if (imageUrl && imageUrl.startsWith('/uploads/')) {
+      return 'http://localhost:8080' + imageUrl;
+    }
+
+    return imageUrl || this.getDefaultAvatar();
+  }
 
 
+
+
+  getDefaultAvatar(): string {
+    // Return a data URI for a simple gray circle with a user icon
+    return 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgZmlsbD0iI2UwZTBlMCIvPjxjaXJjbGUgY3g9Ijc1IiBjeT0iNTUiIHI9IjI1IiBmaWxsPSIjOTk5Ii8+PHBhdGggZD0iTTMwIDEyMGMwLTI1IDIwLTQ1IDQ1LTQ1czQ1IDIwIDQ1IDQ1IiBmaWxsPSIjOTk5Ii8+PC9zdmc+';
+  }
   // Check if current user can delete this post
   canDeletePost(): boolean {
     if (!this.post || !this.post.author) return false;
@@ -209,6 +352,20 @@ copyPostLink(): void {
       this.deletePost();
     }
   }
+  getUserProfilePicture(user: any): string {
+    if (!user) {
+      return this.getDefaultAvatar();
+    }
+
+    const imageUrl = user.profilePictureUrl || user.avatar;
+
+    if (imageUrl && imageUrl.startsWith('/uploads/')) {
+      return 'http://localhost:8080' + imageUrl;
+    }
+
+    return imageUrl || this.getDefaultAvatar();
+  }
+
 
   deletePost(): void {
     const token = localStorage.getItem('jwt_token');
@@ -259,8 +416,7 @@ copyPostLink(): void {
           this.newComment = '';
           this.submittingComment = false;
           this.toastService.show('Comment added!', 'success');
-          // Reload post to show new comment
-          this.loadPost();
+          this.loadComments(0, false);
         },
         error: (error) => {
           console.error('Error adding comment:', error);

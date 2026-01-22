@@ -6,9 +6,9 @@ import { Observable } from 'rxjs';
   providedIn: 'root',
 })
 export class PostService {
-  private apiUrl = 'http://localhost:8080/auth'; // FIXED
+  private apiUrl = 'http://localhost:8080/auth';
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   private getAuthHeaders() {
     const token = localStorage.getItem('jwt_token');
@@ -18,14 +18,20 @@ export class PostService {
     };
   }
 
-  
+  deleteComment(postId: number, commentId: number): Observable<any> {
+    const url = `${this.apiUrl}/posts/${postId}/comments/${commentId}`;
+    return this.http.delete(url, {
+      headers: this.getAuthHeaders()
+    });
+  }
+
   getAllPosts(page: number = 1, size: number = 10): Observable<any> {
     const params = new HttpParams().set('page', page).set('size', size);
 
     return this.http.get(`${this.apiUrl}/posts`, { params });
   }
 
-  
+
   getPostsFromFollowedUsers(page: number = 1, size: number = 10): Observable<any> {
     const params = new HttpParams().set('page', page).set('size', size);
 
@@ -37,7 +43,7 @@ export class PostService {
     return this.http.post(`${this.apiUrl}/posts`, post);
   }
 
- 
+
   uploadMedia(file: File): Observable<any> {
     const formData = new FormData();
     formData.append('file', file);
@@ -47,6 +53,11 @@ export class PostService {
 
   addComment(postId: number, comment: any): Observable<any> {
     return this.http.post(`${this.apiUrl}/posts/${postId}/comments`, comment);
+  }
+
+  getComments(postId: number, page: number = 0, size: number = 5): Observable<any> {
+    const params = new HttpParams().set('page', page).set('size', size);
+    return this.http.get(`${this.apiUrl}/posts/${postId}/comments`, { params });
   }
 
   deletePost(postId: number): Observable<any> {
@@ -68,7 +79,7 @@ export class PostService {
     return this.http.delete(`${this.apiUrl}/posts/${postId}/like`);
   }
 
- 
+
   hasLikedPost(postId: number): Observable<boolean> {
     return this.http.get<boolean>(`${this.apiUrl}/posts/${postId}/liked`);
   }

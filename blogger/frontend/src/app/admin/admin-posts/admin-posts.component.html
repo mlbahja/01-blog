@@ -1,0 +1,127 @@
+<!-- <tr *ngFor="let post of posts" [class.hidden-row]="post.isHidden">
+  <td>{{ post.id }}</td>
+  <td class="post-cell">{{ post.title }}</td>
+  <td>{{ post.author.username }}</td>
+  <td>
+    <span class="status-badge" [class.hidden]="post.isHidden">
+      {{ post.isHidden ? 'Hidden' : 'Visible' }}
+    </span>
+  </td>
+  <td class="actions-cell">
+    <button
+      class="action-btn resolve-btn"
+      (click)="post.isHidden ? unhidePost(post.id) : hidePost(post.id)"
+    >
+      {{ post.isHidden ? 'Unhide' : 'Hide' }}
+    </button>
+    <button
+      class="action-btn delete-btn"
+      (click)="deletePost(post.id)"
+    >
+      🗑️ Delete
+    </button>
+  </td>
+</tr> -->
+
+
+<!-- <a routerLink="/admin" routerLinkActive="active" class="nav-link">Dashboard Of MANagment Of Posts </a>
+<div class="posts-table-container">
+  <table class="posts-table">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Title</th>
+        <th>Author</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let post of posts" [class.hidden-row]="post.isHidden">
+        <td>{{ post.id }}</td>
+        <td>{{ post.title }}</td>
+        <td>{{ post.author.username }}</td>
+        <td>
+          <span class="status-badge" [class.hidden]="post.isHidden">
+            {{ post.isHidden ? 'Hidden' : 'Visible' }}
+          </span>
+        </td>
+        <td>
+          <button class="action-btn" [ngClass]="post.isHidden ? 'unhide-btn' : 'hide-btn'"
+            (click)="post.isHidden ? unhidePost(post.id) : hidePost(post.id)">
+            {{ post.isHidden ? 'Unhide' : 'Hide' }}
+          </button>
+          <button class="action-btn delete-btn" (click)="deletePost(post.id)">
+            Delete
+          </button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<button routerLink="/admin/" class="btn btn-primary">
+  go To Dashbord 
+</button> -->
+<!-- admin-posts.component.html -->
+ 
+<div class="admin-posts-container">
+  <!-- Admin Navigation -->
+  <div class="admin-nav">
+    <h2>Post Management</h2>
+    <div class="nav-buttons">
+      <button routerLink="/admin" class="btn btn-outline">← Dashboard</button>
+      <button routerLink="/admin/posts" class="btn btn-primary">📝 Posts</button>
+    </div>
+  </div>
+
+  <!-- Posts Table -->
+  <div class="posts-table-container">
+    <div class="table-header">
+      <h3>All Posts ({{ posts.length }})</h3>
+      <div class="table-actions">
+        <button class="btn btn-sm btn-refresh" (click)="loadPosts()">
+          🔄 Refresh
+        </button>
+      </div>
+    </div>
+
+    <table class="posts-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Title</th>
+          <th>Author</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let post of posts" [class.hidden-row]="post.isHidden">
+          <td>{{ post.id }}</td>
+          <td>{{ post.title }}</td>
+          <td>{{ post.author.username }}</td>
+          <td>
+            <span class="status-badge" [class.hidden]="post.isHidden">
+              {{ post.isHidden ? 'Hidden' : 'Visible' }}
+            </span>
+          </td>
+          <td class="actions-cell">
+            <button class="action-btn" [ngClass]="post.isHidden ? 'unhide-btn' : 'hide-btn'"
+              (click)="post.isHidden ? unhidePost(post.id) : hidePost(post.id)">
+              {{ post.isHidden ? 'Unhide' : 'Hide' }}
+            </button>
+            <button class="action-btn delete-btn" (click)="deletePost(post.id)">
+              🗑️ Delete
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Empty State -->
+    <div *ngIf="posts.length === 0" class="empty-state">
+      <p>No posts found.</p>
+    </div>
+  </div>
+</div>

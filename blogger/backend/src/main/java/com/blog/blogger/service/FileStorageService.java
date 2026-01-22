@@ -1,16 +1,16 @@
 package com.blog.blogger.service;
 
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
-import org.springframework.web.multipart.MultipartFile;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.UUID;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
 
 
 @Service
@@ -45,6 +45,7 @@ public class FileStorageService {
                 fileExtension = originalFilename.substring(dotIndex);
             }
             String uniqueFilename = UUID.randomUUID().toString() + fileExtension;
+            System.out.println("UNI ====================> " + uniqueFilename);
 
            
             Path targetLocation = this.fileStorageLocation.resolve(uniqueFilename);
@@ -58,6 +59,7 @@ public class FileStorageService {
 
     
     public Path getFileStorageLocation() {
+        
         return fileStorageLocation;
     }
 

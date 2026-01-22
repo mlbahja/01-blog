@@ -35,6 +35,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   currentPage: number = 1;
   pageSize: number = 10;
   totalPosts: number = 0;
+  commentPageSize: number = 5;
 
   // Notification properties
   unreadNotificationCount: number = 0;
@@ -53,7 +54,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     private reportService: ReportService,
     private http: HttpClient,
     private router: Router,
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     // Get the logged in user's information
@@ -78,7 +79,7 @@ export class HomeComponent implements OnInit, OnDestroy {
 
 
 
-  
+
   loadPosts(): void {
     const postsObservable = this.showFollowedOnly
       ? this.postService.getPostsFromFollowedUsers(this.currentPage, this.pageSize)
@@ -92,6 +93,9 @@ export class HomeComponent implements OnInit, OnDestroy {
         this.totalPosts = response.total || response.totalElements || 0;
 
         this.posts.forEach((post) => {
+          post.commentsPage = null;
+          console.log("====> " + post);
+
           this.postService.hasLikedPost(post.id).subscribe({
             next: (liked) => (post.isLiked = liked),
             error: () => (post.isLiked = false),
@@ -102,6 +106,44 @@ export class HomeComponent implements OnInit, OnDestroy {
         this.toastService.show('Failed to load posts', 'error');
       },
     });
+  }
+
+  loadComments(post: any, page: number = 0, append: boolean = false): void {
+    this.postService.getComments(post.id, page, this.commentPageSize).subscribe({
+      next: (response: any) => {
+        const comments = response.comments || [];
+        if (!post.commentsPage || !append) {
+          post.commentsPage = {
+            comments,
+            total: response.total || 0,
+            totalPages: response.totalPages || 0,
+            currentPage: response.currentPage || page,
+          };
+        } else {
+          post.commentsPage.comments = post.commentsPage.comments.concat(comments);
+          post.commentsPage.currentPage = response.currentPage || page;
+          post.commentsPage.total = response.total || post.commentsPage.total;
+          post.commentsPage.totalPages = response.totalPages || post.commentsPage.totalPages;
+        }
+      },
+      error: () => {
+        this.toastService.show('Failed to load comments', 'error');
+      },
+    });
+  }
+
+  loadMoreComments(post: any): void {
+    if (!post.commentsPage) {
+      this.loadComments(post, 0, false);
+      return;
+    }
+
+    const nextPage = post.commentsPage.currentPage + 1;
+    if (nextPage >= post.commentsPage.totalPages) {
+      return;
+    }
+
+    this.loadComments(post, nextPage, true);
   }
 
   nextPage() {
@@ -136,67 +178,243 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.newPost.mediaUrl = '';
   }
 
+  // createPost(): void {
+  //   if (this.newPost.title.trim() && this.newPost.content.trim()) {
+  //     if (this.selectedFile) {
+  //       this.uploading = true;
+  //       this.postService.uploadMedia(this.selectedFile).subscribe({
+  //         next: (uploadResponse) => {
+  //           console.log('[HomeComponent] File uploaded successfully:', uploadResponse);
+  //           this.newPost.mediaUrl = uploadResponse.url;
+  //           this.newPost.mediaType = uploadResponse.mediaType;
+  //           this.submitPost();
+  //         },
+  //         error: (error: any) => {
+  //           console.error('[HomeComponent] Error uploading file:', error);
+  //           this.uploading = false;
+
+  //           let errorMsg = 'Failed to upload media file';
+  //             if (error.status === 500){
+  //               errorMsg = 'Failed to creat post'
+  //           }else if (error.status === 413) {
+  //             errorMsg = 'File is too large. Maximum size is 10MB';
+  //           } else if (error.error?.message) {
+  //             errorMsg = error.error.message;
+  //           }
+
+  //           this.toastService.show(errorMsg, 'error');
+  //         },
+  //       });
+  //     } else {
+  //       this.submitPost();
+  //     }
+  //   } else {
+  //     this.toastService.show('Please fill in both title and content', 'error');
+  //   }
+  // }
+
+  // private submitPost(): void {
+  //   this.postService.createPost(this.newPost).subscribe({
+  //     next: (response) => {
+  //       console.log('[HomeComponent] Post created successfully:', response);
+  //       this.loadPosts();
+  //       this.newPost = { title: '', content: '', mediaType: '', mediaUrl: '' };
+  //       this.selectedFile = null;
+  //       this.uploading = false;
+  //       this.showCreateForm = false;
+  //       this.toastService.show('Post published successfully!', 'success');
+  //     },
+  //     error: (error: any) => {
+  //       console.error('[HomeComponent] Error creating post:', error);
+  //       this.uploading = false;
+
+  //       if (error.status === 403) {
+  //         this.toastService.show('Not authorized. Please login again.', 'error');
+  //       } else if (error.status === 401) {
+  //         this.toastService.show('Session expired. Please login again.', 'error');
+  //       } else {
+  //         this.toastService.show(
+  //           'Failed to create post: ' + (error.error?.message || error.message),
+  //           'error',
+  //         );
+  //       }
+  //     },
+  //   });
+  // }
+
+  // In HomeComponent
+  deleteComment(postId: number, commentId: number): void {
+    const confirmDelete = confirm('Are you sure you want to delete this comment?');
+
+    if (!confirmDelete) {
+      return;
+    }
+
+    this.postService.deleteComment(postId, commentId).subscribe({
+      next: () => {
+        this.toastService.show('Comment deleted successfully!', 'success');
+        const post = this.posts.find((p) => p.id === postId);
+        if (post) {
+          this.loadComments(post, 0, false);
+        } else {
+          this.loadPosts();
+        }
+      },
+      error: (error: any) => {
+        console.error('Error deleting comment:', error);
+        this.toastService.show('Failed to delete comment', 'error');
+      },
+    });
+  }
+  // In HomeComponent class
+  canDeleteComment(comment: any): boolean {
+    const userData = this.authService.getUserData();
+
+    if (!userData) {
+      return false;
+    }
+
+    const isAdmin = userData.role === 'ADMIN';
+    if (isAdmin) {
+      return true;
+    }
+
+    if (!comment.author) {
+      return false;
+    }
+
+    const isOwner = comment.author.id === userData.id;
+    return isOwner;
+  }
+
+  // Also add this method to check if it's your own comment (optional)
+  isMyComment(comment: any): boolean {
+    const userData = this.authService.getUserData();
+    return comment.author?.id === userData?.id;
+  }
+  getUserProfilePicture(user: any): string {
+    if (!user) {
+      return this.getDefaultAvatar();
+    }
+
+    const imageUrl = user.profilePictureUrl || user.avatar;
+
+    if (imageUrl && imageUrl.startsWith('/uploads/')) {
+      return 'http://localhost:8080' + imageUrl;
+    }
+
+    return imageUrl || this.getDefaultAvatar();
+  }
+  getDefaultAvatar(): string {
+    // Return a data URI for a simple gray circle with a user icon
+    return 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgZmlsbD0iI2UwZTBlMCIvPjxjaXJjbGUgY3g9Ijc1IiBjeT0iNTUiIHI9IjI1IiBmaWxsPSIjOTk5Ii8+PHBhdGggZD0iTTMwIDEyMGMwLTI1IDIwLTQ1IDQ1LTQ1czQ1IDIwIDQ1IDQ1IiBmaWxsPSIjOTk5Ii8+PC9zdmc+';
+  }
+  //////////////////////////////////////////////////////////////////
   createPost(): void {
-    if (this.newPost.title && this.newPost.content) {
-      if (this.selectedFile) {
-        this.uploading = true;
-        this.postService.uploadMedia(this.selectedFile).subscribe({
-          next: (uploadResponse) => {
-            console.log('[HomeComponent] File uploaded successfully:', uploadResponse);
-            this.newPost.mediaUrl = uploadResponse.url;
-            this.newPost.mediaType = uploadResponse.mediaType;
-            this.submitPost();
-          },
-          error: (error: any) => {
-            console.error('[HomeComponent] Error uploading file:', error);
-            this.uploading = false;
+    // Trim and validate
+    const title = this.newPost.title?.trim() || '';
+    const content = this.newPost.content?.trim() || '';
 
-            let errorMsg = 'Failed to upload media file';
-            if (error.status === 413) {
-              errorMsg = 'File is too large. Maximum size is 10MB';
-            } else if (error.error?.message) {
-              errorMsg = error.error.message;
-            }
-
-            this.toastService.show(errorMsg, 'error');
-          },
-        });
-      } else {
-        this.submitPost();
-      }
-    } else {
+    // Basic validation
+    if (!title || !content) {
       this.toastService.show('Please fill in both title and content', 'error');
+      return;
+    }
+
+    // Character limit validation
+    if (title.length > 150) {
+      this.toastService.show('Title must not exceed 150 characters', 'error');
+      return;
+    }
+
+    if (content.length > 10000) {
+      this.toastService.show('Content must not exceed 10000 characters', 'error');
+      return;
+    }
+
+    // Update post with trimmed values
+    this.newPost.title = title;
+    this.newPost.content = content;
+
+    // Handle file upload if present
+    if (this.selectedFile) {
+      this.uploading = true;
+      this.postService.uploadMedia(this.selectedFile).subscribe({
+        next: (uploadResponse) => {
+          console.log('[HomeComponent] File uploaded successfully:', uploadResponse);
+          this.newPost.mediaUrl = uploadResponse.url;
+          this.newPost.mediaType = uploadResponse.mediaType;
+          this.submitPost();
+        },
+        error: (error: any) => {
+          console.error('[HomeComponent] Error uploading file:', error);
+          this.uploading = false;
+
+          let errorMsg = 'Failed to upload media file';
+          if (error.status === 500) {
+            errorMsg = 'Server error. Please try again later';
+          } else if (error.status === 413) {
+            errorMsg = 'File is too large. Maximum size is 10MB';
+          } else if (error.status === 415) {
+            errorMsg = 'Unsupported file type';
+          } else if (error.error?.message) {
+            errorMsg = error.error.message;
+          }
+
+          this.toastService.show(errorMsg, 'error');
+        },
+      });
+    } else {
+      this.submitPost();
     }
   }
 
   private submitPost(): void {
+    this.uploading = true;
+
     this.postService.createPost(this.newPost).subscribe({
       next: (response) => {
         console.log('[HomeComponent] Post created successfully:', response);
-        this.loadPosts();
+        this.toastService.show('Post published successfully!', 'success');
+
+        // Reset form
         this.newPost = { title: '', content: '', mediaType: '', mediaUrl: '' };
         this.selectedFile = null;
+        // this.mediaPreview = null; // if you have this property
         this.uploading = false;
         this.showCreateForm = false;
-        this.toastService.show('Post published successfully!', 'success');
+
+        // Reload posts
+        this.loadPosts();
       },
       error: (error: any) => {
         console.error('[HomeComponent] Error creating post:', error);
         this.uploading = false;
 
-        if (error.status === 403) {
-          this.toastService.show('Not authorized. Please login again.', 'error');
-        } else if (error.status === 401) {
-          this.toastService.show('Session expired. Please login again.', 'error');
-        } else {
-          this.toastService.show(
-            'Failed to create post: ' + (error.error?.message || error.message),
-            'error',
-          );
+        let errorMsg = 'Failed to create post';
+
+        if (error.status === 401) {
+          errorMsg = 'Session expired. Please login again';
+          // Optionally redirect to login
+          // this.router.navigate(['/login']);
+        } else if (error.status === 403) {
+          errorMsg = 'Not authorized. Please login again';
+        } else if (error.status === 400) {
+          errorMsg = error.error?.message || 'Invalid post data. Please check your input';
+        } else if (error.status === 500) {
+          errorMsg = 'Server error. Please try again later';
+        } else if (error.error?.message) {
+          errorMsg = error.error.message;
         }
+
+        this.toastService.show(errorMsg, 'error');
       },
     });
   }
+
+
+  /////////////////////////////////////////////////////////////////
+
 
   addComment(postId: number, commentText: string): void {
     if (commentText) {
@@ -206,7 +424,12 @@ export class HomeComponent implements OnInit, OnDestroy {
         })
         .subscribe({
           next: () => {
-            this.loadPosts(); // Reload to show new comment
+            const post = this.posts.find((p) => p.id === postId);
+            if (post) {
+              this.loadComments(post, 0, false);
+            } else {
+              this.loadPosts();
+            }
             this.toastService.show('Comment added!', 'success');
           },
           error: (error: any) => {
@@ -244,11 +467,14 @@ export class HomeComponent implements OnInit, OnDestroy {
     }
   }
 
-  expandPost(postIndex: number): void {
+  expandPost(post: any, postIndex: number): void {
     if (this.expandedPosts.has(postIndex)) {
       this.expandedPosts.delete(postIndex);
     } else {
       this.expandedPosts.add(postIndex);
+      if (!post.commentsPage) {
+        this.loadComments(post, 0, false);
+      }
     }
   }
   viewPostDetails(postId: number): void {
@@ -284,6 +510,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     return isOwner;
   }
 
+
   confirmDelete(postId: number, postTitle: string) {
     const confirmDelete = confirm(
       `Are you sure you want to delete "${postTitle}"?\n\nThis action cannot be undone.`,
@@ -314,9 +541,10 @@ export class HomeComponent implements OnInit, OnDestroy {
 
         this.posts = this.posts.filter((p) => p.id !== postId);
 
-        if (this.posts.length === 0) {
-          this.loadPosts();
-        }
+
+        // if (this.posts.length === 0) {
+        //   this.loadPosts();
+        // }
 
         this.toastService.show('Post deleted successfully!', 'success');
       },

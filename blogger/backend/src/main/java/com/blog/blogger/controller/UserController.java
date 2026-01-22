@@ -1,27 +1,33 @@
 package com.blog.blogger.controller;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-// import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.blog.blogger.dto.ChangePasswordDTO;
 import com.blog.blogger.dto.UpdateProfileDTO;
 import com.blog.blogger.dto.UserProfileDTO;
 import com.blog.blogger.models.User;
-import com.blog.blogger.service.UserService;
-import com.blog.blogger.service.SubscriptionService;
-import com.blog.blogger.service.FileStorageService;
 import com.blog.blogger.repository.UserRepository;
-
-import java.util.List;
-import java.util.stream.Collectors;
-import org.springframework.web.multipart.MultipartFile;
-import org.springframework.http.MediaType;
+import com.blog.blogger.service.FileStorageService;
+import com.blog.blogger.service.SubscriptionService;
+import com.blog.blogger.service.UserService;
 
 /**
  * UserController - Handles user profile operations
@@ -49,7 +55,40 @@ public class UserController {
         this.userRepository = userRepository;
         this.fileStorageService = fileStorageService;
     }
+    // /////////////////////////////////////////////////////////////
 
+    // @PostMapping("/upload-profile-picture")
+    // public ResponseEntity<Map<String, String>> uploadProfilePicture(
+    //         @RequestParam("file") MultipartFile file,
+    //         Authentication authentication) {
+    //     try {
+    //         // Save file and get URL
+    //         String fileUrl = fileStorageService.saveFile(file);
+            
+    //         // Update user's profile picture
+    //         String username = authentication.getName();
+    //         User user = userService.findByUsername(username);
+            
+    //         // Delete old profile picture if exists
+    //         if (user.getProfilePictureUrl() != null) {
+    //             fileStorageService.deleteFile(user.getProfilePictureUrl());
+    //         }
+            
+    //         user.setProfilePictureUrl(fileUrl);
+    //         userService.updateUser(user);
+            
+    //         Map<String, String> response = new HashMap<>();
+    //         response.put("url", fileUrl);
+    //         response.put("message", "Profile picture updated successfully");
+            
+    //         return ResponseEntity.ok(response);
+    //     } catch (Exception e) {
+    //         Map<String, String> error = new HashMap<>();
+    //         error.put("error", "Failed to upload profile picture: " + e.getMessage());
+    //         return ResponseEntity.status(500).body(error);
+    //     }
+    // }
+    // ////////////////////////////////////////////////
     /**
      * Check if user is banned and throw exception if so
      */

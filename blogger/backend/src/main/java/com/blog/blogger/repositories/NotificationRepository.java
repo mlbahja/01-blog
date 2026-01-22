@@ -33,3 +33,13 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
     @Query("DELETE FROM Notification n WHERE n.user = :user AND n.isRead = true")
     void deleteReadNotificationsForUser(@Param("user") User user);
 }
+
+
+
+//  // Find notifications by user
+//     List<Notification> findByUser(User user);
+    
+//     // Delete notifications by user
+//     @Modifying
+//     @Query("DELETE FROM Notification n WHERE n.user = :user")
+//     void deleteByUser(@Param("user") User user);

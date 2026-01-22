@@ -38,6 +38,7 @@ public class AuthController {
         if (userService.existsByEmail(req.getEmail())) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body("Email already in use");
         }
+
         if (userService.existsByUsername(req.getUsername())) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body("Username already in use");
         }

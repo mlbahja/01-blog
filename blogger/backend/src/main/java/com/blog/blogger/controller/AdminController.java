@@ -13,6 +13,7 @@ import com.blog.blogger.dto.UserProfileDTO;
 import com.blog.blogger.models.Post;
 import com.blog.blogger.models.Role;
 import com.blog.blogger.service.AdminService;
+import org.springframework.data.domain.Page;
 
 /**
  * AdminController - Handles admin-only operations
@@ -164,14 +165,16 @@ public class AdminController {
      * Get all posts (for moderation)
      */
     @GetMapping("/posts")
-    public ResponseEntity<?> getAllPosts() {
-        try {
-            List<Post> posts = adminService.getAllPosts();
-            return ResponseEntity.ok(posts);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("error", e.getMessage()));
-        }
+    public ResponseEntity<?> getAllPosts(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        Page<Post> postPage = adminService.getAllPosts(page, size);
+
+        return ResponseEntity.ok(Map.of(
+                "posts", postPage.getContent(),
+                "total", postPage.getTotalElements(),
+                "totalPages", postPage.getTotalPages(),
+                "currentPage", page));
     }
 
     /**

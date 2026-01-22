@@ -12,10 +12,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.blog.blogger.models.Post;
+import com.blog.blogger.models.Comment;
 import com.blog.blogger.models.PostLike;
 import com.blog.blogger.models.User;
+import com.blog.blogger.repository.CommentLikeRepository;
+import com.blog.blogger.repository.CommentRepository;
 import com.blog.blogger.repository.PostLikeRepository;
 import com.blog.blogger.repository.PostRepository;
+import com.blog.blogger.repository.ReportRepository;
+
+import jakarta.validation.ValidationException;
 
 
 @Service
@@ -26,6 +32,15 @@ public class PostService {
 
     @Autowired
     private PostLikeRepository postLikeRepository;
+
+    @Autowired
+    private CommentRepository commentRepository;
+
+    @Autowired
+    private CommentLikeRepository commentLikeRepository;
+
+    @Autowired
+    private ReportRepository reportRepository;
 
     @Autowired
     private SubscriptionService subscriptionService;
@@ -59,7 +74,22 @@ public class PostService {
 
     @Transactional
     public Post createPost(Post post) {
+
+                System.out.println("===========> " + post.getTitle());
+       String title =  post.getTitle().trim();
+       String content = post.getContent().trim();
+
+       if (title.length() > 150) {
+        throw new ValidationException("Title must not exceed 150 characters");
+       }
+       if (content.length() > 10000) {
+        throw new ValidationException("Content must not exceed 10000 characters");
+    }
+        post.setTitle(title);
+        post.setContent(content);    
+
         Post savedPost = postRepository.save(post);
+        System.out.println(savedPost.getContent());
 
         List<User> followers = subscriptionService.getFollowers(savedPost.getAuthor());
         notificationService.notifyFollowersAboutNewPost(savedPost, followers);
@@ -67,8 +97,22 @@ public class PostService {
         return savedPost;
     }
 
+    @Transactional
     public void deletePost(Long id) {
-        postRepository.deleteById(id);
+        Post post = postRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Post not found with id: " + id));
+
+        postLikeRepository.deleteByPost(post);
+
+        List<Comment> comments = commentRepository.findByPost(post);
+        for (Comment comment : comments) {
+            commentLikeRepository.deleteByComment(comment);
+        }
+        commentRepository.deleteAll(comments);
+
+        reportRepository.deleteByPost(post);
+
+        postRepository.delete(post);
     }
 
     

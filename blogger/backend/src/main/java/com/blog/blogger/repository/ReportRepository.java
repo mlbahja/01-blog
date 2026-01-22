@@ -23,6 +23,10 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
 
     List<Report> findByPost(Post post);
     
+    void deleteByPost(Post post);
+
+    void deleteByReporter(User reporter);
+    
     
     long countByResolvedFalse();
 }

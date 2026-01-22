@@ -16,15 +16,14 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-
 @Entity
 @Table(name = "posts")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@ToString(exclude = {"comments"})
-@EqualsAndHashCode(exclude = {"comments"})
+@ToString(exclude = { "comments" })
+@EqualsAndHashCode(exclude = { "comments" })
 public class Post {
 
     @Id
@@ -37,6 +36,8 @@ public class Post {
     @Column(columnDefinition = "TEXT", nullable = false)
     private String content;
 
+    // private boolean isHidden = false;
+
     @Column(name = "media_type")
     private String mediaType; // "image", "video", "gif", or null for text-only
 
@@ -45,7 +46,7 @@ public class Post {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "author_id", nullable = false)
-    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "password"})
+    @JsonIgnoreProperties({ "hibernateLazyInitializer", "handler", "password" })
     private User author;
 
     @Column(name = "like_count")
@@ -61,7 +62,7 @@ public class Post {
     @Column(name = "tag")
     @Builder.Default
     private List<String> tags = new ArrayList<>();
-
+    ////
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     @Builder.Default

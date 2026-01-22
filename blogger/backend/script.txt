@@ -10,3 +10,9 @@ docker start mysql_db
 docker exec -it mysql_db mysql -u root -p
 
 */
+
+
+check if user can aplode video more than 50MB
+
+DELET Comment
+

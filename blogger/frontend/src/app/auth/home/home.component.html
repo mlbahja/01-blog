@@ -8,12 +8,10 @@
       <a routerLink="/users" routerLinkActive="active" class="nav-link">Users</a>
       <a routerLink="/chat" routerLinkActive="active" class="nav-link">Chat</a>
       <a routerLink="/profile" routerLinkActive="active" class="nav-link">Profile</a>
-      <a routerLink="/admin" routerLinkActive="active" class="nav-link" *ngIf="isAdmin()"
-        >Admin Panel</a
-      >
+      <a routerLink="/admin" routerLinkActive="active" class="nav-link" *ngIf="isAdmin()">Admin Panel</a>
     </nav>
     <div class="header-actions">
-   
+
       <div class="notification-bell" routerLink="/notifications" title="Notifications">
         <span class="bell-icon">🔔</span>
         <span class="notification-badge" *ngIf="unreadNotificationCount > 0">
@@ -37,33 +35,21 @@
             {{ posts[0].content | slice: 0 : 200 }}{{ posts[0].content.length > 200 ? '...' : '' }}
           </p>
           <div class="post-media" *ngIf="posts[0].mediaUrl">
-            <img
-              *ngIf="posts[0].mediaType === 'image' || posts[0].mediaType === 'gif'"
-              [src]="'http://localhost:8080' + posts[0].mediaUrl"
-              [alt]="posts[0].title"
-              class="post-image"
-            />
-            <video
-              *ngIf="posts[0].mediaType === 'video'"
-              [src]="'http://localhost:8080' + posts[0].mediaUrl"
-              controls
-              class="post-video"
-            ></video>
+            <img *ngIf="posts[0].mediaType === 'image' || posts[0].mediaType === 'gif'"
+              [src]="'http://localhost:8080' + posts[0].mediaUrl" [alt]="posts[0].title" class="post-image" />
+            <video *ngIf="posts[0].mediaType === 'video'" [src]="'http://localhost:8080' + posts[0].mediaUrl" controls
+              class="post-video"></video>
           </div>
           <div class="post-meta">
             <span class="author">By {{ posts[0].author?.username || 'Unknown' }}</span>
             <span class="separator">•</span>
             <span class="date">{{ posts[0].createdAt | date: 'MMM d, yyyy' }}</span>
-            <span class="separator" *ngIf="posts[0].comments">•</span>
-            <span class="comments-count" *ngIf="posts[0].comments"
-              >{{ posts[0].comments.length }} Comments</span
-            >
             <span class="separator">•</span>
-            <button
-              class="like-btn"
-              (click)="toggleLike(posts[0])"
-              [class.liked]="posts[0].isLiked"
-            >
+            <span class="comments-count">
+              {{ posts[0].commentsPage?.total ?? posts[0].comments?.length ?? 0 }} Comments
+            </span>
+            <span class="separator">•</span>
+            <button class="like-btn" (click)="toggleLike(posts[0])" [class.liked]="posts[0].isLiked">
               <span class="like-icon">{{ posts[0].isLiked ? '❤️' : '🤍' }}</span>
               <span class="like-count">{{ posts[0].likeCount || 0 }}</span>
             </button>
@@ -88,45 +74,25 @@
               {{ post.content | slice: 0 : 150 }}{{ post.content.length > 150 ? '...' : '' }}
             </p>
             <div class="post-media" *ngIf="post.mediaUrl">
-              <img
-                *ngIf="post.mediaType === 'image' || post.mediaType === 'gif'"
-                [src]="'http://localhost:8080' + post.mediaUrl"
-                [alt]="post.title"
-                class="post-image"
-              />
-              <video
-                *ngIf="post.mediaType === 'video'"
-                [src]="'http://localhost:8080' + post.mediaUrl"
-                controls
-                class="post-video"
-              ></video>
+              <img *ngIf="post.mediaType === 'image' || post.mediaType === 'gif'"
+                [src]="'http://localhost:8080' + post.mediaUrl" [alt]="post.title" class="post-image" />
+              <video *ngIf="post.mediaType === 'video'" [src]="'http://localhost:8080' + post.mediaUrl" controls
+                class="post-video"></video>
             </div>
             <div class="post-card-meta">
               <span class="author">{{ post.author?.username || 'Unknown' }}</span>
               <span class="separator">•</span>
               <span class="date">{{ post.createdAt | date: 'MMM d' }}</span>
 
-              <button
-                class="open-post-btn"
-                (click)="viewPostDetails(post.id)"
-                title="Open in new tab"
-              >
+              <button class="open-post-btn" (click)="viewPostDetails(post.id)" title="Open in new tab">
                 ↗️
               </button>
-              <button
-                *ngIf="canDeletePost(post)"
-                class="delete-post-btn"
-                (click)="confirmDelete(post.id, post.title)"
-                title="Delete this post"
-              >
+              <button *ngIf="canDeletePost(post)" class="delete-post-btn" (click)="confirmDelete(post.id, post.title)"
+                title="Delete this post">
                 🗑️
               </button>
-              <button
-                *ngIf="!isMyPost(post)"
-                class="report-post-btn"
-                (click)="openReportDialog(post)"
-                title="Report this post"
-              >
+              <button *ngIf="!isMyPost(post)" class="report-post-btn" (click)="openReportDialog(post)"
+                title="Report this post">
                 🚩
               </button>
               <span class="separator">•</span>
@@ -136,7 +102,7 @@
               </button>
             </div>
 
-            <button class="read-more-btn" (click)="expandPost(i + 1)">
+            <button class="read-more-btn" (click)="expandPost(post, i + 1)">
               {{ expandedPosts.has(i + 1) ? 'Show Less' : 'Read More' }}
             </button>
           </div>
@@ -147,34 +113,70 @@
             </div>
 
             <div class="comments-section">
-              <h4 class="comments-title">Comments ({{ post.comments?.length || 0 }})</h4>
-              <div class="comments-list" *ngIf="post.comments && post.comments.length > 0">
+
+              <h4 class="comments-title">
+                Comments ({{ post.commentsPage?.total ?? post.comments?.length ?? 0 }})
+              </h4>
+              <!-- <div class="comments-list" *ngIf="post.comments && post.comments.length > 0">
                 <div class="comment" *ngFor="let comment of post.comments">
                   <div class="comment-header">
+
+
+                    <img [src]="getUserProfilePicture(comment.author)" [alt]="comment.author?.username"
+                      class="comment-avatar" />
                     <span class="comment-author">{{
                       comment.author?.username || 'Anonymous'
-                    }}</span>
+                      }}</span>
+
+
                     <span class="comment-date">{{ comment.createdAt | date: 'MMM d, yyyy' }}</span>
                   </div>
                   <p class="comment-text">{{ comment.content }}</p>
                 </div>
+              </div> -->
+              <!-- Update this section in home.component.html -->
+
+
+
+              <div class="comments-list"
+                *ngIf="(post.commentsPage?.comments || post.comments || []).length > 0">
+                <div class="comment" *ngFor="let comment of (post.commentsPage?.comments || post.comments || [])">
+                  <div class="comment-header">
+                    <div class="comment-author">
+                      
+                      <img [src]="getUserProfilePicture(comment.author)" [alt]="comment.author?.username"
+                      class="comment-avatar" />
+
+                      <span class="comment-author-name">{{ comment.author?.username || 'Anonymous' }}</span>
+                    </div>
+                    <div class="comment-actions">
+                      <span class="comment-date">{{ comment.createdAt | date: 'MMM d, yyyy' }}</span>
+                      <!-- Fix: Use 'comment' variable from *ngFor -->
+                      <button *ngIf="canDeleteComment(comment)" class="delete-comment-btn"
+                        (click)="deleteComment(post.id, comment.id)" title="Delete comment">
+                        🗑️
+                      </button>
+                    </div>
+                  </div>
+                  <p class="comment-text">{{ comment.content }}</p>
+                </div>
               </div>
-              <div class="no-comments" *ngIf="!post.comments || post.comments.length === 0">
+
+
+              <div class="no-comments"
+                *ngIf="(post.commentsPage?.total ?? post.comments?.length ?? 0) === 0">
                 <p>Be the first to comment on this post.</p>
               </div>
 
-              <form
-                class="comment-form"
-                (ngSubmit)="addComment(post.id, commentText.value); commentText.value = ''"
-              >
+              <button class="load-more-comments"
+                *ngIf="post.commentsPage && post.commentsPage.currentPage + 1 < post.commentsPage.totalPages"
+                (click)="loadMoreComments(post)">
+                Load more comments
+              </button>
+
+              <form class="comment-form" (ngSubmit)="addComment(post.id, commentText.value); commentText.value = ''">
                 <div class="comment-input-wrapper">
-                  <input
-                    #commentText
-                    type="text"
-                    placeholder="Share your thoughts..."
-                    class="comment-input"
-                    required
-                  />
+                  <input #commentText type="text" placeholder="Share your thoughts..." class="comment-input" required />
                   <button type="submit" class="comment-submit-btn">Post Comment</button>
                 </div>
               </form>
@@ -209,36 +211,19 @@
     </div>
     <form class="post-form" (ngSubmit)="createPost()">
       <div class="form-group">
-        <input
-          type="text"
-          [(ngModel)]="newPost.title"
-          name="title"
-          placeholder="Enter your post title..."
-          class="form-input title-input"
-          required
-        />
+        <input type="text" [(ngModel)]="newPost.title" name="title" placeholder="Enter your post title..."
+          class="form-input title-input" required />
       </div>
       <div class="form-group">
-        <textarea
-          [(ngModel)]="newPost.content"
-          name="content"
-          placeholder="Tell your story..."
-          class="form-textarea"
-          rows="6"
-          required
-        ></textarea>
+        <textarea [(ngModel)]="newPost.content" name="content" placeholder="Tell your story..." class="form-textarea"
+          rows="6" required></textarea>
       </div>
       <div class="form-group">
         <label class="file-input-label">
-          <input
-            type="file"
-            (change)="onFileSelected($event)"
-            accept="image/*,video/*,.gif"
-            class="file-input"
-          />
+          <input type="file" (change)="onFileSelected($event)" accept="image/*,video/*,.gif" class="file-input" />
           <span class="file-input-text">{{
             selectedFile ? selectedFile.name : 'Add Image, Video, or GIF (Optional)'
-          }}</span>
+            }}</span>
         </label>
         <button type="button" class="btn btn-remove" *ngIf="selectedFile" (click)="removeFile()">
           Remove File
@@ -269,13 +254,8 @@
   <div class="modal-body">
     <p class="report-post-title">Reporting: "{{ reportingPost?.title }}"</p>
     <label for="reportReason">Reason for reporting:</label>
-    <textarea
-      id="reportReason"
-      [(ngModel)]="reportReason"
-      placeholder="Please describe why you're reporting this post..."
-      rows="5"
-      class="report-textarea"
-    ></textarea>
+    <textarea id="reportReason" [(ngModel)]="reportReason"
+      placeholder="Please describe why you're reporting this post..." rows="5" class="report-textarea"></textarea>
   </div>
   <div class="modal-footer">
     <button class="btn btn-danger" (click)="submitReport()" [disabled]="!reportReason.trim()">

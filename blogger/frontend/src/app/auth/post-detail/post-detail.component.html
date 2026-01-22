@@ -22,10 +22,18 @@
       <div class="post-meta">
         <div class="author-info">
           <div class="author-avatar">
-            <img
-              [src]="post.author?.profilePicture || 'assets/default-avatar.png'"
+            <!-- <img
+              [src]="post.author?.profilePicture || '/uploads/d318f3ca-dcf4-42e9-9241-946aa55514cd.png'"
               [alt]="post.author?.username"
-            />
+            />  -->
+
+            <!-- <img [src]="post.author?.profilePicture
+    ? 'http://localhost:8080' + post.author.profilePicture
+    : 'http://localhost:8080/uploads/d318f3ca-dcf4-42e9-9241-946aa55514cd.png'" [alt]="post.author?.username" /> -->
+            <img [src]="getProfilePictureUrl()" alt="post.author?.username" class="avatar-large" />
+
+            <!-- {{ post.author?.username }} -->
+
           </div>
           <div class="author-details">
             <h3 class="author-name">{{ post.author?.username || 'Unknown' }}</h3>
@@ -39,20 +47,11 @@
           <button class="action-btn" (click)="openInNewTab()" title="Open in new tab">
             ↗️ New Tab
           </button>
-          <button
-            *ngIf="canEditPost() && !isEditing"
-            class="action-btn edit-btn"
-            (click)="startEditing()"
-            title="Edit post"
-          >
+          <button *ngIf="canEditPost() && !isEditing" class="action-btn edit-btn" (click)="startEditing()"
+            title="Edit post">
             ✏️ Edit
           </button>
-          <button
-            *ngIf="canDeletePost()"
-            class="action-btn delete-btn"
-            (click)="confirmDelete()"
-            title="Delete post"
-          >
+          <button *ngIf="canDeletePost()" class="action-btn delete-btn" (click)="confirmDelete()" title="Delete post">
             🗑️ Delete
           </button>
         </div>
@@ -70,37 +69,19 @@
       <h2>Edit Post</h2>
       <div class="form-group">
         <label for="edit-title">Title</label>
-        <input
-          id="edit-title"
-          type="text"
-          [(ngModel)]="editedTitle"
-          class="form-control"
-          placeholder="Post title"
-        />
+        <input id="edit-title" type="text" [(ngModel)]="editedTitle" class="form-control" placeholder="Post title" />
       </div>
       <div class="form-group">
         <label for="edit-content">Content</label>
-        <textarea
-          id="edit-content"
-          [(ngModel)]="editedContent"
-          class="form-control"
-          rows="10"
-          placeholder="Post content"
-        ></textarea>
+        <textarea id="edit-content" [(ngModel)]="editedContent" class="form-control" rows="10"
+          placeholder="Post content"></textarea>
       </div>
       <div class="edit-actions">
-        <button
-          (click)="saveEdit()"
-          [disabled]="submittingEdit || !editedTitle.trim() || !editedContent.trim()"
-          class="btn btn-primary"
-        >
+        <button (click)="saveEdit()" [disabled]="submittingEdit || !editedTitle.trim() || !editedContent.trim()"
+          class="btn btn-primary">
           {{ submittingEdit ? 'Saving...' : 'Save Changes' }}
         </button>
-        <button
-          (click)="cancelEditing()"
-          [disabled]="submittingEdit"
-          class="btn btn-secondary"
-        >
+        <button (click)="cancelEditing()" [disabled]="submittingEdit" class="btn btn-secondary">
           Cancel
         </button>
       </div>
@@ -108,18 +89,10 @@
 
     <!-- Featured Media -->
     <div *ngIf="post.mediaUrl && !isEditing" class="featured-media">
-      <img
-        *ngIf="post.mediaType === 'image' || post.mediaType === 'gif'"
-        [src]="'http://localhost:8080' + post.mediaUrl"
-        [alt]="post.title"
-        class="post-media"
-      />
-      <video
-        *ngIf="post.mediaType === 'video'"
-        [src]="'http://localhost:8080' + post.mediaUrl"
-        controls
-        class="post-video"
-      ></video>
+      <img *ngIf="post.mediaType === 'image' || post.mediaType === 'gif'"
+        [src]="'http://localhost:8080' + post.mediaUrl" [alt]="post.title" class="post-media" />
+      <video *ngIf="post.mediaType === 'video'" [src]="'http://localhost:8080' + post.mediaUrl" controls
+        class="post-video"></video>
     </div>
 
     <!-- Post Content -->
@@ -135,7 +108,7 @@
           <span class="like-count">{{ post.likeCount || 0 }} Likes</span>
         </button>
 
-        <div class="comment-count">💬 {{ post.comments?.length || 0 }} Comments</div>
+        <div class="comment-count">💬 {{ commentsTotal }} Comments</div>
         <div class="view-count">👁️ {{ post.viewCount || 0 }} Views</div>
       </div>
 
@@ -149,47 +122,52 @@
     </footer>
     <!-- Comments Section -->
     <section class="comments-section">
-      <h3>Comments ({{ post.comments?.length || 0 }})</h3>
+      <h3>Comments ({{ commentsTotal }})</h3>
 
       <!-- Add Comment Form -->
       <div class="add-comment">
-        <textarea
-          [(ngModel)]="newComment"
-          placeholder="Share your thoughts..."
-          rows="3"
-          class="comment-input"
-        >
-        </textarea>
-        <button
-          (click)="addComment()"
-          [disabled]="!newComment.trim() || submittingComment"
-          class="submit-comment-btn"
-        >
+        <textarea [(ngModel)]="newComment" placeholder="Share your thoughts..." rows="3" class="comment-input">
+    </textarea>
+        <button (click)="addComment()" [disabled]="!newComment.trim() || submittingComment" class="submit-comment-btn">
           {{ submittingComment ? 'Posting...' : 'Post Comment' }}
         </button>
       </div>
 
       <!-- Comments List -->
-      <div *ngIf="post.comments && post.comments.length > 0" class="comments-list">
-        <div *ngFor="let comment of post.comments" class="comment">
+      <div *ngIf="comments.length > 0" class="comments-list">
+        <div *ngFor="let comment of comments" class="comment">
           <div class="comment-header">
             <div class="comment-author">
-              <img
-                [src]="comment.author?.profilePicture || 'assets/default-avatar.png'"
-                [alt]="comment.author?.username"
-              />
+              <!-- Use only ONE img tag -->
+              <img [src]="getUserProfilePicture(comment.author)" [alt]="comment.author?.username"
+                class="comment-avatar" />
               <span class="comment-author-name">{{ comment.author?.username }}</span>
             </div>
-            <span class="comment-date">{{ comment.createdAt | date: 'MMM d, yyyy' }}</span>
+
+            <div class="comment-actions">
+              <span class="comment-date">{{ comment.createdAt | date: 'MMM d, yyyy' }}</span>
+              <!-- Delete button is now INSIDE the *ngFor loop -->
+              <button *ngIf="canDeleteComment(comment)" class="delete-comment-btn" (click)="deleteComment(comment.id)"
+                title="Delete comment">
+                🗑️
+              </button>
+            </div>
           </div>
           <p class="comment-text">{{ comment.content }}</p>
         </div>
       </div>
 
-      <div *ngIf="!post.comments || post.comments.length === 0" class="no-comments">
+      <div *ngIf="commentsTotal === 0" class="no-comments">
         <p>No comments yet. Be the first to share your thoughts!</p>
       </div>
+
+      <button class="load-more-comments"
+        *ngIf="commentsCurrentPage + 1 < commentsTotalPages"
+        (click)="loadMoreComments()">
+        Load more comments
+      </button>
     </section>
+
 
     <!-- Related Posts -->
     <section *ngIf="relatedPosts.length > 0" class="related-posts">

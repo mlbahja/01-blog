@@ -3,14 +3,18 @@ package com.blog.blogger.service;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import com.blog.blogger.dto.AdminStatsDTO;
 import com.blog.blogger.dto.UserProfileDTO;
+import com.blog.blogger.models.Post;
 import com.blog.blogger.models.Role;
 import com.blog.blogger.repository.PostRepository;
 import com.blog.blogger.repository.UserRepository;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 @Service
 public class AdminService {
@@ -20,14 +24,14 @@ public class AdminService {
     private final UserService userService;
     private final PostService postService;
 
-    public AdminService(UserRepository userRepository, PostRepository postRepository, UserService userService, PostService postService) {
+    public AdminService(UserRepository userRepository, PostRepository postRepository, UserService userService,
+            PostService postService) {
         this.userRepository = userRepository;
         this.postRepository = postRepository;
         this.userService = userService;
         this.postService = postService;
     }
 
-   
     public AdminStatsDTO getDashboardStats() {
         List<com.blog.blogger.models.User> allUsers = userRepository.findAll();
         long totalUsers = allUsers.size();
@@ -55,12 +59,12 @@ public class AdminService {
         return AdminStatsDTO.builder()
                 .totalUsers(totalUsers)
                 .totalPosts(totalPosts)
-                .totalComments(0L) 
+                .totalComments(0L)
                 .activeUsers(activeUsers)
                 .bannedUsers(bannedUsers)
                 .adminUsers(adminUsers)
                 .postsToday(postsToday)
-                .commentsToday(0L) 
+                .commentsToday(0L)
                 .newUsersThisWeek(newUsersThisWeek)
                 .build();
     }
@@ -68,7 +72,7 @@ public class AdminService {
     public List<UserProfileDTO> getAllUsers() {
         return userService.getAllUserProfiles();
     }
-   
+
     public void banUser(Long userId) {
         userService.banUser(userId);
     }
@@ -84,22 +88,26 @@ public class AdminService {
     public void deleteUser(Long userId) {
         userService.deleteUser(userId);
     }
+
     public List<com.blog.blogger.models.Post> getAllPosts() {
         return postRepository.findAll();
     }
 
-    
     public void deletePost(Long postId) {
-        postRepository.deleteById(postId);
+        postService.deletePost(postId);
     }
 
-   
     public void hidePost(Long postId) {
         postService.hidePost(postId);
     }
 
-
     public void unhidePost(Long postId) {
         postService.unhidePost(postId);
     }
+
+    public Page<Post> getAllPosts(int page, int size) {
+        Pageable pageable = PageRequest.of(page - 1, size, Sort.by("createdAt").descending());
+        return postRepository.findAll(pageable);
+    }
+
 }

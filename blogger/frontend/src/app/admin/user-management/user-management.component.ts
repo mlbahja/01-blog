@@ -32,6 +32,7 @@ export class UserManagementComponent implements OnInit {
 
   loadUsers(): void {
     this.loading = true;
+
     this.adminService.getAllUsers().subscribe({
       next: (users) => {
         this.users = users;
@@ -75,8 +76,14 @@ export class UserManagementComponent implements OnInit {
   }
 
   banUser(user: UserProfile): void {
+    console.log("user role =====> " + user.role);
+    if (user.role == "ADMIN"){
+      /// handel admin to not delet him self 
+      this.toastService.show('Failed to ban Admin', 'error');
+      return;
+    }
     const confirmed = confirm(`Are you sure you want to ban "${user.username}"?`);
-    if (confirmed) {
+    if (confirmed ) {
       this.adminService.banUser(user.id).subscribe({
         next: () => {
           this.toastService.show(`User "${user.username}" banned successfully`, 'success');
@@ -90,6 +97,11 @@ export class UserManagementComponent implements OnInit {
   }
 
   unbanUser(user: UserProfile): void {
+    if (user.role == "ADMIN"){
+      /// handel admin to not delet him self 
+      this.toastService.show('Failed to unban Admin', 'error');
+      return;
+    }
     this.adminService.unbanUser(user.id).subscribe({
       next: () => {
         this.toastService.show(`User "${user.username}" unbanned successfully`, 'success');
@@ -102,6 +114,11 @@ export class UserManagementComponent implements OnInit {
   }
 
   promoteToAdmin(user: UserProfile): void {
+    if (user.role == "ADMIN"){
+      /// handel admin to not delet him self 
+      this.toastService.show('Failed to  Promte ', 'error');
+      return;
+    }
     const confirmed = confirm(
       `Are you sure you want to promote "${user.username}" to ADMIN?`
     );
@@ -119,6 +136,11 @@ export class UserManagementComponent implements OnInit {
   }
 
   demoteToUser(user: UserProfile): void {
+      if (user.role == "ADMIN"){
+      /// handel admin to not delet him self 
+      this.toastService.show('Failed to demote ', 'error');
+      return;
+    }
     const confirmed = confirm(
       `Are you sure you want to demote "${user.username}" to USER?`
     );
@@ -136,6 +158,12 @@ export class UserManagementComponent implements OnInit {
   }
 
   deleteUser(user: UserProfile): void {
+    if (user.role == "ADMIN"){
+      /// handel admin to not delet him self 
+      this.toastService.show('Failed to delet admin', 'error');
+      return;
+    }
+
     const confirmed = confirm(
       `Are you sure you want to DELETE "${user.username}"? This action cannot be undone.`
     );

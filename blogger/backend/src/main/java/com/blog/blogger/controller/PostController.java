@@ -1,19 +1,25 @@
 package com.blog.blogger.controller;
 
+import java.util.HashMap;
 import java.util.List;
-import org.springframework.http.HttpStatus;
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
+import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import  org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import  org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.blog.blogger.dto.CreateCommentDTO;
 import com.blog.blogger.dto.CreatePostDTO;
@@ -22,14 +28,8 @@ import com.blog.blogger.models.Post;
 import com.blog.blogger.models.User;
 import com.blog.blogger.repository.UserRepository;
 import com.blog.blogger.service.CommentService;
-import com.blog.blogger.service.PostService;
 import com.blog.blogger.service.FileStorageService;
-import org.springframework.data.domain.Page;
-import java.util.Map;
-import java.util.HashMap;
-import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.http.MediaType;
+import com.blog.blogger.service.PostService;
 
 @RestController
 @RequestMapping("/auth/posts")
@@ -115,27 +115,45 @@ public class PostController {
             @RequestParam("file") MultipartFile file,
             @AuthenticationPrincipal User currentUser) {
 
-        // Check if user is banned
-        checkUserBanned(currentUser);
+        try {
+            // Check if user is banned
+            checkUserBanned(currentUser);
 
-        // Validate file
-        if (file.isEmpty()) {
-            throw new RuntimeException("Please select a file to upload");
+            // Validate file
+            if (file == null || file.isEmpty()) {
+                throw new RuntimeException("Please select a file to upload");
+            }
+
+            String contentType = file.getContentType();
+            if (contentType == null || (!contentType.startsWith("image/") && !contentType.startsWith("video/"))) {
+                throw new RuntimeException("Only image or video files are allowed");
+            }
+
+            long maxSizeBytes = 50L * 1024L * 1024L;
+            if (file.getSize() > maxSizeBytes) {
+                throw new RuntimeException("File size must not exceed 50MB");
+            }
+
+            // Store file
+            String filename = fileStorageService.storeFile(file);
+            String mediaType = fileStorageService.determineMediaType(file);
+
+            // Build the URL
+            String fileUrl = "/uploads/" + filename;
+
+            Map<String, String> response = new HashMap<>();
+            response.put("filename", filename);
+            response.put("url", fileUrl);
+            response.put("mediaType", mediaType);
+
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("message", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", "Failed to upload media"));
         }
-
-        // Store file
-        String filename = fileStorageService.storeFile(file);
-        String mediaType = fileStorageService.determineMediaType(file);
-
-        // Build the URL
-        String fileUrl = "/uploads/" + filename;
-
-        Map<String, String> response = new HashMap<>();
-        response.put("filename", filename);
-        response.put("url", fileUrl);
-        response.put("mediaType", mediaType);
-
-        return ResponseEntity.ok(response);
     }
 
     /**
@@ -154,10 +172,11 @@ public class PostController {
             Post post = postService.getPostById(id)
                     .orElseThrow(() -> new RuntimeException("Post not found with id: " + id));
 
-            // Check if user owns the post OR is admin
+            // Check if user owns the post or is admin
             boolean isOwner = post.getAuthor().getId().equals(currentUser.getId());
             boolean isAdmin = currentUser.getRole().name().equals("ADMIN");
 
+            //should edite just if you are the owner of the post 
             if (!isOwner && !isAdmin) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN)
                         .body(Map.of(
@@ -243,8 +262,7 @@ public ResponseEntity<?> deletePost(@PathVariable Long id,
                 .post(post)
                 .build();
 
-        post.addComment(comment);
-        postService.createPost(post);
+        commentService.addComment(comment);
 
         // Notify post author about the new comment
         notificationService.notifyUserAboutComment(post, currentUser);
@@ -255,6 +273,29 @@ public ResponseEntity<?> deletePost(@PathVariable Long id,
             "commentContent", comment.getContent(),
             "author", currentUser.getUsername()
         ));
+    }
+
+    /**
+     * GET /auth/posts/{postId}/comments?page=0&size=5
+     * Get paginated comments for a post
+     */
+    @GetMapping("/{postId}/comments")
+    public ResponseEntity<Map<String, Object>> getComments(
+            @PathVariable Long postId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size) {
+        Post post = postService.getPostById(postId)
+                .orElseThrow(() -> new RuntimeException("Post not found with id: " + postId));
+
+        Page<Comment> commentPage = commentService.getCommentsByPost(post, page, size);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("comments", commentPage.getContent());
+        response.put("total", commentPage.getTotalElements());
+        response.put("totalPages", commentPage.getTotalPages());
+        response.put("currentPage", page);
+
+        return ResponseEntity.ok(response);
     }
 
     /**
@@ -343,4 +384,62 @@ public ResponseEntity<?> deletePost(@PathVariable Long id,
         boolean liked = commentService.hasUserLikedComment(commentId, currentUser);
         return ResponseEntity.ok(liked);
     }
+
+    /**
+ * DELETE /auth/posts/{postId}/comments/{commentId}
+ * Delete a comment (only by the author, post author, or admin)
+ */
+@DeleteMapping("/{postId}/comments/{commentId}")
+public ResponseEntity<?> deleteComment(@PathVariable Long postId,
+                                       @PathVariable Long commentId,
+                                       @AuthenticationPrincipal User currentUser) {
+    try {
+        // Check if user is banned
+        checkUserBanned(currentUser);
+        
+        // Get the post
+        Post post = postService.getPostById(postId)
+                .orElseThrow(() -> new RuntimeException("Post not found with id: " + postId));
+        
+        // Get the comment
+        Comment comment = commentService.getCommentById(commentId)
+                .orElseThrow(() -> new RuntimeException("Comment not found with id: " + commentId));
+        
+        // Verify comment belongs to the post
+        if (!comment.getPost().getId().equals(post.getId())) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", "Comment does not belong to the specified post"));
+        }
+        
+        // Check authorization: comment owner, post owner, or admin can delete
+        boolean isCommentOwner = comment.getAuthor().getId().equals(currentUser.getId());
+        boolean isPostOwner = post.getAuthor().getId().equals(currentUser.getId());
+        boolean isAdmin = currentUser.getRole().name().equals("ADMIN");
+        
+        if (!isCommentOwner && !isPostOwner && !isAdmin) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of(
+                        "error", "Forbidden",
+                        "message", "You are not authorized to delete this comment"
+                    ));
+        }
+        
+        // Delete the comment
+        commentService.deleteComment(commentId);
+        
+        return ResponseEntity.ok(Map.of(
+            "success", true,
+            "message", "Comment deleted successfully"
+        ));
+        
+    } catch (RuntimeException e) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(Map.of("error", e.getMessage()));
+    } catch (Exception e) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", "Internal server error: " + e.getMessage()));
+    }
+
+    }
+    
 }
